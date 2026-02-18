@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id            Int       @id @default(autoincrement())
+  nombre        String
+  email         String    @unique
+  telefono      String?
+  fechaRegistro DateTime  @default(now())
+  citas         Cita[]
+  pedidos       Pedido[]
+}
+
+model Servicio {
+  id              Int       @id @default(autoincrement())
+  nombre          String
+  descripcion     String?
+  duracionMinutos Int
+  precio          Int
+  citas           Cita[]
+}
+
+model Producto {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Float
+  stock       Int      @default(0)
+  imagenUrl   String?
+
+  // antes:
+  // categoria   String   // 'ITEM' | 'TERAPIA'
+  // ahora (opcional):
+  categoria   String?  // 'ITEM' | 'TERAPIA'
+
+  estado      String   @default("ACTIVO")
+  pedidos     PedidoProducto[]
+}
+
+
+model Cita {
+  id         Int      @id @default(autoincrement())
+  fechaHora  DateTime
+  estado     String   @default("PENDIENTE")
+  notas      String?
+  cliente    Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId  Int
+  servicio   Servicio @relation(fields: [servicioId], references: [id])
+  servicioId Int
+  creadaEn   DateTime @default(now())
+}
+
+model Pedido {
+  id        Int              @id @default(autoincrement())
+  fecha     DateTime         @default(now())
+  estado    String           @default("PENDIENTE") // PENDIENTE, PAGADO, CANCELADO
+  total     Int
+  cliente   Cliente          @relation(fields: [clienteId], references: [id])
+  clienteId Int
+  items     PedidoProducto[]
+}
+
+model PedidoProducto {
+  id         Int      @id @default(autoincrement())
+  cantidad   Int
+  precioUnit Int
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId   Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+  productoId Int
+}
