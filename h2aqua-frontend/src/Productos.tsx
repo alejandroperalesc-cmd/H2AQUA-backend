@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import { obtenerProductos } from './api';
+import { obtenerProductos, API_URL } from './api';
 import type { Producto } from './api';
-
-const API_URL = 'http://localhost:3000'; // ajusta si tu backend corre en otro host/puerto
 
 function Productos() {
   const [productos, setProductos] = useState<Producto[]>([]);

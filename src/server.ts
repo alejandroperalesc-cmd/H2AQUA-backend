@@ -6,12 +6,31 @@ import path from 'path';
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = 3000;
 
-// CORS para permitir el frontend
+// Puerto y URL base (local o Render)
+const PORT = process.env.PORT || 3000;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+
+// CORS para permitir frontend local y en producción
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://h2aqua.com.mx',
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Peticiones sin origin (ej. pruebas internas) se permiten
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
 }));
+
 
 // Middleware JSON
 app.use(express.json());
@@ -126,12 +145,13 @@ app.get("/servicios", async (req, res) => {
 
 // ---------- SUBIDA DE IMÁGENES ----------
 
+
 app.post('/upload-imagen', upload.single('imagen'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No se recibió ningún archivo' });
   }
 
-  const url = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+  const url = `${BASE_URL}/uploads/${req.file.filename}`;
   res.json({ url });
 });
 
@@ -426,5 +446,5 @@ app.get("/pedidos", async (req, res) => {
 // ---------- INICIO DEL SERVIDOR ----------
 
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`Servidor escuchando en ${BASE_URL}`);
 });

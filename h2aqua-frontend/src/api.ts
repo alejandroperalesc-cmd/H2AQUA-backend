@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL as string;
+export const API_URL = import.meta.env.VITE_API_URL as string;
 
 export type Producto = {
   id: number;
@@ -7,7 +7,7 @@ export type Producto = {
   precio: number;
   stock: number;
   imagenUrl?: string | null;
-  estado: 'ACTIVO' | 'AGOTADO' | 'INACTIVO'; // <- AÑADIR ESTO
+  estado: 'ACTIVO' | 'AGOTADO' | 'INACTIVO';
 };
 
 export async function obtenerProductos(): Promise<Producto[]> {

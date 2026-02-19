@@ -1,8 +1,7 @@
 // TiendaProductos.tsx
 import React, { useEffect, useState } from 'react';
 import type { ItemCarrito } from './App';
-
-const API_URL = 'http://localhost:3000';
+import { API_URL } from './api';
 
 interface ProductoTienda {
   id: number;

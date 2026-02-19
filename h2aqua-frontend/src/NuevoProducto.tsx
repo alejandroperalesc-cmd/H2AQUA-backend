@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
+import { API_URL } from './api';
 
 // mismos colores que en App.tsx
 const COLOR_TIFFANY = '#81D8D0';
 const COLOR_TURQUESA_CLARO = '#9DE7D7';
 const COLOR_TEXTO = '#111827';
 const COLOR_TEXTO_SUAVE = '#4B5563';
-
-const API_URL = 'http://localhost:3000';
 
 type NuevoProductoForm = {
   nombre: string;
