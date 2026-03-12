@@ -3,8 +3,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { API_URL } from './api';
 import {
-  BG_CARD, BG_CARD_ALT,
-  GOLD, GOLD_GLOW, GOLD_SUBTLE,
+  BG_CARD,
+  GOLD,
   TEAL,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER,

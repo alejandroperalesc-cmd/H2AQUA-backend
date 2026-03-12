@@ -6,8 +6,7 @@ import { SECCIONES } from './secciones';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_DARK, BG_CARD, BG_CARD_ALT, BG_HOVER,
-  GOLD, GOLD_LIGHT, GOLD_GLOW, GOLD_SUBTLE,
-  TEAL,
+  GOLD, GOLD_LIGHT, GOLD_GLOW,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
 } from './theme';
@@ -201,7 +200,7 @@ function TarjetaProducto({
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
-const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito, onAgregarAlCarrito }) => {
+const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, onAgregarAlCarrito }) => {
   const isMobile = useIsMobile();
   const [productos, setProductos] = useState<ProductoTienda[]>([]);
   const [cargando, setCargando] = useState(true);
