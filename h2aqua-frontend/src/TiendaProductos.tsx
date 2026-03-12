@@ -2,6 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import type { ItemCarrito } from './App';
 import { API_URL } from './api';
+import { SECCIONES } from './secciones';
+import { useIsMobile } from './useIsMobile';
+import {
+  BG_DARK, BG_CARD, BG_CARD_ALT, BG_HOVER,
+  GOLD, GOLD_LIGHT, GOLD_GLOW, GOLD_SUBTLE,
+  TEAL,
+  TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
+  BORDER, BORDER_SUBTLE,
+} from './theme';
 
 interface ProductoTienda {
   id: number;
@@ -9,9 +18,10 @@ interface ProductoTienda {
   descripcion: string | null;
   precio: number;
   stock: number;
-  categoria: string | null; // 'TERAPIA' | 'ITEM' | otros
+  categoria: string | null;
   imagenUrl: string | null;
   estado: 'ACTIVO' | 'AGOTADO' | 'INACTIVO';
+  seccion: number;
 }
 
 interface TiendaProductosProps {
@@ -19,486 +29,295 @@ interface TiendaProductosProps {
   onAgregarAlCarrito: (item: Omit<ItemCarrito, 'cantidad'>) => void;
 }
 
-const TiendaProductos: React.FC<TiendaProductosProps> = ({
-  carrito,
+// ─── Tarjeta de producto ──────────────────────────────────────────────────────
+
+function TarjetaProducto({
+  p,
   onAgregarAlCarrito,
-}) => {
+}: {
+  p: ProductoTienda;
+  onAgregarAlCarrito: (item: Omit<ItemCarrito, 'cantidad'>) => void;
+}) {
+  const agotado = p.estado === 'AGOTADO' || p.stock <= 0;
+  const [hover, setHover] = useState(false);
+  const isMobile = useIsMobile();
+
+  return (
+    <article
+      style={{
+        borderRadius: '1.25rem',
+        border: hover ? BORDER : BORDER_SUBTLE,
+        backgroundColor: hover ? BG_HOVER : BG_CARD,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxShadow: hover
+          ? `0 24px 48px rgba(0,0,0,0.35), 0 0 0 1px ${GOLD_GLOW}`
+          : '0 4px 20px rgba(0,0,0,0.25)',
+        transform: hover ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'all 0.22s ease',
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {/* Imagen */}
+      <div
+        style={{
+          width: '100%',
+          height: isMobile ? '150px' : '220px',
+          backgroundColor: BG_CARD_ALT,
+          flexShrink: 0,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        {p.imagenUrl ? (
+          <img
+            src={p.imagenUrl}
+            alt={p.nombre}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              transition: 'transform 0.35s ease',
+              transform: hover ? 'scale(1.06)' : 'scale(1)',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: TEXT_MUTED,
+              fontSize: '0.8rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Sin imagen
+          </div>
+        )}
+        {/* Acento dorado inferior al hacer hover */}
+        {hover && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '2px',
+              background: `linear-gradient(90deg, ${GOLD}, transparent)`,
+            }}
+          />
+        )}
+      </div>
+
+      {/* Contenido */}
+      <div
+        style={{
+          padding: isMobile ? '0.85rem 1rem 1rem' : '1.3rem 1.5rem 1.6rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.45rem',
+          flexGrow: 1,
+        }}
+      >
+        {/* Título */}
+        <h3
+          style={{
+            fontSize: isMobile ? '0.88rem' : '1.05rem',
+            fontWeight: 600,
+            margin: 0,
+            color: TEXT_PRIMARY,
+            lineHeight: 1.3,
+          }}
+        >
+          {p.nombre}
+        </h3>
+
+        {/* Descripción — oculta en móvil para ahorrar espacio */}
+        {p.descripcion && !isMobile && (
+          <p
+            style={{
+              margin: 0,
+              color: TEXT_SECONDARY,
+              fontSize: '0.875rem',
+              lineHeight: 1.65,
+              flexGrow: 1,
+            }}
+          >
+            {p.descripcion}
+          </p>
+        )}
+
+        {/* Precio */}
+        <p style={{ margin: '0.2rem 0 0' }}>
+          <span
+            style={{
+              fontSize: isMobile ? '1.1rem' : '1.4rem',
+              fontWeight: 700,
+              color: GOLD,
+            }}
+          >
+            ${p.precio.toLocaleString('es-MX')}
+          </span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 400, color: TEXT_MUTED, marginLeft: '0.25rem' }}>
+            MXN
+          </span>
+        </p>
+
+        {/* Botón */}
+        <button
+          disabled={agotado}
+          onClick={() => onAgregarAlCarrito({ id: p.id, nombre: p.nombre, precio: p.precio, imagenUrl: p.imagenUrl })}
+          style={{
+            marginTop: '0.4rem',
+            width: '100%',
+            padding: isMobile ? '0.6rem 0.5rem' : '0.8rem 1rem',
+            borderRadius: '0.75rem',
+            border: 'none',
+            background: agotado
+              ? 'rgba(255,255,255,0.05)'
+              : `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
+            color: agotado ? TEXT_MUTED : BG_DARK,
+            cursor: agotado ? 'not-allowed' : 'pointer',
+            fontSize: isMobile ? '0.78rem' : '0.92rem',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            boxShadow: agotado ? 'none' : `0 4px 16px ${GOLD_GLOW}`,
+            transition: 'opacity 0.15s ease',
+          }}
+        >
+          {agotado ? 'No disponible' : '+ Agregar'}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
+
+const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito, onAgregarAlCarrito }) => {
+  const isMobile = useIsMobile();
   const [productos, setProductos] = useState<ProductoTienda[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function cargarProductosTienda() {
-    try {
-      setCargando(true);
-      setError(null);
-
-      const resp = await fetch(`${API_URL}/productos-tienda`);
-      if (!resp.ok) {
-        throw new Error('Error al obtener productos para tienda');
-      }
-      const data: ProductoTienda[] = await resp.json();
-      setProductos(data);
-    } catch (e) {
-      console.error(e);
-      setError('No se pudieron cargar los productos de la tienda');
-    } finally {
-      setCargando(false);
-    }
-  }
-
   useEffect(() => {
-    cargarProductosTienda();
+    (async () => {
+      try {
+        setCargando(true);
+        const resp = await fetch(`${API_URL}/productos-tienda`);
+        if (!resp.ok) throw new Error();
+        setProductos(await resp.json());
+      } catch {
+        setError('No se pudieron cargar los productos de la tienda');
+      } finally {
+        setCargando(false);
+      }
+    })();
   }, []);
-
-  const terapias = productos.filter(
-    (p) => p.categoria === 'TERAPIA' && p.estado !== 'INACTIVO',
-  );
-  const items = productos.filter(
-    (p) => p.categoria === 'ITEM' && p.estado !== 'INACTIVO',
-  );
 
   if (cargando) {
     return (
-      <div
-        style={{
-          maxWidth: '1120px',
-          margin: '0 auto',
-          padding: '2.5rem 0 4rem',
-        }}
-      >
-        <p>Cargando productos de la tienda...</p>
+      <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '2.5rem 0 4rem' }}>
+        <p style={{ color: TEXT_MUTED }}>Cargando productos…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        style={{
-          maxWidth: '1120px',
-          margin: '0 auto',
-          padding: '2.5rem 0 4rem',
-        }}
-      >
-        <p>{error}</p>
+      <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '2.5rem 0 4rem' }}>
+        <p style={{ color: '#f87171' }}>{error}</p>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        maxWidth: '1120px',
-        margin: '0 auto',
-        padding: '2.5rem 0 4rem',
-      }}
-    >
-      <header
-        style={{
-          marginBottom: '1.5rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '2rem',
-            marginBottom: '0.25rem',
-            color: '#111827',
-          }}
-        >
+    <div style={{ maxWidth: '1120px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 4rem' }}>
+
+      {/* Encabezado */}
+      <header style={{ marginBottom: isMobile ? '1.75rem' : '2.5rem' }}>
+        <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+          H2AQUA
+        </p>
+        <h1 style={{ fontSize: isMobile ? '1.6rem' : '2.2rem', fontWeight: 300, letterSpacing: '0.04em', color: TEXT_PRIMARY, marginBottom: '0.4rem' }}>
           Tienda en línea
         </h1>
-        <p
-          style={{
-            margin: 0,
-            color: '#4B5563',
-            fontSize: '0.98rem',
-          }}
-        >
+        <p style={{ margin: 0, color: TEXT_SECONDARY, fontSize: '0.95rem' }}>
           Elige entre terapias y productos para complementar tu experiencia.
         </p>
       </header>
 
-      {/* Sección de Terapias */}
-      <section
-        style={{
-          marginBottom: '2.5rem',
-        }}
-      >
-        <h2
-          style={{
-            fontSize: '1.4rem',
-            marginBottom: '0.75rem',
-            color: '#111827',
-          }}
-        >
-          Terapias
-        </h2>
+      {/* 4 Secciones */}
+      {SECCIONES.map((sec) => {
+        const productosSec = productos.filter((p) => p.seccion === sec.numero);
 
-        {terapias.length === 0 && (
-          <p
-            style={{
-              margin: 0,
-              color: '#6B7280',
-              fontSize: '0.95rem',
-            }}
-          >
-            No hay terapias disponibles por el momento.
-          </p>
-        )}
+        return (
+          <section key={sec.numero} style={{ marginBottom: isMobile ? '2.5rem' : '3.5rem' }}>
+            {/* Encabezado de sección */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  width: '3px',
+                  height: '22px',
+                  borderRadius: '999px',
+                  background: `linear-gradient(180deg, ${GOLD}, transparent)`,
+                  flexShrink: 0,
+                }}
+              />
+              <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.3rem', margin: 0, color: TEXT_PRIMARY, fontWeight: 500 }}>
+                {sec.nombre}
+              </h2>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  color: TEXT_MUTED,
+                  backgroundColor: BORDER_SUBTLE,
+                  padding: '0.2rem 0.55rem',
+                  borderRadius: '999px',
+                  border: BORDER_SUBTLE,
+                }}
+              >
+                {productosSec.length} producto{productosSec.length !== 1 ? 's' : ''}
+              </span>
+            </div>
 
-        {terapias.length > 0 && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: '1.5rem',
-            }}
-          >
-            {terapias.map((p) => {
-              const agotado = p.estado === 'AGOTADO' || p.stock <= 0;
-
-              return (
-                <article
-                  key={p.id}
-                  style={{
-                    borderRadius: '1rem',
-                    border: '1px solid #e5e7eb',
-                    backgroundColor: '#ffffff',
-                    padding: '1.25rem 1.4rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    boxShadow:
-                      '0 18px 35px rgba(15, 23, 42, 0.06), 0 4px 10px rgba(15, 23, 42, 0.03)',
-                  }}
-                >
-                  {p.imagenUrl && (
-                    <img
-                      src={p.imagenUrl}
-                      alt={p.nombre}
-                      style={{
-                        width: '100%',
-                        maxHeight: '180px',
-                        objectFit: 'cover',
-                        borderRadius: '0.8rem',
-                        marginBottom: '0.6rem',
-                      }}
-                    />
-                  )}
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    <div>
-                      <h3
-                        style={{
-                          fontSize: '1.05rem',
-                          marginBottom: '0.2rem',
-                          color: '#111827',
-                        }}
-                      >
-                        {p.nombre}
-                      </h3>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          marginTop: '0.15rem',
-                          padding: '0.2rem 0.55rem',
-                          borderRadius: '999px',
-                          backgroundColor: '#A2E4B8',
-                          color: '#111827',
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        Terapia
-                      </span>
-                    </div>
-
-                    <p
-                      style={{
-                        margin: 0,
-                        fontWeight: 600,
-                        color: '#111827',
-                      }}
-                    >
-                      ${p.precio} MXN
-                    </p>
-                  </div>
-
-                  {p.descripcion && (
-                    <p
-                      style={{
-                        margin: 0,
-                        color: '#4B5563',
-                        fontSize: '0.9rem',
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      {p.descripcion}
-                    </p>
-                  )}
-
-                  <div
-                    style={{
-                      marginTop: '0.5rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '0.85rem',
-                        color: agotado ? '#b91c1c' : '#4B5563',
-                      }}
-                    >
-                      {agotado
-                        ? 'No disponible temporalmente'
-                        : `Lugares disponibles: ${p.stock}`}
-                    </span>
-
-                    <button
-                      disabled={agotado}
-                      onClick={() =>
-                        onAgregarAlCarrito({
-                          id: p.id,
-                          nombre: p.nombre,
-                          precio: p.precio,
-                        })
-                      }
-                      style={{
-                        padding: '0.55rem 1.2rem',
-                        borderRadius: '999px',
-                        border: 'none',
-                        backgroundColor: agotado ? '#e5e7eb' : '#81D8D0',
-                        color: agotado ? '#9ca3af' : '#ffffff',
-                        cursor: agotado ? 'not-allowed' : 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {agotado ? 'No disponible' : 'Añadir al carrito'}
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Sección de Productos */}
-      <section>
-        <h2
-          style={{
-            fontSize: '1.4rem',
-            marginBottom: '0.75rem',
-            color: '#111827',
-          }}
-        >
-          Productos
-        </h2>
-
-        {items.length === 0 && (
-          <p
-            style={{
-              margin: 0,
-              color: '#6B7280',
-              fontSize: '0.95rem',
-            }}
-          >
-            No hay productos disponibles por el momento.
-          </p>
-        )}
-
-        {items.length > 0 && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: '1.5rem',
-            }}
-          >
-            {items.map((p) => {
-              const agotado = p.estado === 'AGOTADO' || p.stock <= 0;
-
-              return (
-                <article
-                  key={p.id}
-                  style={{
-                    borderRadius: '1rem',
-                    border: '1px solid #e5e7eb',
-                    backgroundColor: '#ffffff',
-                    padding: '1.25rem 1.4rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    boxShadow:
-                      '0 18px 35px rgba(15, 23, 42, 0.06), 0 4px 10px rgba(15, 23, 42, 0.03)',
-                  }}
-                >
-                  {p.imagenUrl && (
-                    <img
-                      src={p.imagenUrl}
-                      alt={p.nombre}
-                      style={{
-                        width: '100%',
-                        maxHeight: '180px',
-                        objectFit: 'cover',
-                        borderRadius: '0.8rem',
-                        marginBottom: '0.6rem',
-                      }}
-                    />
-                  )}
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    <div>
-                      <h3
-                        style={{
-                          fontSize: '1.05rem',
-                          marginBottom: '0.2rem',
-                          color: '#111827',
-                        }}
-                      >
-                        {p.nombre}
-                      </h3>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          marginTop: '0.15rem',
-                          padding: '0.2rem 0.55rem',
-                          borderRadius: '999px',
-                          backgroundColor: '#E5E7EB',
-                          color: '#111827',
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        Producto
-                      </span>
-                    </div>
-
-                    <p
-                      style={{
-                        margin: 0,
-                        fontWeight: 600,
-                        color: '#111827',
-                      }}
-                    >
-                      ${p.precio} MXN
-                    </p>
-                  </div>
-
-                  {p.descripcion && (
-                    <p
-                      style={{
-                        margin: 0,
-                        color: '#4B5563',
-                        fontSize: '0.9rem',
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      {p.descripcion}
-                    </p>
-                  )}
-
-                  <div
-                    style={{
-                      marginTop: '0.5rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '0.85rem',
-                        color: agotado ? '#b91c1c' : '#4B5563',
-                      }}
-                    >
-                      {agotado
-                        ? 'Agotado temporalmente'
-                        : `Stock: ${p.stock} pzas`}
-                    </span>
-
-                    <button
-                      disabled={agotado}
-                      onClick={() =>
-                        onAgregarAlCarrito({
-                          id: p.id,
-                          nombre: p.nombre,
-                          precio: p.precio,
-                        })
-                      }
-                      style={{
-                        padding: '0.55rem 1.2rem',
-                        borderRadius: '999px',
-                        border: 'none',
-                        backgroundColor: agotado ? '#e5e7eb' : '#81D8D0',
-                        color: agotado ? '#9ca3af' : '#ffffff',
-                        cursor: agotado ? 'not-allowed' : 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {agotado ? 'No disponible' : 'Añadir al carrito'}
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Resumen simple de carrito en esta vista */}
-      <section
-        style={{
-          marginTop: '2.5rem',
-          paddingTop: '1.5rem',
-          borderTop: '1px solid #e5e7eb',
-        }}
-      >
-        <h2
-          style={{
-            fontSize: '1.2rem',
-            marginBottom: '0.75rem',
-            color: '#111827',
-          }}
-        >
-          Carrito
-        </h2>
-        {carrito.length === 0 && <p>No hay productos en el carrito</p>}
-        {carrito.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.35rem',
-            }}
-          >
-            {carrito.map((item) => (
-              <div key={item.id}>
-                {item.nombre} x {item.cantidad} = $
-                {item.precio * item.cantidad}
+            {productosSec.length === 0 ? (
+              <p
+                style={{
+                  margin: 0,
+                  color: TEXT_MUTED,
+                  fontSize: '0.9rem',
+                  paddingLeft: '1.25rem',
+                  borderLeft: `2px solid ${BORDER_SUBTLE}`,
+                }}
+              >
+                Sin productos en esta sección por el momento.
+              </p>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(260px, 1fr))',
+                  gap: isMobile ? '1rem' : '1.75rem',
+                  alignItems: 'start',
+                }}
+              >
+                {productosSec.map((p) => (
+                  <TarjetaProducto key={p.id} p={p} onAgregarAlCarrito={onAgregarAlCarrito} />
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            )}
+          </section>
+        );
+      })}
+
     </div>
   );
 };

@@ -170,6 +170,7 @@ app.post("/productos", async (req, res) => {
       stock,
       imagenUrl,
       categoria, // 'ITEM' | 'TERAPIA'
+      seccion,   // número de sección en la tienda (1-4)
     } = req.body;
 
     if (!nombre || !precio) {
@@ -193,6 +194,7 @@ app.post("/productos", async (req, res) => {
         imagenUrl,
         categoria,
         estado: "ACTIVO",
+        seccion: seccion ?? 1,
       },
     });
 
@@ -214,6 +216,32 @@ app.get("/productos", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al obtener productos" });
+  }
+});
+
+// Actualizar datos de un producto
+app.patch("/productos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, descripcion, precio, imagenUrl, categoria, seccion } = req.body;
+
+    const data: Record<string, any> = {};
+    if (nombre !== undefined)      data.nombre      = nombre;
+    if (descripcion !== undefined) data.descripcion = descripcion;
+    if (precio !== undefined)      data.precio      = Number(precio);
+    if (imagenUrl !== undefined)   data.imagenUrl   = imagenUrl;
+    if (categoria !== undefined)   data.categoria   = categoria;
+    if (seccion !== undefined)     data.seccion     = Number(seccion);
+
+    const producto = await prisma.producto.update({
+      where: { id: Number(id) },
+      data,
+    });
+
+    res.json(producto);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al actualizar producto" });
   }
 });
 

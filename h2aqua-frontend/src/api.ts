@@ -8,6 +8,8 @@ export type Producto = {
   stock: number;
   imagenUrl?: string | null;
   estado: 'ACTIVO' | 'AGOTADO' | 'INACTIVO';
+  seccion: number;
+  categoria?: string | null;
 };
 
 export async function obtenerProductos(): Promise<Producto[]> {
