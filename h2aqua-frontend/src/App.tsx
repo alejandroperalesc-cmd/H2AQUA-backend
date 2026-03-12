@@ -26,7 +26,7 @@ const COLOR_TEXTO_TITULO = '#0E7490';
 const COLOR_TEXTO = '#1F2933';
 const COLOR_TEXTO_SUAVE = '#6B7280';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Home({ irA }: { irA: (vista: Vista) => void }) {
   return (
