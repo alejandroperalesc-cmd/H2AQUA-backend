@@ -249,7 +249,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           borderRadius: '1.25rem',
           overflow: 'hidden',
           marginBottom: isMobile ? '1.75rem' : '2.5rem',
-          padding: isMobile ? '1.75rem 1.5rem 1.75rem 2rem' : '2.25rem 2.5rem 2.25rem 3rem',
+          padding: isMobile ? '2rem 1.5rem 2rem 2rem' : '2.75rem 3rem 2.75rem 3.5rem',
           backgroundColor: '#eaf6f7',
         }}
       >
@@ -263,14 +263,53 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
         <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,183,196,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative' }}>
-          <p style={{ margin: '0 0 0.45rem', fontSize: '0.68rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+          {/* Marca */}
+          <p style={{
+            margin: '0 0 0.6rem',
+            fontSize: isMobile ? '1rem' : '1.25rem',
+            letterSpacing: '0.35em',
+            textTransform: 'uppercase',
+            color: TEAL,
+            fontWeight: 700,
+          }}>
             H2AQUA
           </p>
-          <h1 style={{ margin: '0 0 0.4rem', fontSize: isMobile ? '1.55rem' : '2rem', fontWeight: 300, letterSpacing: '0.03em', color: TEXT_PRIMARY }}>
-            Tienda en línea
+          {/* Título principal */}
+          <h1 style={{
+            margin: '0 0 0.6rem',
+            fontSize: isMobile ? '2rem' : '2.85rem',
+            fontWeight: 200,
+            letterSpacing: '0.04em',
+            color: TEXT_PRIMARY,
+            lineHeight: 1.1,
+          }}>
+            Tienda{' '}
+            <span style={{
+              fontWeight: 600,
+              background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              en línea
+            </span>
           </h1>
-          <p style={{ margin: 0, color: TEXT_SECONDARY, fontSize: '0.93rem' }}>
-            Elige entre terapias y productos para complementar tu experiencia.
+          {/* Separador */}
+          <div style={{
+            width: isMobile ? '40px' : '52px',
+            height: '2px',
+            background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`,
+            marginBottom: '0.75rem',
+            borderRadius: '999px',
+          }} />
+          {/* Subtítulo */}
+          <p style={{
+            margin: 0,
+            color: TEXT_SECONDARY,
+            fontSize: isMobile ? '0.88rem' : '1rem',
+            lineHeight: 1.6,
+            maxWidth: '480px',
+          }}>
+            Terapias y productos de hidrógeno molecular para elevar tu bienestar.
           </p>
         </div>
       </header>
