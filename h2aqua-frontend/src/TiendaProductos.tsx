@@ -7,6 +7,7 @@ import { useIsMobile } from './useIsMobile';
 import {
   BG_CARD, BG_CARD_ALT, BG_HOVER,
   GOLD, GOLD_LIGHT, GOLD_GLOW,
+  TEAL,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
 } from './theme';
@@ -240,29 +241,37 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
   return (
     <div style={{ maxWidth: '1120px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 4rem' }}>
 
-      {/* Encabezado — banner gradiente */}
+      {/* Encabezado — banner imagen difuminada */}
       <header
         style={{
           position: 'relative',
           borderRadius: '1.25rem',
           overflow: 'hidden',
           marginBottom: isMobile ? '1.75rem' : '2.5rem',
-          padding: isMobile ? '1.75rem 1.5rem' : '2.25rem 2.5rem',
-          background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #009aaa 75%, #00B7C4 100%)',
+          padding: isMobile ? '1.75rem 1.5rem 1.75rem 2rem' : '2.25rem 2.5rem 2.25rem 3rem',
+          backgroundColor: '#eaf6f7',
         }}
       >
-        {/* Burbujas decorativas */}
-        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, rgba(255,255,255,0.3), transparent)', pointerEvents: 'none' }} />
-        <p style={{ margin: '0 0 0.5rem', fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>
-          H2AQUA
-        </p>
-        <h1 style={{ margin: '0 0 0.4rem', fontSize: isMobile ? '1.6rem' : '2.1rem', fontWeight: 300, letterSpacing: '0.04em', color: '#ffffff' }}>
-          Tienda en línea
-        </h1>
-        <p style={{ margin: 0, color: 'rgba(255,255,255,0.70)', fontSize: '0.95rem' }}>
-          Elige entre terapias y productos para complementar tu experiencia.
-        </p>
+        {/* Imagen difuminada */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px)', transform: 'scale(1.12)', opacity: 0.13, pointerEvents: 'none' }} />
+        {/* Wash teal tenue */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(0,109,119,0.10) 0%, rgba(0,183,196,0.07) 100%)', pointerEvents: 'none' }} />
+        {/* Línea izquierda */}
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: `linear-gradient(180deg, ${TEAL}, ${GOLD})`, pointerEvents: 'none' }} />
+        {/* Círculo decorativo */}
+        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,183,196,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        <div style={{ position: 'relative' }}>
+          <p style={{ margin: '0 0 0.45rem', fontSize: '0.68rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+            H2AQUA
+          </p>
+          <h1 style={{ margin: '0 0 0.4rem', fontSize: isMobile ? '1.55rem' : '2rem', fontWeight: 300, letterSpacing: '0.03em', color: TEXT_PRIMARY }}>
+            Tienda en línea
+          </h1>
+          <p style={{ margin: 0, color: TEXT_SECONDARY, fontSize: '0.93rem' }}>
+            Elige entre terapias y productos para complementar tu experiencia.
+          </p>
+        </div>
       </header>
 
       {/* 4 Secciones */}
@@ -271,32 +280,52 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
 
         return (
           <section key={sec.numero} style={{ marginBottom: isMobile ? '2.5rem' : '3.5rem' }}>
-            {/* Encabezado de sección */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-              <div
-                style={{
-                  width: '3px',
-                  height: '22px',
-                  borderRadius: '999px',
-                  background: `linear-gradient(180deg, ${GOLD}, transparent)`,
-                  flexShrink: 0,
-                }}
-              />
-              <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.3rem', margin: 0, color: TEXT_PRIMARY, fontWeight: 500 }}>
-                {sec.nombre}
-              </h2>
-              <span
-                style={{
-                  fontSize: '0.75rem',
-                  color: TEXT_MUTED,
-                  backgroundColor: BORDER_SUBTLE,
-                  padding: '0.2rem 0.55rem',
-                  borderRadius: '999px',
-                  border: BORDER_SUBTLE,
-                }}
-              >
-                {productosSec.length} producto{productosSec.length !== 1 ? 's' : ''}
-              </span>
+            {/* Encabezado de sección — fondo imagen difuminada tenue */}
+            <div
+              style={{
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: '0.9rem',
+                marginBottom: '1.25rem',
+                padding: isMobile ? '0.85rem 1rem 0.85rem 1.25rem' : '1rem 1.5rem 1rem 1.5rem',
+                backgroundColor: '#edf7f8',
+              }}
+            >
+              {/* Imagen difuminada */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                backgroundImage: 'url("/hero-hidrogeno.jpg")',
+                backgroundSize: 'cover', backgroundPosition: 'center',
+                filter: 'blur(16px)', transform: 'scale(1.15)',
+                opacity: 0.10, pointerEvents: 'none',
+              }} />
+              {/* Wash teal */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(90deg, rgba(0,109,119,0.08) 0%, rgba(0,183,196,0.05) 100%)',
+                pointerEvents: 'none',
+              }} />
+              {/* Línea izquierda */}
+              <div style={{
+                position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
+                background: `linear-gradient(180deg, ${TEAL}, ${GOLD})`,
+                pointerEvents: 'none',
+              }} />
+
+              {/* Contenido */}
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <h2 style={{ fontSize: isMobile ? '1.05rem' : '1.2rem', margin: 0, color: TEXT_PRIMARY, fontWeight: 500, letterSpacing: '0.02em' }}>
+                  {sec.nombre}
+                </h2>
+                <span style={{
+                  fontSize: '0.72rem', color: GOLD, fontWeight: 600,
+                  backgroundColor: 'rgba(0,183,196,0.08)',
+                  padding: '0.15rem 0.55rem', borderRadius: '999px',
+                  border: `1px solid rgba(0,183,196,0.18)`,
+                }}>
+                  {productosSec.length} producto{productosSec.length !== 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
 
             {productosSec.length === 0 ? (

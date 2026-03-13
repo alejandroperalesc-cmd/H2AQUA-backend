@@ -48,58 +48,76 @@ function PageBanner({
         borderRadius: '1.25rem',
         overflow: 'hidden',
         marginBottom: isMobile ? '1.75rem' : '2.5rem',
-        padding: isMobile ? '1.75rem 1.5rem' : '2.25rem 2.5rem',
-        background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #009aaa 75%, #00B7C4 100%)',
+        padding: isMobile ? '1.75rem 1.5rem 1.75rem 2rem' : '2.25rem 2.5rem 2.25rem 3rem',
+        backgroundColor: '#eaf6f7',
       }}
     >
-      {/* Círculos decorativos — burbujas de hidrógeno */}
+      {/* Imagen difuminada de fondo */}
       <div style={{
-        position: 'absolute', top: '-50px', right: '-50px',
-        width: '220px', height: '220px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: '-30px', right: '18%',
-        width: '140px', height: '140px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      {/* Línea inferior sutil */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px',
-        background: 'linear-gradient(90deg, rgba(255,255,255,0.3), transparent)',
+        position: 'absolute', inset: 0,
+        backgroundImage: 'url("/hero-hidrogeno.jpg")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        filter: 'blur(14px)',
+        transform: 'scale(1.12)',
+        opacity: 0.13,
         pointerEvents: 'none',
       }} />
 
-      <p style={{
-        margin: '0 0 0.5rem',
-        fontSize: '0.7rem',
-        letterSpacing: '0.25em',
-        textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.65)',
-        fontWeight: 600,
-      }}>
-        {label}
-      </p>
-      <h1 style={{
-        margin: 0,
-        fontSize: isMobile ? '1.6rem' : '2.1rem',
-        fontWeight: 300,
-        letterSpacing: '0.04em',
-        color: '#ffffff',
-      }}>
-        {title}
-      </h1>
-      {subtitle && (
+      {/* Wash de color teal muy tenue */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(135deg, rgba(0,109,119,0.10) 0%, rgba(0,183,196,0.07) 100%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Acento izquierdo — línea teal */}
+      <div style={{
+        position: 'absolute', left: 0, top: 0, bottom: 0,
+        width: '4px',
+        background: `linear-gradient(180deg, ${TEAL} 0%, ${GOLD} 100%)`,
+        pointerEvents: 'none',
+      }} />
+
+      {/* Círculo decorativo derecho — sutil */}
+      <div style={{
+        position: 'absolute', top: '-40px', right: '-40px',
+        width: '200px', height: '200px', borderRadius: '50%',
+        background: `radial-gradient(circle, rgba(0,183,196,0.07) 0%, transparent 70%)`,
+        pointerEvents: 'none',
+      }} />
+
+      {/* Contenido */}
+      <div style={{ position: 'relative' }}>
         <p style={{
-          margin: '0.5rem 0 0',
-          color: 'rgba(255,255,255,0.70)',
-          fontSize: '0.95rem',
+          margin: '0 0 0.45rem',
+          fontSize: '0.68rem',
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase',
+          color: GOLD,
+          fontWeight: 600,
         }}>
-          {subtitle}
+          {label}
         </p>
-      )}
+        <h1 style={{
+          margin: 0,
+          fontSize: isMobile ? '1.55rem' : '2rem',
+          fontWeight: 300,
+          letterSpacing: '0.03em',
+          color: TEXT_PRIMARY,
+        }}>
+          {title}
+        </h1>
+        {subtitle && (
+          <p style={{
+            margin: '0.45rem 0 0',
+            color: TEXT_SECONDARY,
+            fontSize: '0.93rem',
+          }}>
+            {subtitle}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
