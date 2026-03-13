@@ -854,7 +854,7 @@ function App() {
         >
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <img src="/logo-h2aqua.png" alt="H2AQUA" style={{ height: isMobile ? '64px' : '100px', width: 'auto' }} />
+            <img src="/logo-h2aqua.png" alt="H2AQUA" style={{ height: isMobile ? '90px' : '200px', width: 'auto' }} />
           </div>
 
           {/* Desktop: Nav + Carrito */}
