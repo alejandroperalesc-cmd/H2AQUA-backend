@@ -41,6 +41,7 @@ model Producto {
 
   estado      String   @default("ACTIVO")
   seccion     Int      @default(1)
+  destacado   Boolean  @default(false)
   pedidos     PedidoProducto[]
 }
 

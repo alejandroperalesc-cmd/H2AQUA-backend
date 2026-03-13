@@ -171,6 +171,7 @@ app.post("/productos", async (req, res) => {
       imagenUrl,
       categoria, // 'ITEM' | 'TERAPIA'
       seccion,   // número de sección en la tienda (1-4)
+      destacado, // boolean
     } = req.body;
 
     if (!nombre || !precio) {
@@ -195,6 +196,7 @@ app.post("/productos", async (req, res) => {
         categoria,
         estado: "ACTIVO",
         seccion: seccion ?? 1,
+        destacado: destacado ?? false,
       },
     });
 
@@ -223,7 +225,7 @@ app.get("/productos", async (req, res) => {
 app.patch("/productos/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, precio, imagenUrl, categoria, seccion } = req.body;
+    const { nombre, descripcion, precio, imagenUrl, categoria, seccion, destacado } = req.body;
 
     const data: Record<string, any> = {};
     if (nombre !== undefined)      data.nombre      = nombre;
@@ -232,6 +234,7 @@ app.patch("/productos/:id", async (req, res) => {
     if (imagenUrl !== undefined)   data.imagenUrl   = imagenUrl;
     if (categoria !== undefined)   data.categoria   = categoria;
     if (seccion !== undefined)     data.seccion     = Number(seccion);
+    if (destacado !== undefined)   data.destacado   = Boolean(destacado);
 
     const producto = await prisma.producto.update({
       where: { id: Number(id) },
@@ -297,6 +300,23 @@ app.get("/productos-tienda", async (_req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al obtener productos para tienda" });
+  }
+});
+
+// Productos destacados para el carrusel de la tienda
+app.get("/productos-destacados", async (_req, res) => {
+  try {
+    const productos = await prisma.producto.findMany({
+      where: {
+        destacado: true,
+        estado: { in: ["ACTIVO", "AGOTADO"] },
+      },
+      orderBy: { nombre: "asc" },
+    });
+    res.json(productos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener productos destacados" });
   }
 });
 

@@ -9,6 +9,7 @@ export type Producto = {
   imagenUrl?: string | null;
   estado: 'ACTIVO' | 'AGOTADO' | 'INACTIVO';
   seccion: number;
+  destacado: boolean;
   categoria?: string | null;
 };
 

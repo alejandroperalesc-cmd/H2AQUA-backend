@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import type { ItemCarrito } from './App';
 import { API_URL } from './api';
 import { SECCIONES } from './secciones';
+import CarruselDestacados from './CarruselDestacados';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_CARD, BG_CARD_ALT, BG_HOVER,
@@ -273,6 +274,9 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           </p>
         </div>
       </header>
+
+      {/* Carrusel de destacados */}
+      <CarruselDestacados onAgregarAlCarrito={onAgregarAlCarrito} />
 
       {/* 4 Secciones */}
       {SECCIONES.map((sec) => {

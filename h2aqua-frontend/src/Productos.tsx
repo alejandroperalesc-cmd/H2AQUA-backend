@@ -30,10 +30,11 @@ function Productos() {
   const [error, setError] = useState<string | null>(null);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [form, setForm] = useState({
-    nombre: '', descripcion: '', precio: '', imagenUrl: '', categoria: '', seccion: '1',
+    nombre: '', descripcion: '', precio: '', imagenUrl: '', categoria: '', seccion: '1', destacado: false,
   });
   // Para mostrar feedback visual al cambiar sección rápidamente
   const [cambiandoSeccion, setCambiandoSeccion] = useState<number | null>(null);
+  const [cambiandoDestacado, setCambiandoDestacado] = useState<number | null>(null);
 
   async function cargar() {
     try {
@@ -62,6 +63,23 @@ function Productos() {
       alert('No se pudo actualizar la sección.');
     } finally {
       setCambiandoSeccion(null);
+    }
+  }
+
+  // ── Toggle destacado ──────────────────────────────────────────────────────
+  async function toggleDestacado(id: number, actual: boolean) {
+    setCambiandoDestacado(id);
+    try {
+      await fetch(`${API_URL}/productos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destacado: !actual }),
+      });
+      setProductos((prev) => prev.map((p) => p.id === id ? { ...p, destacado: !actual } : p));
+    } catch {
+      alert('No se pudo actualizar destacado.');
+    } finally {
+      setCambiandoDestacado(null);
     }
   }
 
@@ -100,6 +118,7 @@ function Productos() {
       imagenUrl: p.imagenUrl ?? '',
       categoria: p.categoria ?? '',
       seccion: String(p.seccion ?? 1),
+      destacado: p.destacado ?? false,
     });
   }
 
@@ -118,6 +137,7 @@ function Productos() {
           imagenUrl: form.imagenUrl || null,
           categoria: form.categoria || null,
           seccion: Number(form.seccion),
+          destacado: form.destacado,
         }),
       });
       if (!resp.ok) {
@@ -274,8 +294,22 @@ function Productos() {
                         </button>
                       ))}
                     </div>
-                    {/* Editar / Eliminar */}
+                    {/* Destacado / Editar / Eliminar */}
                     <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => toggleDestacado(p.id, p.destacado)}
+                        disabled={cambiandoDestacado === p.id}
+                        title={p.destacado ? 'Quitar de destacados' : 'Marcar como destacado'}
+                        style={{
+                          padding: '0.3rem 0.8rem', borderRadius: '0.4rem',
+                          border: p.destacado ? `1px solid ${GOLD}` : BORDER,
+                          backgroundColor: p.destacado ? `${GOLD}18` : 'transparent',
+                          color: p.destacado ? GOLD : TEXT_MUTED,
+                          fontSize: '0.8rem', cursor: 'pointer', fontWeight: p.destacado ? 700 : 400,
+                        }}
+                      >
+                        ★ {p.destacado ? 'Destacado' : 'Destacar'}
+                      </button>
                       <button
                         onClick={() => empezarEdicion(p)}
                         style={{
@@ -342,6 +376,18 @@ function Productos() {
                       </select>
                     </div>
                   </div>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.destacado}
+                      onChange={(e) => setForm((f) => ({ ...f, destacado: e.target.checked }))}
+                      style={{ width: '16px', height: '16px', accentColor: GOLD, cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '0.88rem', color: TEXT_SECONDARY }}>
+                      ★ Destacar en el carrusel de la tienda
+                    </span>
+                  </label>
 
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.78rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.08em' }}>URL de imagen</label>
