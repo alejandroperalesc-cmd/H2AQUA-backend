@@ -70,14 +70,15 @@ function Productos() {
   async function toggleDestacado(id: number, actual: boolean) {
     setCambiandoDestacado(id);
     try {
-      await fetch(`${API_URL}/productos/${id}`, {
+      const resp = await fetch(`${API_URL}/productos/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ destacado: !actual }),
       });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       setProductos((prev) => prev.map((p) => p.id === id ? { ...p, destacado: !actual } : p));
-    } catch {
-      alert('No se pudo actualizar destacado.');
+    } catch (err: any) {
+      alert(`No se pudo actualizar destacado: ${err.message}`);
     } finally {
       setCambiandoDestacado(null);
     }
