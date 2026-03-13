@@ -65,7 +65,7 @@ function TarjetaProducto({
       <div
         style={{
           width: '100%',
-          height: isMobile ? '150px' : '220px',
+          height: isMobile ? '130px' : '170px',
           backgroundColor: BG_CARD_ALT,
           flexShrink: 0,
           overflow: 'hidden',
@@ -407,9 +407,9 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(260px, 1fr))',
-                  gap: isMobile ? '1rem' : '1.75rem',
-                  alignItems: 'start',
+                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                  gap: isMobile ? '0.75rem' : '1.25rem',
+                  alignItems: 'stretch',
                 }}
               >
                 {productosSec.map((p) => (
