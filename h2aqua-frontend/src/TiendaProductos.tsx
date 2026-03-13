@@ -7,7 +7,7 @@ import CarruselDestacados from './CarruselDestacados';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_CARD, BG_CARD_ALT, BG_HOVER,
-  GOLD, GOLD_LIGHT, GOLD_GLOW,
+  GOLD, GOLD_GLOW,
   TEAL,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
@@ -120,35 +120,40 @@ function TarjetaProducto({
       {/* Contenido */}
       <div
         style={{
-          padding: isMobile ? '0.85rem 1rem 1rem' : '1.3rem 1.5rem 1.6rem',
+          padding: isMobile ? '0.9rem 1rem 1.1rem' : '1.35rem 1.5rem 1.65rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.45rem',
+          gap: '0.5rem',
           flexGrow: 1,
         }}
       >
         {/* Título */}
         <h3
           style={{
-            fontSize: isMobile ? '0.88rem' : '1.05rem',
-            fontWeight: 600,
+            fontSize: isMobile ? '0.9rem' : '1.08rem',
+            fontWeight: 500,
             margin: 0,
             color: TEXT_PRIMARY,
-            lineHeight: 1.3,
+            lineHeight: 1.35,
+            letterSpacing: '0.01em',
           }}
         >
           {p.nombre}
         </h3>
 
-        {/* Descripción — oculta en móvil para ahorrar espacio */}
+        {/* Descripción — oculta en móvil */}
         {p.descripcion && !isMobile && (
           <p
             style={{
               margin: 0,
               color: TEXT_SECONDARY,
-              fontSize: '0.875rem',
-              lineHeight: 1.65,
+              fontSize: '0.85rem',
+              lineHeight: 1.6,
               flexGrow: 1,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
             }}
           >
             {p.descripcion}
@@ -156,44 +161,39 @@ function TarjetaProducto({
         )}
 
         {/* Precio */}
-        <p style={{ margin: '0.2rem 0 0' }}>
-          <span
-            style={{
-              fontSize: isMobile ? '1.1rem' : '1.4rem',
-              fontWeight: 700,
-              color: GOLD,
-            }}
-          >
-            ${p.precio.toLocaleString('es-MX')}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.15rem' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 400, color: TEAL }}>$</span>
+          <span style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 700, color: TEAL, letterSpacing: '-0.02em' }}>
+            {p.precio.toLocaleString('es-MX')}
           </span>
-          <span style={{ fontSize: '0.75rem', fontWeight: 400, color: TEXT_MUTED, marginLeft: '0.25rem' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 500, color: TEXT_MUTED, letterSpacing: '0.06em' }}>
             MXN
           </span>
-        </p>
+        </div>
 
         {/* Botón */}
         <button
           disabled={agotado}
           onClick={() => onAgregarAlCarrito({ id: p.id, nombre: p.nombre, precio: p.precio, imagenUrl: p.imagenUrl })}
           style={{
-            marginTop: '0.4rem',
+            marginTop: '0.35rem',
             width: '100%',
-            padding: isMobile ? '0.6rem 0.5rem' : '0.8rem 1rem',
-            borderRadius: '0.75rem',
-            border: 'none',
+            padding: isMobile ? '0.65rem 0.5rem' : '0.82rem 1rem',
+            borderRadius: '999px',
+            border: agotado ? `1px solid ${BORDER_SUBTLE}` : 'none',
             background: agotado
-              ? 'rgba(255,255,255,0.05)'
-              : `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
+              ? 'transparent'
+              : `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
             color: agotado ? TEXT_MUTED : '#ffffff',
             cursor: agotado ? 'not-allowed' : 'pointer',
-            fontSize: isMobile ? '0.78rem' : '0.92rem',
-            fontWeight: 700,
-            letterSpacing: '0.02em',
-            boxShadow: agotado ? 'none' : `0 4px 16px ${GOLD_GLOW}`,
+            fontSize: isMobile ? '0.78rem' : '0.88rem',
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            boxShadow: agotado ? 'none' : `0 4px 18px ${GOLD_GLOW}`,
             transition: 'opacity 0.15s ease',
           }}
         >
-          {agotado ? 'No disponible' : '+ Agregar'}
+          {agotado ? 'No disponible' : isMobile ? '+ Agregar' : '+ Agregar al carrito'}
         </button>
       </div>
     </article>
@@ -356,18 +356,38 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
               }} />
 
               {/* Contenido */}
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: isMobile ? '1.05rem' : '1.2rem', margin: 0, color: TEXT_PRIMARY, fontWeight: 500, letterSpacing: '0.02em' }}>
-                  {sec.nombre}
-                </h2>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+                {/* Número decorativo */}
                 <span style={{
-                  fontSize: '0.72rem', color: GOLD, fontWeight: 600,
-                  backgroundColor: 'rgba(0,183,196,0.08)',
-                  padding: '0.15rem 0.55rem', borderRadius: '999px',
-                  border: `1px solid rgba(0,183,196,0.18)`,
+                  fontSize: isMobile ? '1.6rem' : '2rem',
+                  fontWeight: 700,
+                  color: 'rgba(0,183,196,0.12)',
+                  lineHeight: 1,
+                  letterSpacing: '-0.03em',
+                  userSelect: 'none',
                 }}>
-                  {productosSec.length} producto{productosSec.length !== 1 ? 's' : ''}
+                  0{sec.numero}
                 </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                  <h2 style={{
+                    fontSize: isMobile ? '1rem' : '1.15rem',
+                    margin: 0,
+                    color: TEXT_PRIMARY,
+                    fontWeight: 500,
+                    letterSpacing: '0.03em',
+                  }}>
+                    {sec.nombre}
+                  </h2>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    color: TEXT_MUTED,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    fontWeight: 500,
+                  }}>
+                    {productosSec.length} {productosSec.length !== 1 ? 'productos' : 'producto'} disponible{productosSec.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
               </div>
             </div>
 
