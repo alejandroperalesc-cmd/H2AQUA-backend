@@ -403,7 +403,7 @@ function Productos() {
                         padding: '0.55rem 1.4rem', borderRadius: '0.6rem',
                         border: 'none',
                         background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-                        color: '#1a1f35', fontSize: '0.88rem', fontWeight: 700,
+                        color: '#ffffff', fontSize: '0.88rem', fontWeight: 700,
                         cursor: 'pointer', boxShadow: `0 4px 12px ${GOLD_GLOW}`,
                       }}
                     >

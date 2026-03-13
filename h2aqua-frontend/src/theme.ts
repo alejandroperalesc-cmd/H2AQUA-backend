@@ -1,33 +1,33 @@
-// ─── Paleta H2AQUA ───────────────────────────────────────────────────────────
-// Pantone 2766 C (Dark Navy)  #1a1f35  → fondo base
-// Pantone 7508 C (Warm Gold)  #c4a35a  → acento premium
-// Tiffany / Teal              #00B7C4  → identidad agua · hidrógeno
+// ─── H2AQUA · Wellness Palette ────────────────────────────────────────────────
+// Tiffany #00B7C4 como alma de la marca · Fondo blanco limpio
+// Inspiración: onsen japonés, wellness moderno, agua molecular pura
 
-// Fondos
-export const BG_DARK      = '#1a1f35';   // Navy - fondo principal
-export const BG_CARD      = '#222845';   // Navy medio - cards / formularios
-export const BG_CARD_ALT  = '#1e2440';   // Navy inputs / alternativo
-export const BG_HOVER     = '#2a3158';   // Hover de cards
+// ── Fondos ────────────────────────────────────────────────────────────────────
+export const BG_DARK     = '#f2f8f9';   // Fondo principal — off-white con tinte aqua
+export const BG_CARD     = '#ffffff';   // Tarjetas — blanco puro
+export const BG_CARD_ALT = '#eaf5f7';   // Superficie alternativa — aqua muy suave
+export const BG_HOVER    = '#daf0f3';   // Hover sobre tarjetas
 
-// Acentos
-export const GOLD         = '#c4a35a';   // Warm Gold
-export const GOLD_LIGHT   = '#d4b87a';   // Gold hover
-export const GOLD_GLOW    = 'rgba(196, 163, 90, 0.28)';
-export const GOLD_SUBTLE  = 'rgba(196, 163, 90, 0.12)';
+// ── Tiffany / Aqua — acento principal ─────────────────────────────────────────
+export const GOLD        = '#00B7C4';              // Tiffany principal
+export const GOLD_LIGHT  = '#33c9d4';              // Tiffany claro (gradientes)
+export const GOLD_GLOW   = 'rgba(0, 183, 196, 0.22)';
+export const GOLD_SUBTLE = 'rgba(0, 183, 196, 0.09)';
 
-export const TEAL         = '#00B7C4';   // Tiffany
-export const TEAL_LIGHT   = '#9DE7D7';   // Turquesa claro
+// ── Teal profundo — acento secundario ─────────────────────────────────────────
+export const TEAL        = '#006d77';   // Teal oscuro — legible sobre blanco
+export const TEAL_LIGHT  = '#83c5be';   // Sage-teal — toques decorativos
 
-// Texto
-export const TEXT_PRIMARY   = '#f0ece4'; // Blanco cálido
-export const TEXT_SECONDARY = '#a8b2cc'; // Gris azulado
-export const TEXT_MUTED     = '#6b7598'; // Muy suave
+// ── Tipografía ────────────────────────────────────────────────────────────────
+export const TEXT_PRIMARY   = '#1a3a40';  // Carbón con tinte ocean
+export const TEXT_SECONDARY = '#4a6b75';  // Slate medio
+export const TEXT_MUTED     = '#8eaab4';  // Slate suave
 
-// Bordes
-export const BORDER        = 'rgba(196, 163, 90, 0.22)';
-export const BORDER_SUBTLE = 'rgba(255, 255, 255, 0.06)';
+// ── Bordes ────────────────────────────────────────────────────────────────────
+export const BORDER        = 'rgba(0, 183, 196, 0.18)';
+export const BORDER_SUBTLE = 'rgba(0, 183, 196, 0.08)';
 
-// Semáforo
-export const SUCCESS = '#34d399';
-export const ERROR   = '#f87171';
-export const WARNING = '#fbbf24';
+// ── Estados ───────────────────────────────────────────────────────────────────
+export const SUCCESS = '#1fba7a';
+export const ERROR   = '#e0556a';
+export const WARNING = '#e8a020';

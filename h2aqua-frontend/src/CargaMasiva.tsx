@@ -394,7 +394,7 @@ export default function CargaMasiva() {
                 background: subiendo
                   ? TEXT_MUTED
                   : `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-                color: '#1a1f35',
+                color: '#ffffff',
                 fontSize: '1rem',
                 fontWeight: 700,
                 cursor: subiendo ? 'default' : 'pointer',

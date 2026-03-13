@@ -214,7 +214,7 @@ function NuevoProducto() {
               borderRadius: '0.75rem',
               border: 'none',
               background: guardando ? TEXT_MUTED : `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-              color: '#1a1f35',
+              color: '#ffffff',
               cursor: guardando ? 'default' : 'pointer',
               fontWeight: 700,
               fontSize: '0.95rem',

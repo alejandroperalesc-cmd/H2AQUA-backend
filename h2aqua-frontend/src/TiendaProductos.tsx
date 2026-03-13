@@ -5,7 +5,7 @@ import { API_URL } from './api';
 import { SECCIONES } from './secciones';
 import { useIsMobile } from './useIsMobile';
 import {
-  BG_DARK, BG_CARD, BG_CARD_ALT, BG_HOVER,
+  BG_CARD, BG_CARD_ALT, BG_HOVER,
   GOLD, GOLD_LIGHT, GOLD_GLOW,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
@@ -182,7 +182,7 @@ function TarjetaProducto({
             background: agotado
               ? 'rgba(255,255,255,0.05)'
               : `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-            color: agotado ? TEXT_MUTED : BG_DARK,
+            color: agotado ? TEXT_MUTED : '#ffffff',
             cursor: agotado ? 'not-allowed' : 'pointer',
             fontSize: isMobile ? '0.78rem' : '0.92rem',
             fontWeight: 700,
@@ -240,15 +240,27 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
   return (
     <div style={{ maxWidth: '1120px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 4rem' }}>
 
-      {/* Encabezado */}
-      <header style={{ marginBottom: isMobile ? '1.75rem' : '2.5rem' }}>
-        <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+      {/* Encabezado — banner gradiente */}
+      <header
+        style={{
+          position: 'relative',
+          borderRadius: '1.25rem',
+          overflow: 'hidden',
+          marginBottom: isMobile ? '1.75rem' : '2.5rem',
+          padding: isMobile ? '1.75rem 1.5rem' : '2.25rem 2.5rem',
+          background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #009aaa 75%, #00B7C4 100%)',
+        }}
+      >
+        {/* Burbujas decorativas */}
+        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, rgba(255,255,255,0.3), transparent)', pointerEvents: 'none' }} />
+        <p style={{ margin: '0 0 0.5rem', fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>
           H2AQUA
         </p>
-        <h1 style={{ fontSize: isMobile ? '1.6rem' : '2.2rem', fontWeight: 300, letterSpacing: '0.04em', color: TEXT_PRIMARY, marginBottom: '0.4rem' }}>
+        <h1 style={{ margin: '0 0 0.4rem', fontSize: isMobile ? '1.6rem' : '2.1rem', fontWeight: 300, letterSpacing: '0.04em', color: '#ffffff' }}>
           Tienda en línea
         </h1>
-        <p style={{ margin: 0, color: TEXT_SECONDARY, fontSize: '0.95rem' }}>
+        <p style={{ margin: 0, color: 'rgba(255,255,255,0.70)', fontSize: '0.95rem' }}>
           Elige entre terapias y productos para complementar tu experiencia.
         </p>
       </header>

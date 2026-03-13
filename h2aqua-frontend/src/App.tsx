@@ -29,6 +29,81 @@ export type ItemCarrito = {
 const API_URL = import.meta.env.VITE_API_URL;
 const CARRITO_KEY = 'h2aqua_carrito';
 
+// ─── PageBanner — encabezado degradado para cada sección ──────────────────────
+
+function PageBanner({
+  label,
+  title,
+  subtitle,
+}: {
+  label: string;
+  title: string;
+  subtitle?: string;
+}) {
+  const isMobile = useIsMobile();
+  return (
+    <div
+      style={{
+        position: 'relative',
+        borderRadius: '1.25rem',
+        overflow: 'hidden',
+        marginBottom: isMobile ? '1.75rem' : '2.5rem',
+        padding: isMobile ? '1.75rem 1.5rem' : '2.25rem 2.5rem',
+        background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #009aaa 75%, #00B7C4 100%)',
+      }}
+    >
+      {/* Círculos decorativos — burbujas de hidrógeno */}
+      <div style={{
+        position: 'absolute', top: '-50px', right: '-50px',
+        width: '220px', height: '220px', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-30px', right: '18%',
+        width: '140px', height: '140px', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      {/* Línea inferior sutil */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px',
+        background: 'linear-gradient(90deg, rgba(255,255,255,0.3), transparent)',
+        pointerEvents: 'none',
+      }} />
+
+      <p style={{
+        margin: '0 0 0.5rem',
+        fontSize: '0.7rem',
+        letterSpacing: '0.25em',
+        textTransform: 'uppercase',
+        color: 'rgba(255,255,255,0.65)',
+        fontWeight: 600,
+      }}>
+        {label}
+      </p>
+      <h1 style={{
+        margin: 0,
+        fontSize: isMobile ? '1.6rem' : '2.1rem',
+        fontWeight: 300,
+        letterSpacing: '0.04em',
+        color: '#ffffff',
+      }}>
+        {title}
+      </h1>
+      {subtitle && (
+        <p style={{
+          margin: '0.5rem 0 0',
+          color: 'rgba(255,255,255,0.70)',
+          fontSize: '0.95rem',
+        }}>
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Home ──────────────────────────────────────────────────────────────────────
 
 function Home({ irA }: { irA: (vista: Vista) => void }) {
@@ -37,93 +112,93 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
   return (
     <div style={{ maxWidth: '1120px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 4rem' }}>
 
-      {/* HERO */}
+      {/* HERO — gradiente teal profundo */}
       <section
         style={{
           position: 'relative',
           borderRadius: isMobile ? '1rem' : '1.5rem',
           overflow: 'hidden',
-          minHeight: isMobile ? '320px' : '420px',
+          minHeight: isMobile ? '340px' : '440px',
           marginBottom: isMobile ? '2rem' : '3rem',
-          backgroundColor: BG_CARD,
-          backgroundImage: 'url("/hero-hidrogeno.jpg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 35%, #009aaa 70%, #00B7C4 100%)',
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(120deg, rgba(26,31,53,0.92) 0%, rgba(26,31,53,0.55) 70%, transparent 100%)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '3px',
-            background: `linear-gradient(90deg, ${GOLD}, transparent)`,
-          }}
-        />
+        {/* Burbujas decorativas */}
+        <div style={{
+          position: 'absolute', top: '-80px', right: '-80px',
+          width: '380px', height: '380px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '20px', right: '8%',
+          width: '180px', height: '180px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', top: '30%', right: '28%',
+          width: '80px', height: '80px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+        {/* Línea inferior */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px',
+          background: 'linear-gradient(90deg, rgba(255,255,255,0.35), transparent)',
+          pointerEvents: 'none',
+        }} />
 
-        <div style={{ position: 'relative', padding: isMobile ? '2rem 1.5rem' : '3.5rem', maxWidth: '560px', color: TEXT_PRIMARY }}>
-          <p
-            style={{
-              textTransform: 'uppercase',
-              letterSpacing: '0.22em',
-              fontSize: '0.72rem',
-              marginBottom: '0.8rem',
-              color: GOLD,
-              fontWeight: 600,
-            }}
-          >
+        <div style={{ position: 'relative', padding: isMobile ? '2.5rem 1.75rem' : '3.75rem 3.5rem', maxWidth: '560px' }}>
+          <p style={{
+            textTransform: 'uppercase',
+            letterSpacing: '0.25em',
+            fontSize: '0.7rem',
+            marginBottom: '1rem',
+            color: 'rgba(255,255,255,0.65)',
+            fontWeight: 600,
+          }}>
             Hidrógeno molecular · Wellness
           </p>
 
-          <h1
-            style={{
-              fontSize: isMobile ? '1.9rem' : '2.8rem',
-              fontWeight: 300,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              marginBottom: '1rem',
-              lineHeight: 1.2,
-              color: TEXT_PRIMARY,
-            }}
-          >
+          <h1 style={{
+            fontSize: isMobile ? '2rem' : '2.9rem',
+            fontWeight: 300,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            marginBottom: '1.25rem',
+            lineHeight: 1.18,
+            color: '#ffffff',
+          }}>
             Bienestar profundo
             <br />
-            <span style={{ color: GOLD, fontWeight: 400 }}>con hidrógeno molecular</span>
+            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>con hidrógeno molecular</span>
           </h1>
 
-          <p
-            style={{
-              fontSize: '0.95rem',
-              lineHeight: 1.7,
-              marginBottom: '1.75rem',
-              color: TEXT_SECONDARY,
-            }}
-          >
+          <p style={{
+            fontSize: '1rem',
+            lineHeight: 1.75,
+            marginBottom: '2rem',
+            color: 'rgba(255,255,255,0.72)',
+          }}>
             Terapias que ayudan a desinflamar, desintoxicar y equilibrar tu
             cuerpo desde adentro, neutralizando radicales libres y protegiendo tus células.
           </p>
 
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => irA('tienda')}
               style={{
-                padding: '0.85rem 1.75rem',
+                padding: '0.9rem 1.9rem',
                 borderRadius: '999px',
                 border: 'none',
-                background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-                color: BG_DARK,
+                background: '#ffffff',
+                color: TEAL,
                 cursor: 'pointer',
                 fontWeight: 700,
-                fontSize: '0.9rem',
-                boxShadow: `0 4px 18px ${GOLD_GLOW}`,
+                fontSize: '0.92rem',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                letterSpacing: '0.02em',
               }}
             >
               Ver tienda en línea
@@ -131,14 +206,15 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
             <button
               onClick={() => irA('citas')}
               style={{
-                padding: '0.85rem 1.75rem',
+                padding: '0.9rem 1.9rem',
                 borderRadius: '999px',
-                border: `1px solid ${GOLD}`,
+                border: '1px solid rgba(255,255,255,0.45)',
                 backgroundColor: 'transparent',
-                color: GOLD,
+                color: '#ffffff',
                 cursor: 'pointer',
-                fontWeight: 500,
-                fontSize: '0.9rem',
+                fontWeight: 400,
+                fontSize: '0.92rem',
+                letterSpacing: '0.02em',
               }}
             >
               Agenda tu terapia
@@ -158,61 +234,74 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
         }}
       >
         <div>
-          <h2 style={{ fontSize: isMobile ? '1.35rem' : '1.6rem', marginBottom: '0.75rem', color: GOLD }}>
-            ¿Qué es el hidrógeno molecular?
+          <p style={{ margin: '0 0 0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+            Qué es
+          </p>
+          <h2 style={{ fontSize: isMobile ? '1.4rem' : '1.7rem', marginBottom: '0.85rem', color: TEXT_PRIMARY, fontWeight: 400 }}>
+            El hidrógeno molecular
           </h2>
-          <p style={{ marginBottom: '0.75rem', color: TEXT_SECONDARY, fontSize: '0.95rem', lineHeight: 1.75 }}>
+          <p style={{ marginBottom: '0.75rem', color: TEXT_SECONDARY, fontSize: '0.97rem', lineHeight: 1.8 }}>
             Es la molécula más pequeña que existe y puede llegar a tejidos y células
             a través del torrente sanguíneo. Actúa como antioxidante y antiinflamatorio.
           </p>
-          <p style={{ color: TEXT_SECONDARY, fontSize: '0.95rem', lineHeight: 1.75 }}>
+          <p style={{ color: TEXT_SECONDARY, fontSize: '0.97rem', lineHeight: 1.8 }}>
             En H2Aqua utilizamos terapias de hidrógeno molecular para apoyar procesos
             de desinflamación, desintoxicación y equilibrio general.
           </p>
         </div>
 
+        {/* Card beneficios con acento teal */}
         <div
           style={{
             borderRadius: '1.25rem',
-            padding: '1.4rem 1.6rem',
-            background: BG_CARD,
+            overflow: 'hidden',
+            boxShadow: `0 4px 24px ${GOLD_GLOW}`,
             border: BORDER,
           }}
         >
-          <h3
-            style={{
-              fontSize: '0.78rem',
+          {/* Header de la card */}
+          <div style={{
+            padding: '1rem 1.6rem',
+            background: `linear-gradient(135deg, ${TEAL} 0%, ${GOLD} 100%)`,
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: '0.75rem',
               textTransform: 'uppercase',
               letterSpacing: '0.18em',
-              marginBottom: '1rem',
-              color: GOLD,
-            }}
-          >
-            Beneficios que puedes sentir
-          </h3>
-          <ul
-            style={{
+              color: '#ffffff',
+              fontWeight: 600,
+            }}>
+              Beneficios que puedes sentir
+            </h3>
+          </div>
+          {/* Lista */}
+          <div style={{ padding: '1.4rem 1.6rem', backgroundColor: BG_CARD }}>
+            <ul style={{
               listStyle: 'none',
               padding: 0,
               margin: 0,
               display: 'grid',
-              rowGap: '0.65rem',
-              fontSize: '0.9rem',
+              rowGap: '0.75rem',
+              fontSize: '0.93rem',
               color: TEXT_SECONDARY,
-            }}
-          >
-            {[
-              'Disminución de dolor e inflamación articular.',
-              'Mejora del descanso, energía y claridad mental.',
-              'Apoyo al sistema inmune y recuperación física.',
-              'Piel más hidratada y aspecto más luminoso.',
-            ].map((b) => (
-              <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
-                <span style={{ color: TEAL, flexShrink: 0, marginTop: '0.1rem' }}>◆</span>
-                {b}
-              </li>
-            ))}
-          </ul>
+            }}>
+              {[
+                'Disminución de dolor e inflamación articular.',
+                'Mejora del descanso, energía y claridad mental.',
+                'Apoyo al sistema inmune y recuperación física.',
+                'Piel más hidratada y aspecto más luminoso.',
+              ].map((b) => (
+                <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
+                  <span style={{
+                    width: '6px', height: '6px', borderRadius: '50%',
+                    background: GOLD, flexShrink: 0, marginTop: '0.45rem',
+                  }} />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -220,44 +309,54 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
       <section
         style={{
           borderRadius: '1.25rem',
-          padding: isMobile ? '1.5rem' : '2rem 2.5rem',
-          background: `linear-gradient(135deg, ${BG_CARD} 0%, rgba(34,40,69,0.6) 100%)`,
+          overflow: 'hidden',
           border: BORDER,
+          boxShadow: `0 2px 16px ${GOLD_GLOW}`,
+        }}
+      >
+        {/* Banda teal superior */}
+        <div style={{
+          height: '4px',
+          background: `linear-gradient(90deg, ${TEAL}, ${GOLD}, ${GOLD_LIGHT})`,
+        }} />
+        <div style={{
+          padding: isMobile ? '1.75rem 1.5rem' : '2rem 2.5rem',
+          backgroundColor: BG_CARD,
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           justifyContent: 'space-between',
           alignItems: isMobile ? 'flex-start' : 'center',
           gap: '1.25rem',
-        }}
-      >
-        <div>
-          <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.35rem', marginBottom: '0.4rem', color: TEXT_PRIMARY }}>
-            Regálale a tu cuerpo una pausa profunda
-          </h2>
-          <p style={{ margin: 0, fontSize: '0.9rem', color: TEXT_SECONDARY }}>
-            Agenda tu sesión de hidrógeno molecular y comienza a sentir los beneficios.
-          </p>
-        </div>
+        }}>
+          <div>
+            <h2 style={{ fontSize: isMobile ? '1.15rem' : '1.4rem', marginBottom: '0.4rem', color: TEXT_PRIMARY, fontWeight: 400 }}>
+              Regálale a tu cuerpo una pausa profunda
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.93rem', color: TEXT_SECONDARY }}>
+              Agenda tu sesión de hidrógeno molecular y comienza a sentir los beneficios.
+            </p>
+          </div>
 
-        <button
-          onClick={() => irA('citas')}
-          style={{
-            padding: '0.85rem 1.75rem',
-            borderRadius: '999px',
-            border: 'none',
-            background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-            color: BG_DARK,
-            cursor: 'pointer',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            whiteSpace: 'nowrap',
-            boxShadow: `0 4px 18px ${GOLD_GLOW}`,
-            alignSelf: isMobile ? 'stretch' : 'auto',
-            textAlign: 'center',
-          }}
-        >
-          Agenda tu cita
-        </button>
+          <button
+            onClick={() => irA('citas')}
+            style={{
+              padding: '0.9rem 1.9rem',
+              borderRadius: '999px',
+              border: 'none',
+              background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.93rem',
+              whiteSpace: 'nowrap',
+              boxShadow: `0 4px 18px ${GOLD_GLOW}`,
+              alignSelf: isMobile ? 'stretch' : 'auto',
+              textAlign: 'center',
+            }}
+          >
+            Agenda tu cita
+          </button>
+        </div>
       </section>
     </div>
   );
@@ -357,7 +456,7 @@ function Citas() {
     borderRadius: '0.6rem',
     border: BORDER,
     fontSize: '0.95rem',
-    backgroundColor: BG_CARD_ALT,
+    backgroundColor: BG_CARD,
     color: TEXT_PRIMARY,
     outline: 'none',
     width: '100%',
@@ -365,8 +464,8 @@ function Citas() {
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 4rem' }}>
-      <h1 style={{ fontSize: isMobile ? '1.6rem' : '2rem', marginBottom: '0.4rem', color: TEXT_PRIMARY }}>Agenda tu cita</h1>
-      <p style={{ marginBottom: '1.5rem', color: TEXT_SECONDARY }}>Elige tu terapia, día y horario.</p>
+
+      <PageBanner label="H2AQUA" title="Agenda tu cita" subtitle="Elige tu terapia, día y horario." />
 
       {/* Calendario */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -378,56 +477,57 @@ function Citas() {
           }}
         />
         <div>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: TEXT_MUTED }}>Fecha seleccionada:</p>
-          <p style={{ margin: '0.2rem 0 0', fontSize: '1rem', fontWeight: 500, color: GOLD, textTransform: 'capitalize' }}>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: TEXT_MUTED }}>Fecha seleccionada:</p>
+          <p style={{ margin: '0.2rem 0 0', fontSize: '1rem', fontWeight: 500, color: TEAL, textTransform: 'capitalize' }}>
             {fechaTexto}
           </p>
-          {cargandoCitas && <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: TEXT_MUTED }}>Actualizando horarios…</p>}
+          {cargandoCitas && <p style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: TEXT_MUTED }}>Actualizando horarios…</p>}
         </div>
       </div>
 
       {/* Selector terapia */}
       <section
         style={{
-          marginBottom: '2rem',
-          padding: '1.4rem 1.25rem',
+          marginBottom: '1.75rem',
           borderRadius: '1rem',
-          backgroundColor: BG_CARD,
+          overflow: 'hidden',
           border: BORDER,
+          boxShadow: `0 2px 12px ${GOLD_GLOW}`,
         }}
       >
-        <h2 style={{ fontSize: '0.78rem', marginBottom: '0.9rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD }}>
-          Terapia seleccionada
-        </h2>
-
-        {terapias.length === 0 && <p style={{ margin: 0, color: TEXT_MUTED, fontSize: '0.95rem' }}>No hay terapias disponibles.</p>}
-
-        {terapias.length > 0 && (
-          <>
-            <select
-              value={terapiaSeleccionadaId ?? ''}
-              onChange={(e) => setTerapiaSeleccionadaId(Number(e.target.value))}
-              style={{ ...inputStyle, marginBottom: '0.75rem', cursor: 'pointer' }}
-            >
-              {terapias.map((t) => (
-                <option key={t.id} value={t.id}>{t.nombre} – ${t.precio} MXN</option>
-              ))}
-            </select>
-
-            {terapiaSeleccionada && (
-              <>
-                <p style={{ margin: 0, color: TEXT_PRIMARY, fontWeight: 500 }}>{terapiaSeleccionada.nombre}</p>
-                <p style={{ margin: '0.2rem 0', color: TEXT_SECONDARY, fontSize: '0.9rem' }}>{terapiaSeleccionada.descripcion ?? ''}</p>
-                <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: '1.1rem' }}>${terapiaSeleccionada.precio} MXN</p>
-              </>
-            )}
-          </>
-        )}
+        <div style={{ padding: '0.75rem 1.4rem', background: `linear-gradient(135deg, ${TEAL}, ${GOLD})` }}>
+          <h2 style={{ margin: 0, fontSize: '0.72rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#ffffff', fontWeight: 600 }}>
+            Terapia seleccionada
+          </h2>
+        </div>
+        <div style={{ padding: '1.25rem 1.4rem', backgroundColor: BG_CARD }}>
+          {terapias.length === 0 && <p style={{ margin: 0, color: TEXT_MUTED, fontSize: '0.95rem' }}>No hay terapias disponibles.</p>}
+          {terapias.length > 0 && (
+            <>
+              <select
+                value={terapiaSeleccionadaId ?? ''}
+                onChange={(e) => setTerapiaSeleccionadaId(Number(e.target.value))}
+                style={{ ...inputStyle, marginBottom: '0.75rem', cursor: 'pointer' }}
+              >
+                {terapias.map((t) => (
+                  <option key={t.id} value={t.id}>{t.nombre} – ${t.precio} MXN</option>
+                ))}
+              </select>
+              {terapiaSeleccionada && (
+                <>
+                  <p style={{ margin: 0, color: TEXT_PRIMARY, fontWeight: 500 }}>{terapiaSeleccionada.nombre}</p>
+                  <p style={{ margin: '0.2rem 0', color: TEXT_SECONDARY, fontSize: '0.9rem' }}>{terapiaSeleccionada.descripcion ?? ''}</p>
+                  <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: '1.1rem' }}>${terapiaSeleccionada.precio} MXN</p>
+                </>
+              )}
+            </>
+          )}
+        </div>
       </section>
 
       {/* Horarios */}
       <section>
-        <h2 style={{ fontSize: '0.78rem', marginBottom: '0.9rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD }}>
+        <h2 style={{ fontSize: '0.72rem', marginBottom: '0.9rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: TEAL, fontWeight: 600 }}>
           Horarios disponibles
         </h2>
 
@@ -443,12 +543,14 @@ function Citas() {
                 style={{
                   padding: '0.7rem 0.75rem',
                   borderRadius: '0.6rem',
-                  border: activo ? `1px solid ${GOLD}` : BORDER,
-                  backgroundColor: ocupado ? 'rgba(255,255,255,0.04)' : activo ? GOLD_SUBTLE : BG_CARD,
+                  border: activo ? `1.5px solid ${GOLD}` : BORDER,
+                  backgroundColor: ocupado ? '#f5f5f5' : activo ? GOLD_SUBTLE : BG_CARD,
                   cursor: ocupado ? 'not-allowed' : 'pointer',
-                  color: ocupado ? TEXT_MUTED : activo ? GOLD : TEXT_SECONDARY,
+                  color: ocupado ? TEXT_MUTED : activo ? TEAL : TEXT_SECONDARY,
                   fontSize: '0.88rem',
                   fontWeight: activo ? 600 : 400,
+                  boxShadow: activo ? `0 2px 8px ${GOLD_GLOW}` : 'none',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 {ocupado ? `${hora} ✕` : hora}
@@ -461,42 +563,44 @@ function Citas() {
           <section
             style={{
               marginTop: '1.5rem',
-              padding: '1.4rem 1.25rem',
               borderRadius: '1rem',
-              backgroundColor: BG_CARD,
+              overflow: 'hidden',
               border: BORDER,
+              boxShadow: `0 2px 12px ${GOLD_GLOW}`,
             }}
           >
-            <h2 style={{ fontSize: '0.78rem', marginBottom: '0.9rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD }}>
-              Datos para tu cita
-            </h2>
-            <p style={{ marginBottom: '1.2rem', color: TEXT_SECONDARY, fontSize: '0.9rem' }}>
-              Cita para <strong style={{ color: TEXT_PRIMARY }}>{fechaTexto}</strong> a las <strong style={{ color: GOLD }}>{horaSeleccionada}</strong>.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <input type="text" placeholder="Nombre completo" value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />
-              <input type="tel" placeholder="Teléfono / WhatsApp" value={telefono} onChange={(e) => setTelefono(e.target.value)} style={inputStyle} />
-              <input type="email" placeholder="Correo electrónico (opcional)" value={correo} onChange={(e) => setCorreo(e.target.value)} style={inputStyle} />
-
-              <button
-                onClick={confirmarCita}
-                disabled={guardando}
-                style={{
-                  marginTop: '0.5rem',
-                  padding: '0.85rem',
-                  borderRadius: '999px',
-                  border: 'none',
-                  background: guardando ? TEXT_MUTED : `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-                  color: BG_DARK,
-                  cursor: guardando ? 'default' : 'pointer',
-                  fontWeight: 700,
-                  fontSize: '0.95rem',
-                  boxShadow: guardando ? 'none' : `0 4px 14px ${GOLD_GLOW}`,
-                }}
-              >
-                {guardando ? 'Guardando…' : 'Confirmar cita'}
-              </button>
+            <div style={{ padding: '0.75rem 1.4rem', background: `linear-gradient(135deg, ${TEAL}, ${GOLD})` }}>
+              <h2 style={{ margin: 0, fontSize: '0.72rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#ffffff', fontWeight: 600 }}>
+                Datos para tu cita
+              </h2>
+            </div>
+            <div style={{ padding: '1.4rem', backgroundColor: BG_CARD }}>
+              <p style={{ marginBottom: '1.2rem', color: TEXT_SECONDARY, fontSize: '0.9rem' }}>
+                Cita para <strong style={{ color: TEXT_PRIMARY }}>{fechaTexto}</strong> a las <strong style={{ color: GOLD }}>{horaSeleccionada}</strong>.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <input type="text" placeholder="Nombre completo" value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />
+                <input type="tel" placeholder="Teléfono / WhatsApp" value={telefono} onChange={(e) => setTelefono(e.target.value)} style={inputStyle} />
+                <input type="email" placeholder="Correo electrónico (opcional)" value={correo} onChange={(e) => setCorreo(e.target.value)} style={inputStyle} />
+                <button
+                  onClick={confirmarCita}
+                  disabled={guardando}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.9rem',
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: guardando ? TEXT_MUTED : `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+                    color: '#ffffff',
+                    cursor: guardando ? 'default' : 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    boxShadow: guardando ? 'none' : `0 4px 14px ${GOLD_GLOW}`,
+                  }}
+                >
+                  {guardando ? 'Guardando…' : 'Confirmar cita'}
+                </button>
+              </div>
             </div>
           </section>
         )}
@@ -533,9 +637,9 @@ function CarritoIcono({
           gap: '0.4rem',
           padding: '0.45rem 0.75rem',
           borderRadius: '999px',
-          border: `1px solid ${cantidadTotal > 0 ? GOLD : 'rgba(196,163,90,0.35)'}`,
+          border: `1px solid ${cantidadTotal > 0 ? GOLD : BORDER}`,
           backgroundColor: cantidadTotal > 0 ? GOLD_SUBTLE : 'transparent',
-          color: cantidadTotal > 0 ? GOLD : TEXT_SECONDARY,
+          color: cantidadTotal > 0 ? TEAL : TEXT_SECONDARY,
           cursor: 'pointer',
           transition: 'all 0.15s ease',
         }}
@@ -547,8 +651,8 @@ function CarritoIcono({
               minWidth: '18px',
               height: '18px',
               borderRadius: '999px',
-              background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-              color: BG_DARK,
+              background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+              color: '#ffffff',
               fontSize: '0.68rem',
               fontWeight: 700,
               display: 'flex',
@@ -573,22 +677,22 @@ function CarritoIcono({
             borderRadius: '1rem',
             backgroundColor: BG_CARD,
             border: BORDER,
-            boxShadow: `0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px ${GOLD_GLOW}`,
+            boxShadow: `0 16px 40px rgba(0,183,196,0.12), 0 2px 8px rgba(0,0,0,0.08)`,
             zIndex: 100,
             overflow: 'hidden',
           }}
         >
-          <div
-            style={{
-              padding: '0.85rem 1.1rem',
-              borderBottom: BORDER_SUBTLE,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            <FiShoppingCart size={14} color={GOLD} />
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: TEXT_PRIMARY, letterSpacing: '0.05em' }}>
+          {/* Header */}
+          <div style={{
+            padding: '0.85rem 1.1rem',
+            borderBottom: BORDER_SUBTLE,
+            background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}>
+            <FiShoppingCart size={14} color="#ffffff" />
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', letterSpacing: '0.05em' }}>
               Mi carrito
             </span>
           </div>
@@ -601,33 +705,17 @@ function CarritoIcono({
             <>
               <div style={{ maxHeight: '220px', overflowY: 'auto', padding: '0.5rem 0' }}>
                 {carrito.slice(0, 4).map((item) => (
-                  <div
-                    key={item.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.65rem',
-                      padding: '0.55rem 1.1rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '0.4rem',
-                        backgroundColor: BG_CARD_ALT,
-                        flexShrink: 0,
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {item.imagenUrl ? (
-                        <img src={item.imagenUrl} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <span style={{ fontSize: '0.7rem', color: TEXT_MUTED }}>◆</span>
-                      )}
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.55rem 1.1rem' }}>
+                    <div style={{
+                      width: '38px', height: '38px', borderRadius: '0.4rem',
+                      backgroundColor: BG_CARD_ALT, flexShrink: 0, overflow: 'hidden',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: BORDER_SUBTLE,
+                    }}>
+                      {item.imagenUrl
+                        ? <img src={item.imagenUrl} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <span style={{ fontSize: '0.7rem', color: TEXT_MUTED }}>◆</span>
+                      }
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: '0.82rem', color: TEXT_PRIMARY, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -637,7 +725,7 @@ function CarritoIcono({
                         {item.cantidad} × ${item.precio.toLocaleString('es-MX')}
                       </p>
                     </div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: GOLD, flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: TEAL, flexShrink: 0 }}>
                       ${(item.precio * item.cantidad).toLocaleString('es-MX')}
                     </span>
                   </div>
@@ -649,19 +737,18 @@ function CarritoIcono({
                 )}
               </div>
 
-              <div
-                style={{
-                  borderTop: BORDER_SUBTLE,
-                  padding: '0.85rem 1.1rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                }}
-              >
+              <div style={{
+                borderTop: BORDER_SUBTLE,
+                padding: '0.85rem 1.1rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '0.75rem',
+                backgroundColor: BG_CARD_ALT,
+              }}>
                 <div>
                   <p style={{ margin: 0, fontSize: '0.72rem', color: TEXT_MUTED }}>Total</p>
-                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: GOLD }}>
+                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: TEAL }}>
                     ${subtotal.toLocaleString('es-MX')} <span style={{ fontSize: '0.72rem', fontWeight: 400, color: TEXT_MUTED }}>MXN</span>
                   </p>
                 </div>
@@ -671,9 +758,9 @@ function CarritoIcono({
                     padding: '0.55rem 1.1rem',
                     borderRadius: '999px',
                     border: 'none',
-                    background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
-                    color: BG_DARK,
-                    fontWeight: 700,
+                    background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+                    color: '#ffffff',
+                    fontWeight: 600,
                     fontSize: '0.82rem',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
@@ -700,24 +787,17 @@ function App() {
     try {
       const stored = localStorage.getItem(CARRITO_KEY);
       return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   });
   const [vista, setVista] = useState<Vista>('home');
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
-    } catch { /* sin localStorage */ }
+    try { localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito)); }
+    catch { /* sin localStorage */ }
   }, [carrito]);
 
-  // Cerrar menú al cambiar de vista
-  function irA(nuevaVista: Vista) {
-    setVista(nuevaVista);
-    setMenuAbierto(false);
-  }
+  function irA(nuevaVista: Vista) { setVista(nuevaVista); setMenuAbierto(false); }
 
   function agregarAlCarrito(item: Omit<ItemCarrito, 'cantidad'>) {
     setCarrito((prev) => {
@@ -729,27 +809,21 @@ function App() {
 
   function cambiarCantidad(id: number, delta: number) {
     setCarrito((prev) =>
-      prev
-        .map((i) => i.id === id ? { ...i, cantidad: i.cantidad + delta } : i)
+      prev.map((i) => i.id === id ? { ...i, cantidad: i.cantidad + delta } : i)
         .filter((i) => i.cantidad > 0),
     );
   }
 
-  function eliminarDelCarrito(id: number) {
-    setCarrito((prev) => prev.filter((i) => i.id !== id));
-  }
-
-  function vaciarCarrito() {
-    setCarrito([]);
-  }
+  function eliminarDelCarrito(id: number) { setCarrito((prev) => prev.filter((i) => i.id !== id)); }
+  function vaciarCarrito() { setCarrito([]); }
 
   const navItems = [
-    { key: 'home', label: 'Inicio' },
-    { key: 'tienda', label: 'Tienda' },
-    { key: 'citas', label: 'Citas' },
+    { key: 'home',             label: 'Inicio' },
+    { key: 'tienda',           label: 'Tienda' },
+    { key: 'citas',            label: 'Citas' },
     { key: 'citas-calendario', label: 'Calendario' },
-    { key: 'lista', label: 'Productos' },
-    { key: 'nuevo', label: 'Nuevo producto' },
+    { key: 'lista',            label: 'Productos' },
+    { key: 'nuevo',            label: 'Nuevo producto' },
   ] as const;
 
   return (
@@ -761,16 +835,17 @@ function App() {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          backgroundColor: `${BG_DARK}ee`,
-          backdropFilter: 'blur(12px)',
+          backgroundColor: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(16px)',
           borderBottom: BORDER,
+          boxShadow: `0 1px 20px rgba(0,183,196,0.07)`,
         }}
       >
         <div
           style={{
             maxWidth: '1120px',
             margin: '0 auto',
-            padding: isMobile ? '0.5rem 1rem' : '0.75rem 2rem',
+            padding: isMobile ? '0.5rem 1rem' : '0.5rem 2rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -779,13 +854,13 @@ function App() {
         >
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <img src="/logo-h2aqua.png" alt="H2AQUA" style={{ height: isMobile ? '52px' : '80px', width: 'auto' }} />
+            <img src="/logo-h2aqua.png" alt="H2AQUA" style={{ height: isMobile ? '52px' : '72px', width: 'auto' }} />
           </div>
 
           {/* Desktop: Nav + Carrito */}
           {!isMobile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <nav style={{ display: 'flex', alignItems: 'center', gap: '0.15rem' }}>
                 {navItems.map((item) => (
                   <button
                     key={item.key}
@@ -796,11 +871,11 @@ function App() {
                       padding: '0.45rem 0.85rem',
                       borderRadius: '0.5rem',
                       cursor: 'pointer',
-                      color: vista === item.key ? GOLD : TEXT_SECONDARY,
+                      color: vista === item.key ? TEAL : TEXT_SECONDARY,
                       fontWeight: vista === item.key ? 600 : 400,
                       fontSize: '0.82rem',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
+                      letterSpacing: '0.08em',
                       transition: 'all 0.15s ease',
                       whiteSpace: 'nowrap',
                     }}
@@ -811,7 +886,6 @@ function App() {
               </nav>
 
               <div style={{ width: '1px', height: '20px', backgroundColor: BORDER, margin: '0 0.25rem' }} />
-
               <CarritoIcono carrito={carrito} onClick={() => setVista('carrito')} />
             </div>
           )}
@@ -823,16 +897,10 @@ function App() {
               <button
                 onClick={() => setMenuAbierto((v) => !v)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '0.5rem',
-                  border: BORDER,
-                  backgroundColor: 'transparent',
-                  color: TEXT_PRIMARY,
-                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '38px', height: '38px',
+                  borderRadius: '0.5rem', border: BORDER,
+                  backgroundColor: 'transparent', color: TEXT_PRIMARY, cursor: 'pointer',
                 }}
               >
                 {menuAbierto ? <FiX size={20} /> : <FiMenu size={20} />}
@@ -843,16 +911,15 @@ function App() {
 
         {/* Mobile: menú desplegable */}
         {isMobile && menuAbierto && (
-          <div
-            style={{
-              backgroundColor: BG_CARD,
-              borderTop: BORDER_SUBTLE,
-              padding: '0.75rem 1rem 1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.25rem',
-            }}
-          >
+          <div style={{
+            backgroundColor: BG_CARD,
+            borderTop: BORDER_SUBTLE,
+            padding: '0.75rem 1rem 1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.2rem',
+            boxShadow: '0 8px 24px rgba(0,183,196,0.08)',
+          }}>
             {navItems.map((item) => (
               <button
                 key={item.key}
@@ -863,7 +930,7 @@ function App() {
                   padding: '0.75rem 1rem',
                   borderRadius: '0.6rem',
                   cursor: 'pointer',
-                  color: vista === item.key ? GOLD : TEXT_SECONDARY,
+                  color: vista === item.key ? TEAL : TEXT_SECONDARY,
                   fontWeight: vista === item.key ? 600 : 400,
                   fontSize: '0.95rem',
                   textAlign: 'left',
@@ -877,6 +944,9 @@ function App() {
         )}
       </header>
 
+      {/* Banda teal superior decorativa bajo el header */}
+      <div style={{ height: '3px', background: `linear-gradient(90deg, ${TEAL}, ${GOLD}, ${GOLD_LIGHT}, transparent)` }} />
+
       {/* ── Main ── */}
       <main style={{ padding: isMobile ? '0 1rem' : '0 2rem' }}>
         {vista === 'home'             && <Home irA={irA} />}
@@ -884,12 +954,7 @@ function App() {
         {vista === 'lista'            && <Productos />}
         {vista === 'nuevo'            && <NuevoProducto />}
         {vista === 'citas-calendario' && <CitasCalendarioAdmin />}
-        {vista === 'tienda'           && (
-          <TiendaProductos
-            carrito={carrito}
-            onAgregarAlCarrito={agregarAlCarrito}
-          />
-        )}
+        {vista === 'tienda'           && <TiendaProductos carrito={carrito} onAgregarAlCarrito={agregarAlCarrito} />}
         {vista === 'carrito'          && (
           <Carrito
             carrito={carrito}
