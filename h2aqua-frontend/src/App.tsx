@@ -845,7 +845,7 @@ function App() {
           style={{
             maxWidth: '1120px',
             margin: '0 auto',
-            padding: isMobile ? '0.5rem 1rem' : '0.5rem 2rem',
+            padding: isMobile ? '0.35rem 1rem' : '0.25rem 2rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -854,7 +854,7 @@ function App() {
         >
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <img src="/logo-h2aqua.png" alt="H2AQUA" style={{ height: isMobile ? '52px' : '72px', width: 'auto' }} />
+            <img src="/logo-h2aqua.png" alt="H2AQUA" style={{ height: isMobile ? '64px' : '100px', width: 'auto' }} />
           </div>
 
           {/* Desktop: Nav + Carrito */}
