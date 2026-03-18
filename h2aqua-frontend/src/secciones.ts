@@ -4,8 +4,12 @@ export interface Seccion {
 }
 
 export const SECCIONES: Seccion[] = [
-  { numero: 1, nombre: 'Sección 1' },
-  { numero: 2, nombre: 'Sección 2' },
-  { numero: 3, nombre: 'Sección 3' },
-  { numero: 4, nombre: 'Sección 4' },
+  { numero: 1, nombre: 'Terapia de Hidrógeno Molecular para Bienestar Celular' },
+  { numero: 2, nombre: 'Experiencia Premium Hidrógeno Molecular' },
+  { numero: 3, nombre: 'Tratamientos Faciales' },
+  { numero: 4, nombre: 'Skincare Coreano – Rostro y Cuerpo' },
+  { numero: 5, nombre: 'Rutina Coreana (K-Beauty)' },
+  { numero: 6, nombre: 'Nutrición y Suplementos de Belleza desde el Interior' },
+  { numero: 7, nombre: 'Hidratación y Bienestar' },
+  { numero: 8, nombre: 'Promociones y Ofertas' },
 ];

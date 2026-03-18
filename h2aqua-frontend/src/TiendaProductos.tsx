@@ -242,75 +242,174 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
   return (
     <div style={{ maxWidth: '1120px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 4rem' }}>
 
-      {/* Encabezado — banner imagen difuminada */}
+      {/* Encabezado — hero banner */}
       <header
         style={{
           position: 'relative',
-          borderRadius: '1.25rem',
+          borderRadius: '1.5rem',
           overflow: 'hidden',
-          marginBottom: isMobile ? '1.75rem' : '2.5rem',
-          padding: isMobile ? '2rem 1.5rem 2rem 2rem' : '2.75rem 3rem 2.75rem 3.5rem',
-          backgroundColor: '#eaf6f7',
+          marginBottom: isMobile ? '1.75rem' : '2.75rem',
+          padding: isMobile ? '2.5rem 1.5rem 2.25rem 2rem' : '3.5rem 3.5rem 3.25rem 4rem',
+          background: 'linear-gradient(135deg, #0d3338 0%, #145a60 55%, #0f3a28 100%)',
         }}
       >
-        {/* Imagen difuminada */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px)', transform: 'scale(1.12)', opacity: 0.13, pointerEvents: 'none' }} />
-        {/* Wash teal tenue */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(0,109,119,0.10) 0%, rgba(0,183,196,0.07) 100%)', pointerEvents: 'none' }} />
+        {/* Imagen de fondo difuminada */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url("/hero-hidrogeno.jpg")',
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          filter: 'blur(18px)', transform: 'scale(1.15)',
+          opacity: 0.32, pointerEvents: 'none',
+          mixBlendMode: 'luminosity',
+        }} />
+        {/* Overlay degradado diagonal */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(120deg, rgba(0,140,150,0.45) 0%, rgba(13,58,64,0.65) 60%, rgba(15,58,40,0.72) 100%)',
+          pointerEvents: 'none',
+        }} />
+        {/* Orbe teal grande */}
+        <div style={{
+          position: 'absolute', top: '-80px', right: isMobile ? '-60px' : '-20px',
+          width: isMobile ? '260px' : '380px', height: isMobile ? '260px' : '380px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,183,196,0.18) 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }} />
+        {/* Orbe dorado pequeño */}
+        <div style={{
+          position: 'absolute', bottom: '-40px', right: isMobile ? '30%' : '20%',
+          width: '180px', height: '180px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }} />
+        {/* Watermark H2AQUA */}
+        <div style={{
+          position: 'absolute', right: isMobile ? '-10px' : '2rem',
+          bottom: isMobile ? '-14px' : '-20px',
+          fontSize: isMobile ? '5.5rem' : '8.5rem',
+          fontWeight: 900,
+          letterSpacing: '-0.04em',
+          color: 'rgba(255,255,255,0.04)',
+          userSelect: 'none', pointerEvents: 'none',
+          lineHeight: 1,
+        }}>
+          H2AQUA
+        </div>
         {/* Línea izquierda */}
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: `linear-gradient(180deg, ${TEAL}, ${GOLD})`, pointerEvents: 'none' }} />
-        {/* Círculo decorativo */}
-        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,183,196,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px',
+          background: `linear-gradient(180deg, ${TEAL}, ${GOLD}, transparent)`,
+          pointerEvents: 'none',
+        }} />
+        {/* Línea superior sutil */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+          background: `linear-gradient(90deg, transparent, rgba(0,183,196,0.4), transparent)`,
+          pointerEvents: 'none',
+        }} />
 
         <div style={{ position: 'relative' }}>
-          {/* Marca */}
-          <p style={{
-            margin: '0 0 0.6rem',
-            fontSize: isMobile ? '1rem' : '1.25rem',
-            letterSpacing: '0.35em',
-            textTransform: 'uppercase',
-            color: TEAL,
-            fontWeight: 700,
+          {/* Pill marca */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+            marginBottom: isMobile ? '1rem' : '1.25rem',
+            padding: '0.3rem 0.9rem 0.3rem 0.6rem',
+            borderRadius: '999px',
+            border: `1px solid rgba(0,183,196,0.35)`,
+            background: 'rgba(0,183,196,0.1)',
+            backdropFilter: 'blur(8px)',
           }}>
-            H2AQUA
-          </p>
+            <span style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: TEAL,
+              boxShadow: `0 0 6px ${TEAL}`,
+            }} />
+            <span style={{
+              fontSize: isMobile ? '0.7rem' : '0.75rem',
+              fontWeight: 700, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: TEAL,
+            }}>
+              H2AQUA
+            </span>
+          </div>
+
           {/* Título principal */}
           <h1 style={{
-            margin: '0 0 0.6rem',
-            fontSize: isMobile ? '2rem' : '2.85rem',
-            fontWeight: 200,
-            letterSpacing: '0.04em',
-            color: TEXT_PRIMARY,
-            lineHeight: 1.1,
+            margin: '0 0 0.9rem',
+            fontSize: isMobile ? '2.2rem' : '3.4rem',
+            fontWeight: 800,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.05,
+            color: '#fff',
           }}>
             Tienda{' '}
             <span style={{
-              fontWeight: 600,
-              background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+              background: `linear-gradient(125deg, ${TEAL} 10%, ${GOLD} 90%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>
               en línea
             </span>
           </h1>
-          {/* Separador */}
-          <div style={{
-            width: isMobile ? '40px' : '52px',
-            height: '2px',
-            background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`,
-            marginBottom: '0.75rem',
-            borderRadius: '999px',
-          }} />
+
           {/* Subtítulo */}
           <p style={{
-            margin: 0,
-            color: TEXT_SECONDARY,
-            fontSize: isMobile ? '0.88rem' : '1rem',
-            lineHeight: 1.6,
-            maxWidth: '480px',
+            margin: '0 0 1.5rem',
+            color: 'rgba(255,255,255,0.62)',
+            fontSize: isMobile ? '0.9rem' : '1.05rem',
+            lineHeight: 1.65,
+            maxWidth: '460px',
           }}>
             Terapias y productos de hidrógeno molecular para elevar tu bienestar.
           </p>
+
+          {/* Tags de secciones — navegación por ancla */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {SECCIONES.map((sec, i) => {
+              const etiquetas = [
+                'Hidrógeno Molecular',
+                'Experiencia Premium',
+                'Facial',
+                'Skincare Coreano',
+                'K-Beauty',
+                'Nutrición',
+                'Bienestar',
+                'Promociones',
+              ];
+              return (
+              <button
+                key={sec.numero}
+                onClick={() => document.getElementById(`seccion-${sec.numero}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 500,
+                  letterSpacing: '0.04em',
+                  color: 'rgba(255,255,255,0.55)',
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  borderRadius: '999px',
+                  padding: '0.22rem 0.7rem',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  transition: 'color 0.15s, border-color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = `rgba(0,183,196,0.5)`;
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,183,196,0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.55)';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.14)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                }}
+              >
+                {etiquetas[i] ?? sec.nombre}
+              </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
@@ -322,74 +421,76 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
         const productosSec = productos.filter((p) => p.seccion === sec.numero);
 
         return (
-          <section key={sec.numero} style={{ marginBottom: isMobile ? '2.5rem' : '3.5rem' }}>
-            {/* Encabezado de sección — fondo imagen difuminada tenue */}
+          <section key={sec.numero} id={`seccion-${sec.numero}`} style={{ marginBottom: isMobile ? '2.5rem' : '3.5rem' }}>
+            {/* Encabezado de sección */}
             <div
               style={{
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: '0.9rem',
-                marginBottom: '1.25rem',
-                padding: isMobile ? '0.85rem 1rem 0.85rem 1.25rem' : '1rem 1.5rem 1rem 1.5rem',
-                backgroundColor: '#edf7f8',
+                display: 'flex',
+                alignItems: 'center',
+                gap: isMobile ? '0.75rem' : '1rem',
+                marginBottom: isMobile ? '1.1rem' : '1.5rem',
+                flexWrap: 'wrap',
               }}
             >
-              {/* Imagen difuminada */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: 'url("/hero-hidrogeno.jpg")',
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                filter: 'blur(16px)', transform: 'scale(1.15)',
-                opacity: 0.10, pointerEvents: 'none',
-              }} />
-              {/* Wash teal */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(90deg, rgba(0,109,119,0.08) 0%, rgba(0,183,196,0.05) 100%)',
-                pointerEvents: 'none',
-              }} />
-              {/* Línea izquierda */}
-              <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
-                background: `linear-gradient(180deg, ${TEAL}, ${GOLD})`,
-                pointerEvents: 'none',
-              }} />
+              {/* Badge número */}
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: isMobile ? '2rem' : '2.25rem',
+                height: isMobile ? '2rem' : '2.25rem',
+                borderRadius: '50%',
+                background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+                color: '#fff',
+                fontSize: isMobile ? '0.75rem' : '0.82rem',
+                fontWeight: 700,
+                letterSpacing: '0.01em',
+                flexShrink: 0,
+                boxShadow: `0 2px 10px rgba(0,183,196,0.35)`,
+                userSelect: 'none',
+              }}>
+                {String(sec.numero).padStart(2, '0')}
+              </span>
 
-              {/* Contenido */}
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-                {/* Número decorativo */}
+              {/* Título */}
+              <h2 style={{
+                margin: 0,
+                fontSize: isMobile ? '1.05rem' : '1.3rem',
+                fontWeight: 700,
+                letterSpacing: '0.01em',
+                lineHeight: 1.2,
+                background: `linear-gradient(135deg, ${TEAL} 20%, ${GOLD} 100%)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                {sec.nombre}
+              </h2>
+
+              {/* Chip contador */}
+              {productosSec.length > 0 && (
                 <span style={{
-                  fontSize: isMobile ? '1.6rem' : '2rem',
-                  fontWeight: 700,
-                  color: 'rgba(0,183,196,0.12)',
-                  lineHeight: 1,
-                  letterSpacing: '-0.03em',
-                  userSelect: 'none',
+                  marginLeft: 'auto',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: TEAL,
+                  border: `1px solid rgba(0,183,196,0.3)`,
+                  borderRadius: '999px',
+                  padding: '0.2rem 0.65rem',
+                  whiteSpace: 'nowrap',
                 }}>
-                  0{sec.numero}
+                  {productosSec.length} {productosSec.length !== 1 ? 'productos' : 'producto'}
                 </span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                  <h2 style={{
-                    fontSize: isMobile ? '1rem' : '1.15rem',
-                    margin: 0,
-                    color: TEXT_PRIMARY,
-                    fontWeight: 500,
-                    letterSpacing: '0.03em',
-                  }}>
-                    {sec.nombre}
-                  </h2>
-                  <span style={{
-                    fontSize: '0.7rem',
-                    color: TEXT_MUTED,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    fontWeight: 500,
-                  }}>
-                    {productosSec.length} {productosSec.length !== 1 ? 'productos' : 'producto'} disponible{productosSec.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
+
+            {/* Línea separadora */}
+            <div style={{
+              height: '1px',
+              background: `linear-gradient(90deg, rgba(0,183,196,0.35), rgba(212,175,55,0.2), transparent)`,
+              marginBottom: isMobile ? '1.1rem' : '1.4rem',
+            }} />
 
             {productosSec.length === 0 ? (
               <p
