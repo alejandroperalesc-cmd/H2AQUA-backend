@@ -231,26 +231,23 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
     })();
   }, []);
 
-  // Detecta sección activa y visibilidad del botón "arriba"
+  // Detecta sección activa y visibilidad de la píldora via scroll
   useEffect(() => {
-    const onScroll = () => setMostrarArriba(window.scrollY > 400);
+    const onScroll = () => {
+      setMostrarArriba(window.scrollY > 400);
+      // La sección activa es la última cuyo top ya pasó el 30% superior del viewport
+      let activa = 0;
+      for (const sec of SECCIONES) {
+        const el = document.getElementById(`seccion-${sec.numero}`);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= window.innerHeight * 0.35) {
+          activa = sec.numero;
+        }
+      }
+      setSeccionActiva(activa);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-    SECCIONES.forEach((sec) => {
-      const el = document.getElementById(`seccion-${sec.numero}`);
-      if (!el) return;
-      const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setSeccionActiva(sec.numero); },
-        { rootMargin: '-30% 0px -60% 0px' }
-      );
-      obs.observe(el);
-      observers.push(obs);
-    });
-    return () => observers.forEach((o) => o.disconnect());
   }, []);
 
   const scrollToSeccion = (numero: number) => {
@@ -263,12 +260,14 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
   const irAnterior = () => {
     const idx = SECCIONES.findIndex((s) => s.numero === seccionActiva);
     if (idx > 0) scrollToSeccion(SECCIONES[idx - 1].numero);
-    else window.scrollTo({ top: 0, behavior: 'smooth' });
+    else scrollToSeccion(SECCIONES[0].numero);
   };
 
   const irSiguiente = () => {
     const idx = SECCIONES.findIndex((s) => s.numero === seccionActiva);
-    if (idx < SECCIONES.length - 1) scrollToSeccion(SECCIONES[idx + 1].numero);
+    // si aún no hay sección activa, ir a la primera; si es la última, no hacer nada
+    if (idx === -1) scrollToSeccion(SECCIONES[0].numero);
+    else if (idx < SECCIONES.length - 1) scrollToSeccion(SECCIONES[idx + 1].numero);
   };
 
   if (cargando) {
@@ -433,19 +432,19 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           <button
             onClick={irAnterior}
             title="Sección anterior"
-            disabled={activaIdx <= 0}
+            disabled={activaIdx === 0}
             style={{
               padding: isMobile ? '0.55rem 0.75rem' : '0.6rem 0.9rem',
               background: 'transparent',
               border: 'none',
-              color: activaIdx <= 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
-              cursor: activaIdx <= 0 ? 'default' : 'pointer',
+              color: activaIdx === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
+              cursor: activaIdx === 0 ? 'default' : 'pointer',
               fontSize: '1rem',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'color 0.15s',
             }}
-            onMouseEnter={(e) => { if (activaIdx > 0) e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = activaIdx <= 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)'; }}
+            onMouseEnter={(e) => { if (activaIdx !== 0) e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = activaIdx === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)'; }}
           >
             ‹
           </button>
@@ -478,19 +477,19 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           <button
             onClick={irSiguiente}
             title="Sección siguiente"
-            disabled={activaIdx >= SECCIONES.length - 1}
+            disabled={activaIdx === SECCIONES.length - 1}
             style={{
               padding: isMobile ? '0.55rem 0.75rem' : '0.6rem 0.9rem',
               background: 'transparent',
               border: 'none',
-              color: activaIdx >= SECCIONES.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
-              cursor: activaIdx >= SECCIONES.length - 1 ? 'default' : 'pointer',
+              color: activaIdx === SECCIONES.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
+              cursor: activaIdx === SECCIONES.length - 1 ? 'default' : 'pointer',
               fontSize: '1rem',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'color 0.15s',
             }}
-            onMouseEnter={(e) => { if (activaIdx < SECCIONES.length - 1) e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = activaIdx >= SECCIONES.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)'; }}
+            onMouseEnter={(e) => { if (activaIdx !== SECCIONES.length - 1) e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = activaIdx === SECCIONES.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)'; }}
           >
             ›
           </button>
