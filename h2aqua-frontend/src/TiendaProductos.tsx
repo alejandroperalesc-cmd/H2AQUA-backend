@@ -1,5 +1,5 @@
 // TiendaProductos.tsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ItemCarrito } from './App';
 import { API_URL } from './api';
 import { SECCIONES } from './secciones';
@@ -215,7 +215,6 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
   const [error, setError] = useState<string | null>(null);
   const [seccionActiva, setSeccionActiva] = useState<number>(0);
   const [mostrarArriba, setMostrarArriba] = useState(false);
-  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -254,16 +253,11 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
-  // Centra el tab activo en la barra de nav
-  useEffect(() => {
-    if (!navRef.current || seccionActiva === 0) return;
-    const btn = navRef.current.querySelector<HTMLElement>(`[data-sec="${seccionActiva}"]`);
-    btn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [seccionActiva]);
-
   const scrollToSeccion = (numero: number) => {
     const el = document.getElementById(`seccion-${numero}`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 24;
+    window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
   const irAnterior = () => {
@@ -350,123 +344,6 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
         </div>
       </header>
 
-      {/* ── Barra de navegación sticky ──────────────────────────────────────── */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          marginBottom: isMobile ? '1.5rem' : '2rem',
-          marginLeft: isMobile ? '-1rem' : 0,
-          marginRight: isMobile ? '-1rem' : 0,
-        }}
-      >
-        <div style={{
-          background: 'rgba(8, 28, 30, 0.88)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(0,183,196,0.15)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-          padding: isMobile ? '0' : '0',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 0, maxWidth: '1120px', margin: '0 auto' }}>
-
-            {/* Botón anterior */}
-            <button
-              onClick={irAnterior}
-              title="Anterior"
-              style={{
-                flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: isMobile ? '36px' : '40px',
-                height: isMobile ? '44px' : '48px',
-                background: 'transparent',
-                border: 'none',
-                borderRight: '1px solid rgba(0,183,196,0.12)',
-                color: seccionActiva === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
-                cursor: seccionActiva === 0 ? 'default' : 'pointer',
-                fontSize: '1rem',
-                transition: 'color 0.15s',
-              }}
-            >
-              ‹
-            </button>
-
-            {/* Tabs scrollables */}
-            <div
-              ref={navRef}
-              style={{
-                flex: 1,
-                display: 'flex',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                gap: 0,
-              }}
-            >
-              {SECCIONES.map((sec, i) => {
-                const activa = sec.numero === seccionActiva;
-                return (
-                  <button
-                    key={sec.numero}
-                    data-sec={sec.numero}
-                    onClick={() => scrollToSeccion(sec.numero)}
-                    style={{
-                      flexShrink: 0,
-                      padding: isMobile ? '0.65rem 0.85rem' : '0.75rem 1.1rem',
-                      background: 'transparent',
-                      border: 'none',
-                      borderBottom: activa ? `2px solid ${TEAL}` : '2px solid transparent',
-                      color: activa ? TEAL : 'rgba(255,255,255,0.45)',
-                      fontSize: isMobile ? '0.72rem' : '0.78rem',
-                      fontWeight: activa ? 700 : 400,
-                      letterSpacing: '0.03em',
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                      transition: 'color 0.15s, border-color 0.15s',
-                    }}
-                  >
-                    {ETIQUETAS[i] ?? sec.nombre}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Botón siguiente */}
-            <button
-              onClick={irSiguiente}
-              title="Siguiente"
-              style={{
-                flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: isMobile ? '36px' : '40px',
-                height: isMobile ? '44px' : '48px',
-                background: 'transparent',
-                border: 'none',
-                borderLeft: '1px solid rgba(0,183,196,0.12)',
-                color: activaIdx === SECCIONES.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
-                cursor: activaIdx === SECCIONES.length - 1 ? 'default' : 'pointer',
-                fontSize: '1rem',
-                transition: 'color 0.15s',
-              }}
-            >
-              ›
-            </button>
-
-          </div>
-
-          {/* Indicador de progreso */}
-          {seccionActiva > 0 && (
-            <div style={{ height: '2px', background: `rgba(0,183,196,0.08)` }}>
-              <div style={{
-                height: '100%',
-                width: `${((activaIdx + 1) / SECCIONES.length) * 100}%`,
-                background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`,
-                transition: 'width 0.4s ease',
-              }} />
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* ── Carrusel de destacados ───────────────────────────────────────────── */}
       <CarruselDestacados onAgregarAlCarrito={onAgregarAlCarrito} />
 
@@ -478,7 +355,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           <section
             key={sec.numero}
             id={`seccion-${sec.numero}`}
-            style={{ marginBottom: isMobile ? '2.5rem' : '3.5rem', scrollMarginTop: '60px' }}
+            style={{ marginBottom: isMobile ? '2.5rem' : '3.5rem' }}
           >
             {/* Encabezado de sección */}
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', marginBottom: isMobile ? '1.1rem' : '1.5rem', flexWrap: 'wrap' }}>
@@ -512,36 +389,113 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
         );
       })}
 
-      {/* ── Botón volver arriba ──────────────────────────────────────────────── */}
+      {/* ── Navegador flotante ───────────────────────────────────────────────── */}
       {mostrarArriba && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          title="Volver arriba"
-          style={{
-            position: 'fixed',
-            bottom: isMobile ? '5.5rem' : '2rem',
-            right: isMobile ? '1rem' : '2rem',
-            zIndex: 50,
-            width: '42px',
-            height: '42px',
-            borderRadius: '50%',
-            border: `1px solid rgba(0,183,196,0.4)`,
-            background: 'rgba(8,28,30,0.9)',
-            backdropFilter: 'blur(12px)',
-            color: TEAL,
-            fontSize: '1.1rem',
-            cursor: 'pointer',
-            boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,183,196,0.15)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'transform 0.15s, box-shadow 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px ${TEAL}`; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,183,196,0.15)'; }}
-        >
-          ↑
-        </button>
+        <div style={{
+          position: 'fixed',
+          bottom: isMobile ? '5rem' : '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0',
+          background: 'rgba(8,28,30,0.92)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(0,183,196,0.25)',
+          borderRadius: '999px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+          overflow: 'hidden',
+        }}>
+
+          {/* Botón arriba */}
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            title="Volver al inicio"
+            style={{
+              padding: isMobile ? '0.55rem 0.75rem' : '0.6rem 0.9rem',
+              background: 'transparent',
+              border: 'none',
+              borderRight: '1px solid rgba(0,183,196,0.15)',
+              color: 'rgba(255,255,255,0.5)',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
+          >
+            ↑
+          </button>
+
+          {/* Botón anterior */}
+          <button
+            onClick={irAnterior}
+            title="Sección anterior"
+            disabled={activaIdx <= 0}
+            style={{
+              padding: isMobile ? '0.55rem 0.75rem' : '0.6rem 0.9rem',
+              background: 'transparent',
+              border: 'none',
+              color: activaIdx <= 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
+              cursor: activaIdx <= 0 ? 'default' : 'pointer',
+              fontSize: '1rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => { if (activaIdx > 0) e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = activaIdx <= 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)'; }}
+          >
+            ‹
+          </button>
+
+          {/* Nombre de la sección activa */}
+          <div style={{
+            padding: isMobile ? '0.55rem 0.9rem' : '0.6rem 1.1rem',
+            borderLeft: '1px solid rgba(0,183,196,0.15)',
+            borderRight: '1px solid rgba(0,183,196,0.15)',
+            minWidth: isMobile ? '120px' : '160px',
+            textAlign: 'center',
+          }}>
+            {seccionActiva > 0 ? (
+              <>
+                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.1rem' }}>
+                  {String(seccionActiva).padStart(2, '0')} / {String(SECCIONES.length).padStart(2, '0')}
+                </div>
+                <div style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', fontWeight: 600, color: TEAL, whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>
+                  {ETIQUETAS[(seccionActiva - 1)] ?? `Sección ${seccionActiva}`}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.02em' }}>
+                Tienda
+              </div>
+            )}
+          </div>
+
+          {/* Botón siguiente */}
+          <button
+            onClick={irSiguiente}
+            title="Sección siguiente"
+            disabled={activaIdx >= SECCIONES.length - 1}
+            style={{
+              padding: isMobile ? '0.55rem 0.75rem' : '0.6rem 0.9rem',
+              background: 'transparent',
+              border: 'none',
+              color: activaIdx >= SECCIONES.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
+              cursor: activaIdx >= SECCIONES.length - 1 ? 'default' : 'pointer',
+              fontSize: '1rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => { if (activaIdx < SECCIONES.length - 1) e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = activaIdx >= SECCIONES.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)'; }}
+          >
+            ›
+          </button>
+
+        </div>
       )}
 
     </div>
