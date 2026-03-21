@@ -331,12 +331,6 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
         <div style={{ position: 'absolute', right: isMobile ? '-6px' : '2.5rem', bottom: isMobile ? '-12px' : '-18px', fontSize: isMobile ? '5.5rem' : '8.5rem', fontWeight: 900, letterSpacing: '-0.04em', color: 'rgba(255,255,255,0.07)', userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>H2AQUA</div>
 
         <div style={{ position: 'relative' }}>
-          {/* Pill marca */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: isMobile ? '1rem' : '1.25rem', padding: '0.3rem 1rem 0.3rem 0.6rem', borderRadius: '999px', border: `1px solid rgba(255,255,255,0.3)`, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#fff', boxShadow: '0 0 8px rgba(255,255,255,0.8)' }} />
-            <span style={{ fontSize: isMobile ? '0.68rem' : '0.73rem', fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: '#fff' }}>H2AQUA</span>
-          </div>
-
           {/* Título */}
           <h1 style={{ margin: '0 0 0.8rem', fontSize: isMobile ? '2.2rem' : '3.4rem', fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1.05, color: '#fff' }}>
             Tienda{' '}
@@ -349,7 +343,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           {/* Subtítulo */}
           <div style={{ margin: '0 0 1.75rem', maxWidth: isMobile ? '100%' : '580px' }}>
             <p style={{ margin: '0 0 0.6rem', color: 'rgba(255,255,255,0.9)', fontSize: isMobile ? '0.95rem' : '1.08rem', lineHeight: 1.6, fontWeight: 400 }}>
-              H2AQUA encontrarás todo lo que necesitas para cuidarte de verdad.
+              H2AQUA tiene todo lo que necesitas para cuidarte de verdad.
             </p>
             <p style={{ margin: '0 0 0.6rem', color: 'rgba(255,255,255,0.7)', fontSize: isMobile ? '0.86rem' : '0.97rem', lineHeight: 1.65 }}>
               Terapias que renuevan el cuerpo a nivel celular y los rituales de belleza más efectivos del mundo, reunidos en un solo lugar.
