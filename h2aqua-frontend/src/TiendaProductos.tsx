@@ -123,17 +123,51 @@ function TarjetaProducto({
             Sin imagen
           </div>
         )}
-        {hover && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '3px',
-              background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, ${GOLD}, transparent)`,
-            }}
-          />
+        {/* Acento inferior */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
+          background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, ${GOLD}, transparent)`,
+          opacity: hover ? 1 : 0,
+          transition: 'opacity 0.22s ease',
+        }} />
+
+        {/* Overlay descripción — se desliza desde abajo al hacer hover */}
+        {p.descripcion && !isMobile && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: `linear-gradient(155deg, rgba(11,74,85,0.97) 0%, rgba(0,109,119,0.95) 50%, rgba(0,150,138,0.93) 100%)`,
+            backdropFilter: 'blur(6px)',
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            padding: '1rem 1.15rem',
+            transform: hover ? 'translateY(0)' : 'translateY(100%)',
+            transition: 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)',
+            pointerEvents: hover ? 'auto' : 'none',
+          }}>
+            {/* Etiqueta */}
+            <span style={{
+              fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em',
+              textTransform: 'uppercase', color: P_LIGHT,
+              marginBottom: '0.45rem', display: 'block',
+            }}>
+              Descripción
+            </span>
+            {/* Línea decorativa */}
+            <div style={{
+              width: '24px', height: '2px', borderRadius: '999px',
+              background: `linear-gradient(90deg, ${P}, ${GOLD})`,
+              marginBottom: '0.6rem',
+            }} />
+            <p style={{
+              margin: 0, color: 'rgba(255,255,255,0.88)',
+              fontSize: '0.8rem', lineHeight: 1.65,
+              display: '-webkit-box',
+              WebkitLineClamp: 5,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}>
+              {p.descripcion}
+            </p>
+          </div>
         )}
       </div>
 
