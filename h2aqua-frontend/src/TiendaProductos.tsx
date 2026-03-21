@@ -348,7 +348,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
 
           {/* Subtítulo */}
           <p style={{ margin: '0 0 1.75rem', color: 'rgba(255,255,255,0.75)', fontSize: isMobile ? '0.9rem' : '1.02rem', lineHeight: 1.65, maxWidth: '460px' }}>
-            Terapias y productos de hidrógeno molecular para elevar tu bienestar.
+            En H2AQUA encontrarás todo lo que necesitas para cuidarte de verdad. Terapias que renuevan el cuerpo a nivel celular y los rituales de belleza más efectivos del mundo, reunidos en un solo lugar. Porque el bienestar completo va más allá de lo que se ve — empieza desde adentro.
           </p>
 
           {/* Tags de secciones */}
