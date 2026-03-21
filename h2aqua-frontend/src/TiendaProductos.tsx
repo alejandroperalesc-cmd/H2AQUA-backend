@@ -7,7 +7,6 @@ import CarruselDestacados from './CarruselDestacados';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_CARD, BG_CARD_ALT, BG_HOVER,
-  GOLD, GOLD_GLOW,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
 } from './theme';
@@ -31,9 +30,11 @@ interface TiendaProductosProps {
 
 // ─── Pantone brand ───────────────────────────────────────────────────────────
 const P       = '#00A9C0';          // Pantone principal
-const P_DARK  = '#006f82';          // Pantone profundo — profundidad/gradientes
-const P_LIGHT = '#33bdd1';          // Pantone claro — reflejos
-const P_GLOW  = 'rgba(0,169,192,0.22)';
+const P_GREEN = '#00968a';          // Verde-teal medio (del gradiente del header)
+const P_DARK  = '#005a52';          // Verde esmeralda profundo
+const P_LIGHT = '#2ecfc4';          // Aguamarina claro
+const P_GLOW  = 'rgba(0,150,138,0.22)';
+const P_GLOW_SOFT = 'rgba(0,150,138,0.10)';
 
 const ETIQUETAS = [
   'Hidrógeno Molecular',
@@ -69,8 +70,8 @@ function TarjetaProducto({
         flexDirection: 'column',
         overflow: 'hidden',
         boxShadow: hover
-          ? `0 24px 48px rgba(0,0,0,0.35), 0 0 0 1px ${GOLD_GLOW}`
-          : '0 4px 20px rgba(0,0,0,0.25)',
+          ? `0 20px 44px rgba(0,0,0,0.18), 0 0 0 1.5px ${P_GREEN}`
+          : `0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,150,138,0.12)`,
         transform: hover ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.22s ease',
       }}
@@ -125,8 +126,8 @@ function TarjetaProducto({
               bottom: 0,
               left: 0,
               right: 0,
-              height: '2px',
-              background: `linear-gradient(90deg, ${GOLD}, transparent)`,
+              height: '3px',
+              background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P_LIGHT}, transparent)`,
             }}
           />
         )}
@@ -174,7 +175,7 @@ function TarjetaProducto({
         )}
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.15rem' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 400, color: P }}>$</span>
+          <span style={{ fontSize: '0.82rem', fontWeight: 400, color: P_GREEN }}>$</span>
           <span style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 700, color: P_DARK, letterSpacing: '-0.02em' }}>
             {p.precio.toLocaleString('es-MX')}
           </span>
@@ -194,13 +195,13 @@ function TarjetaProducto({
             border: agotado ? `1px solid ${BORDER_SUBTLE}` : 'none',
             background: agotado
               ? 'transparent'
-              : `linear-gradient(135deg, ${P_DARK}, ${P})`,
+              : `linear-gradient(135deg, ${P_DARK}, ${P_GREEN}, ${P})`,
             color: agotado ? TEXT_MUTED : '#ffffff',
             cursor: agotado ? 'not-allowed' : 'pointer',
             fontSize: isMobile ? '0.78rem' : '0.88rem',
             fontWeight: 600,
             letterSpacing: '0.04em',
-            boxShadow: agotado ? 'none' : `0 4px 18px ${P_GLOW}`,
+            boxShadow: agotado ? 'none' : `0 4px 20px ${P_GLOW}`,
             transition: 'opacity 0.15s ease',
           }}
         >
@@ -378,20 +379,20 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           >
             {/* Encabezado de sección */}
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', marginBottom: isMobile ? '1.1rem' : '1.4rem', flexWrap: 'wrap' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: isMobile ? '2rem' : '2.25rem', height: isMobile ? '2rem' : '2.25rem', borderRadius: '50%', background: P, color: '#fff', fontSize: isMobile ? '0.75rem' : '0.82rem', fontWeight: 700, flexShrink: 0, boxShadow: `0 3px 12px ${P_GLOW}`, userSelect: 'none' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: isMobile ? '2rem' : '2.25rem', height: isMobile ? '2rem' : '2.25rem', borderRadius: '50%', background: `linear-gradient(135deg, ${P_DARK}, ${P_GREEN})`, color: '#fff', fontSize: isMobile ? '0.75rem' : '0.82rem', fontWeight: 700, flexShrink: 0, boxShadow: `0 3px 14px ${P_GLOW}`, userSelect: 'none' }}>
                 {String(sec.numero).padStart(2, '0')}
               </span>
-              <h2 style={{ margin: 0, fontSize: isMobile ? '1.05rem' : '1.3rem', fontWeight: 700, letterSpacing: '0.01em', lineHeight: 1.2, color: P_DARK }}>
+              <h2 style={{ margin: 0, fontSize: isMobile ? '1.05rem' : '1.3rem', fontWeight: 700, letterSpacing: '0.01em', lineHeight: 1.2, background: `linear-gradient(120deg, ${P_DARK} 0%, ${P_GREEN} 60%, ${P} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {sec.nombre}
               </h2>
               {productosSec.length > 0 && (
-                <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: P, border: `1px solid ${P_GLOW}`, borderRadius: '999px', padding: '0.2rem 0.65rem', whiteSpace: 'nowrap', background: `rgba(0,169,192,0.06)` }}>
+                <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: P_GREEN, border: `1px solid ${P_GLOW}`, borderRadius: '999px', padding: '0.2rem 0.65rem', whiteSpace: 'nowrap', background: P_GLOW_SOFT }}>
                   {productosSec.length} {productosSec.length !== 1 ? 'productos' : 'producto'}
                 </span>
               )}
             </div>
 
-            <div style={{ height: '1px', background: `linear-gradient(90deg, ${P}, rgba(0,169,192,0.15), transparent)`, marginBottom: isMobile ? '1.1rem' : '1.4rem' }} />
+            <div style={{ height: '1px', background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, rgba(0,150,138,0.1), transparent)`, marginBottom: isMobile ? '1.1rem' : '1.4rem' }} />
 
             {productosSec.length === 0 ? (
               <p style={{ margin: 0, color: TEXT_MUTED, fontSize: '0.9rem', paddingLeft: '1.25rem', borderLeft: `2px solid ${BORDER_SUBTLE}` }}>
@@ -419,11 +420,11 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           display: 'flex',
           alignItems: 'center',
           gap: '0',
-          background: `rgba(0,90,107,0.94)`,
+          background: `rgba(0,60,54,0.94)`,
           backdropFilter: 'blur(20px)',
-          border: `1px solid rgba(0,169,192,0.35)`,
+          border: `1px solid rgba(0,150,138,0.35)`,
           borderRadius: '999px',
-          boxShadow: `0 8px 36px rgba(0,0,0,0.35), 0 0 0 1px ${P_GLOW}`,
+          boxShadow: `0 8px 36px rgba(0,0,0,0.3), 0 0 0 1px ${P_GLOW}`,
           overflow: 'hidden',
         }}>
 
@@ -472,8 +473,8 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           {/* Nombre de la sección activa */}
           <div style={{
             padding: isMobile ? '0.55rem 0.9rem' : '0.6rem 1.1rem',
-            borderLeft: '1px solid rgba(0,169,192,0.2)',
-            borderRight: '1px solid rgba(0,169,192,0.2)',
+            borderLeft: '1px solid rgba(0,150,138,0.25)',
+            borderRight: '1px solid rgba(0,150,138,0.25)',
             minWidth: isMobile ? '120px' : '160px',
             textAlign: 'center',
           }}>
@@ -482,7 +483,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
                 <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.1rem' }}>
                   {String(seccionActiva).padStart(2, '0')} / {String(SECCIONES.length).padStart(2, '0')}
                 </div>
-                <div style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', fontWeight: 600, color: P_LIGHT, whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>
+                <div style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', fontWeight: 600, color: P_LIGHT, whiteSpace: 'nowrap', letterSpacing: '0.02em', textShadow: `0 0 12px rgba(46,207,196,0.5)` }}>
                   {ETIQUETAS[(seccionActiva - 1)] ?? `Sección ${seccionActiva}`}
                 </div>
               </>
