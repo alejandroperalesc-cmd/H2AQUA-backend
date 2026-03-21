@@ -7,8 +7,8 @@ import CarruselDestacados from './CarruselDestacados';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_CARD, BG_CARD_ALT, BG_HOVER,
-  GOLD, GOLD_GLOW,
-  TEAL,
+  GOLD, GOLD_LIGHT, GOLD_GLOW,
+  TEAL, TEAL_LIGHT,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
 } from './theme';
@@ -300,43 +300,55 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           borderRadius: '1.5rem',
           overflow: 'hidden',
           marginBottom: isMobile ? '1.75rem' : '2.75rem',
-          padding: isMobile ? '2.5rem 1.5rem 2.25rem 2rem' : '3.5rem 3.5rem 3.25rem 4rem',
-          background: 'linear-gradient(135deg, #0d3338 0%, #145a60 55%, #0f3a28 100%)',
+          padding: isMobile ? '2.25rem 1.5rem 2rem 2rem' : '3rem 3.5rem 2.75rem 4rem',
+          background: `linear-gradient(135deg, #e4f5f7 0%, #ceedf1 45%, #d6f0eb 100%)`,
+          border: `1px solid rgba(0,183,196,0.18)`,
+          boxShadow: `0 4px 32px rgba(0,183,196,0.10)`,
         }}
       >
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(18px)', transform: 'scale(1.15)', opacity: 0.32, pointerEvents: 'none', mixBlendMode: 'luminosity' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(120deg, rgba(0,140,150,0.45) 0%, rgba(13,58,64,0.65) 60%, rgba(15,58,40,0.72) 100%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '-80px', right: isMobile ? '-60px' : '-20px', width: isMobile ? '260px' : '380px', height: isMobile ? '260px' : '380px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,183,196,0.18) 0%, transparent 65%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-40px', right: isMobile ? '30%' : '20%', width: '180px', height: '180px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 65%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', right: isMobile ? '-10px' : '2rem', bottom: isMobile ? '-14px' : '-20px', fontSize: isMobile ? '5.5rem' : '8.5rem', fontWeight: 900, letterSpacing: '-0.04em', color: 'rgba(255,255,255,0.04)', userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>H2AQUA</div>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: `linear-gradient(180deg, ${TEAL}, ${GOLD}, transparent)`, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(0,183,196,0.4), transparent)', pointerEvents: 'none' }} />
+        {/* Imagen de fondo muy suave */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(20px)', transform: 'scale(1.15)', opacity: 0.08, pointerEvents: 'none' }} />
+        {/* Orbe teal derecha */}
+        <div style={{ position: 'absolute', top: '-60px', right: isMobile ? '-40px' : '0px', width: isMobile ? '220px' : '340px', height: isMobile ? '220px' : '340px', borderRadius: '50%', background: `radial-gradient(circle, rgba(0,183,196,0.18) 0%, transparent 65%)`, pointerEvents: 'none' }} />
+        {/* Orbe sage-teal abajo izquierda */}
+        <div style={{ position: 'absolute', bottom: '-50px', left: isMobile ? '-30px' : '10%', width: '240px', height: '240px', borderRadius: '50%', background: `radial-gradient(circle, rgba(131,197,190,0.22) 0%, transparent 65%)`, pointerEvents: 'none' }} />
+        {/* Línea izquierda */}
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: `linear-gradient(180deg, ${TEAL}, ${GOLD}, ${TEAL_LIGHT})`, pointerEvents: 'none' }} />
+        {/* Watermark */}
+        <div style={{ position: 'absolute', right: isMobile ? '-8px' : '2rem', bottom: isMobile ? '-10px' : '-16px', fontSize: isMobile ? '5rem' : '8rem', fontWeight: 900, letterSpacing: '-0.04em', color: `rgba(0,109,119,0.06)`, userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>H2AQUA</div>
 
         <div style={{ position: 'relative' }}>
           {/* Pill marca */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', marginBottom: isMobile ? '1rem' : '1.25rem', padding: '0.3rem 0.9rem 0.3rem 0.6rem', borderRadius: '999px', border: '1px solid rgba(0,183,196,0.35)', background: 'rgba(0,183,196,0.1)', backdropFilter: 'blur(8px)' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: TEAL, boxShadow: `0 0 6px ${TEAL}` }} />
-            <span style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: TEAL }}>H2AQUA</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', marginBottom: isMobile ? '0.9rem' : '1.1rem', padding: '0.28rem 0.85rem 0.28rem 0.55rem', borderRadius: '999px', border: `1px solid rgba(0,109,119,0.25)`, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(8px)' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, boxShadow: `0 0 6px ${GOLD_GLOW}` }} />
+            <span style={{ fontSize: isMobile ? '0.68rem' : '0.73rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: TEAL }}>H2AQUA</span>
           </div>
 
-          <h1 style={{ margin: '0 0 0.9rem', fontSize: isMobile ? '2.2rem' : '3.4rem', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05, color: '#fff' }}>
+          {/* Título */}
+          <h1 style={{ margin: '0 0 0.75rem', fontSize: isMobile ? '2rem' : '3.2rem', fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1.05, color: TEXT_PRIMARY }}>
             Tienda{' '}
-            <span style={{ background: `linear-gradient(125deg, ${TEAL} 10%, ${GOLD} 90%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>en línea</span>
+            <span style={{ background: `linear-gradient(125deg, ${TEAL} 0%, ${GOLD} 70%, ${GOLD_LIGHT} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              en línea
+            </span>
           </h1>
 
-          <p style={{ margin: '0 0 1.5rem', color: 'rgba(255,255,255,0.62)', fontSize: isMobile ? '0.9rem' : '1.05rem', lineHeight: 1.65, maxWidth: '460px' }}>
+          {/* Separador */}
+          <div style={{ width: isMobile ? '36px' : '48px', height: '3px', borderRadius: '999px', background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, marginBottom: '0.75rem' }} />
+
+          {/* Subtítulo */}
+          <p style={{ margin: '0 0 1.5rem', color: TEXT_SECONDARY, fontSize: isMobile ? '0.88rem' : '1rem', lineHeight: 1.65, maxWidth: '440px' }}>
             Terapias y productos de hidrógeno molecular para elevar tu bienestar.
           </p>
 
           {/* Tags de secciones */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
             {SECCIONES.map((sec, i) => (
               <button
                 key={sec.numero}
                 onClick={() => scrollToSeccion(sec.numero)}
-                style={{ fontSize: '0.72rem', fontWeight: 500, letterSpacing: '0.04em', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '999px', padding: '0.22rem 0.7rem', background: 'transparent', cursor: 'pointer', transition: 'color 0.15s, border-color 0.15s, background 0.15s' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(0,183,196,0.5)'; e.currentTarget.style.background = 'rgba(0,183,196,0.12)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.background = 'transparent'; }}
+                style={{ fontSize: '0.72rem', fontWeight: 500, letterSpacing: '0.03em', color: TEAL, border: `1px solid rgba(0,109,119,0.22)`, borderRadius: '999px', padding: '0.25rem 0.75rem', background: 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.15s', backdropFilter: 'blur(4px)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = TEAL; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = TEAL; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; e.currentTarget.style.color = TEAL; e.currentTarget.style.borderColor = 'rgba(0,109,119,0.22)'; }}
               >
                 {ETIQUETAS[i] ?? sec.nombre}
               </button>
