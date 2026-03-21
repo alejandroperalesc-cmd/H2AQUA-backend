@@ -301,21 +301,21 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           overflow: 'hidden',
           marginBottom: isMobile ? '1.75rem' : '2.75rem',
           padding: isMobile ? '2.25rem 1.5rem 2rem 2rem' : '3rem 3.5rem 2.75rem 4rem',
-          background: `linear-gradient(135deg, #e4f5f7 0%, #ceedf1 45%, #d6f0eb 100%)`,
-          border: `1px solid rgba(0,183,196,0.18)`,
-          boxShadow: `0 4px 32px rgba(0,183,196,0.10)`,
+          background: `linear-gradient(135deg, #b2dde3 0%, #8ecdd5 45%, #9dd4c8 100%)`,
+          border: `1px solid rgba(0,183,196,0.25)`,
+          boxShadow: `0 4px 32px rgba(0,183,196,0.18)`,
         }}
       >
         {/* Imagen de fondo muy suave */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(20px)', transform: 'scale(1.15)', opacity: 0.08, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(20px)', transform: 'scale(1.15)', opacity: 0.14, pointerEvents: 'none' }} />
         {/* Orbe teal derecha */}
-        <div style={{ position: 'absolute', top: '-60px', right: isMobile ? '-40px' : '0px', width: isMobile ? '220px' : '340px', height: isMobile ? '220px' : '340px', borderRadius: '50%', background: `radial-gradient(circle, rgba(0,183,196,0.18) 0%, transparent 65%)`, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '-60px', right: isMobile ? '-40px' : '0px', width: isMobile ? '220px' : '340px', height: isMobile ? '220px' : '340px', borderRadius: '50%', background: `radial-gradient(circle, rgba(0,109,119,0.22) 0%, transparent 65%)`, pointerEvents: 'none' }} />
         {/* Orbe sage-teal abajo izquierda */}
-        <div style={{ position: 'absolute', bottom: '-50px', left: isMobile ? '-30px' : '10%', width: '240px', height: '240px', borderRadius: '50%', background: `radial-gradient(circle, rgba(131,197,190,0.22) 0%, transparent 65%)`, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-50px', left: isMobile ? '-30px' : '10%', width: '240px', height: '240px', borderRadius: '50%', background: `radial-gradient(circle, rgba(0,109,119,0.15) 0%, transparent 65%)`, pointerEvents: 'none' }} />
         {/* Línea izquierda */}
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: `linear-gradient(180deg, ${TEAL}, ${GOLD}, ${TEAL_LIGHT})`, pointerEvents: 'none' }} />
         {/* Watermark */}
-        <div style={{ position: 'absolute', right: isMobile ? '-8px' : '2rem', bottom: isMobile ? '-10px' : '-16px', fontSize: isMobile ? '5rem' : '8rem', fontWeight: 900, letterSpacing: '-0.04em', color: `rgba(0,109,119,0.06)`, userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>H2AQUA</div>
+        <div style={{ position: 'absolute', right: isMobile ? '-8px' : '2rem', bottom: isMobile ? '-10px' : '-16px', fontSize: isMobile ? '5rem' : '8rem', fontWeight: 900, letterSpacing: '-0.04em', color: `rgba(0,109,119,0.10)`, userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>H2AQUA</div>
 
         <div style={{ position: 'relative' }}>
           {/* Pill marca */}
