@@ -347,9 +347,17 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           <div style={{ width: isMobile ? '40px' : '52px', height: '3px', borderRadius: '999px', background: 'rgba(255,255,255,0.5)', marginBottom: '0.8rem' }} />
 
           {/* Subtítulo */}
-          <p style={{ margin: '0 0 1.75rem', color: 'rgba(255,255,255,0.75)', fontSize: isMobile ? '0.9rem' : '1.02rem', lineHeight: 1.65, maxWidth: '460px' }}>
-            En H2AQUA encontrarás todo lo que necesitas para cuidarte de verdad. Terapias que renuevan el cuerpo a nivel celular y los rituales de belleza más efectivos del mundo, reunidos en un solo lugar. Porque el bienestar completo va más allá de lo que se ve — empieza desde adentro.
-          </p>
+          <div style={{ margin: '0 0 1.75rem', maxWidth: isMobile ? '100%' : '580px' }}>
+            <p style={{ margin: '0 0 0.6rem', color: 'rgba(255,255,255,0.9)', fontSize: isMobile ? '0.95rem' : '1.08rem', lineHeight: 1.6, fontWeight: 400 }}>
+              H2AQUA encontrarás todo lo que necesitas para cuidarte de verdad.
+            </p>
+            <p style={{ margin: '0 0 0.6rem', color: 'rgba(255,255,255,0.7)', fontSize: isMobile ? '0.86rem' : '0.97rem', lineHeight: 1.65 }}>
+              Terapias que renuevan el cuerpo a nivel celular y los rituales de belleza más efectivos del mundo, reunidos en un solo lugar.
+            </p>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '0.82rem' : '0.9rem', lineHeight: 1.6, fontStyle: 'italic', borderLeft: '2px solid rgba(255,255,255,0.2)', paddingLeft: '0.85rem' }}>
+              Porque el bienestar completo va más allá de lo que se ve — empieza desde adentro.
+            </p>
+          </div>
 
           {/* Tags de secciones */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
