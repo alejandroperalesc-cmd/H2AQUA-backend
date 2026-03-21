@@ -253,7 +253,9 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
   const scrollToSeccion = (numero: number) => {
     const el = document.getElementById(`seccion-${numero}`);
     if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 24;
+    const appHeader = document.querySelector('header');
+    const headerH = appHeader ? appHeader.getBoundingClientRect().height : 0;
+    const y = el.getBoundingClientRect().top + window.scrollY - headerH - 16;
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
