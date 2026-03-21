@@ -7,6 +7,10 @@ import CarruselDestacados from './CarruselDestacados';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_CARD, BG_CARD_ALT, BG_HOVER,
+  GOLD, GOLD_LIGHT,
+  PANTONE, PANTONE_GREEN, PANTONE_GLOW,
+  TEAL, TEAL_DEEP,
+  GRAD_MAIN,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
 } from './theme';
@@ -28,13 +32,13 @@ interface TiendaProductosProps {
   onAgregarAlCarrito: (item: Omit<ItemCarrito, 'cantidad'>) => void;
 }
 
-// ─── Pantone brand ───────────────────────────────────────────────────────────
-const P       = '#00A9C0';          // Pantone principal
-const P_GREEN = '#00968a';          // Verde-teal medio (del gradiente del header)
-const P_DARK  = '#005a52';          // Verde esmeralda profundo
-const P_LIGHT = '#2ecfc4';          // Aguamarina claro
-const P_GLOW  = 'rgba(0,150,138,0.22)';
-const P_GLOW_SOFT = 'rgba(0,150,138,0.10)';
+// Alias locales del espectro unificado
+const P       = PANTONE;        // #00A9C0
+const P_GREEN = PANTONE_GREEN;  // #00968a
+const P_DARK  = TEAL;           // #006d77  — ancla compartida con home
+const P_DEEP  = TEAL_DEEP;      // #0b4a55  — ocean profundo (home hero)
+const P_LIGHT = GOLD_LIGHT;     // #33c9d4  — tiffany claro (home)
+const P_GLOW  = PANTONE_GLOW;
 
 const ETIQUETAS = [
   'Hidrógeno Molecular',
@@ -70,8 +74,8 @@ function TarjetaProducto({
         flexDirection: 'column',
         overflow: 'hidden',
         boxShadow: hover
-          ? `0 20px 44px rgba(0,0,0,0.18), 0 0 0 1.5px ${P_GREEN}`
-          : `0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,150,138,0.12)`,
+          ? `0 20px 44px rgba(0,0,0,0.14), 0 0 0 1.5px ${P}`
+          : `0 2px 16px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,169,192,0.12)`,
         transform: hover ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.22s ease',
       }}
@@ -127,7 +131,7 @@ function TarjetaProducto({
               left: 0,
               right: 0,
               height: '3px',
-              background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P_LIGHT}, transparent)`,
+              background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, ${GOLD}, transparent)`,
             }}
           />
         )}
@@ -195,13 +199,13 @@ function TarjetaProducto({
             border: agotado ? `1px solid ${BORDER_SUBTLE}` : 'none',
             background: agotado
               ? 'transparent'
-              : `linear-gradient(135deg, ${P_DARK}, ${P_GREEN}, ${P})`,
+              : GRAD_MAIN,
             color: agotado ? TEXT_MUTED : '#ffffff',
             cursor: agotado ? 'not-allowed' : 'pointer',
             fontSize: isMobile ? '0.78rem' : '0.88rem',
             fontWeight: 600,
             letterSpacing: '0.04em',
-            boxShadow: agotado ? 'none' : `0 4px 20px ${P_GLOW}`,
+            boxShadow: agotado ? 'none' : `0 4px 20px rgba(0,109,119,0.35)`,
             transition: 'opacity 0.15s ease',
           }}
         >
@@ -307,14 +311,14 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           overflow: 'hidden',
           marginBottom: isMobile ? '1.75rem' : '2.75rem',
           padding: isMobile ? '2.5rem 1.75rem 2.25rem 2.25rem' : '3.5rem 4rem 3rem 4.5rem',
-          background: `linear-gradient(140deg, #005a52 0%, #00968a 38%, ${P} 70%, #2ecfc4 100%)`,
-          boxShadow: `0 8px 48px rgba(0,150,138,0.28), 0 2px 0 rgba(255,255,255,0.08) inset`,
+          background: `linear-gradient(140deg, ${P_DEEP} 0%, ${P_DARK} 30%, ${P_GREEN} 58%, ${P} 80%, ${GOLD} 100%)`,
+          boxShadow: `0 8px 48px rgba(0,109,119,0.35), 0 2px 0 rgba(255,255,255,0.08) inset`,
         }}
       >
         {/* Imagen de fondo difuminada */}
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(32px)', transform: 'scale(1.2)', opacity: 0.18, pointerEvents: 'none', mixBlendMode: 'soft-light' }} />
-        {/* Overlay verde suave */}
-        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, rgba(0,90,82,0.5) 0%, rgba(0,150,138,0.2) 50%, transparent 80%)`, pointerEvents: 'none' }} />
+        {/* Overlay ocean profundo izquierda */}
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, rgba(11,74,85,0.55) 0%, rgba(0,109,119,0.25) 45%, transparent 75%)`, pointerEvents: 'none' }} />
         {/* Orbe brillante superior derecha */}
         <div style={{ position: 'absolute', top: '-80px', right: isMobile ? '-50px' : '-10px', width: isMobile ? '260px' : '400px', height: isMobile ? '260px' : '400px', borderRadius: '50%', background: `radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 60%)`, pointerEvents: 'none' }} />
         {/* Orbe inferior izquierda */}
@@ -379,20 +383,20 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           >
             {/* Encabezado de sección */}
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', marginBottom: isMobile ? '1.1rem' : '1.4rem', flexWrap: 'wrap' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: isMobile ? '2rem' : '2.25rem', height: isMobile ? '2rem' : '2.25rem', borderRadius: '50%', background: `linear-gradient(135deg, ${P_DARK}, ${P_GREEN})`, color: '#fff', fontSize: isMobile ? '0.75rem' : '0.82rem', fontWeight: 700, flexShrink: 0, boxShadow: `0 3px 14px ${P_GLOW}`, userSelect: 'none' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: isMobile ? '2rem' : '2.25rem', height: isMobile ? '2rem' : '2.25rem', borderRadius: '50%', background: GRAD_MAIN, color: '#fff', fontSize: isMobile ? '0.75rem' : '0.82rem', fontWeight: 700, flexShrink: 0, boxShadow: `0 3px 14px ${P_GLOW}`, userSelect: 'none' }}>
                 {String(sec.numero).padStart(2, '0')}
               </span>
-              <h2 style={{ margin: 0, fontSize: isMobile ? '1.05rem' : '1.3rem', fontWeight: 700, letterSpacing: '0.01em', lineHeight: 1.2, background: `linear-gradient(120deg, ${P_DARK} 0%, ${P_GREEN} 60%, ${P} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h2 style={{ margin: 0, fontSize: isMobile ? '1.05rem' : '1.3rem', fontWeight: 700, letterSpacing: '0.01em', lineHeight: 1.2, background: `linear-gradient(120deg, ${P_DARK} 0%, ${P_GREEN} 55%, ${P} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {sec.nombre}
               </h2>
               {productosSec.length > 0 && (
-                <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: P_GREEN, border: `1px solid ${P_GLOW}`, borderRadius: '999px', padding: '0.2rem 0.65rem', whiteSpace: 'nowrap', background: P_GLOW_SOFT }}>
+                <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: P_DARK, border: `1px solid rgba(0,109,119,0.25)`, borderRadius: '999px', padding: '0.2rem 0.65rem', whiteSpace: 'nowrap', background: 'rgba(0,109,119,0.06)' }}>
                   {productosSec.length} {productosSec.length !== 1 ? 'productos' : 'producto'}
                 </span>
               )}
             </div>
 
-            <div style={{ height: '1px', background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, rgba(0,150,138,0.1), transparent)`, marginBottom: isMobile ? '1.1rem' : '1.4rem' }} />
+            <div style={{ height: '1px', background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, rgba(0,183,196,0.08), transparent)`, marginBottom: isMobile ? '1.1rem' : '1.4rem' }} />
 
             {productosSec.length === 0 ? (
               <p style={{ margin: 0, color: TEXT_MUTED, fontSize: '0.9rem', paddingLeft: '1.25rem', borderLeft: `2px solid ${BORDER_SUBTLE}` }}>
@@ -420,11 +424,11 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           display: 'flex',
           alignItems: 'center',
           gap: '0',
-          background: `rgba(0,60,54,0.94)`,
+          background: `rgba(11,74,85,0.95)`,
           backdropFilter: 'blur(20px)',
-          border: `1px solid rgba(0,150,138,0.35)`,
+          border: `1px solid rgba(0,169,192,0.3)`,
           borderRadius: '999px',
-          boxShadow: `0 8px 36px rgba(0,0,0,0.3), 0 0 0 1px ${P_GLOW}`,
+          boxShadow: `0 8px 36px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,109,119,0.4)`,
           overflow: 'hidden',
         }}>
 
