@@ -306,14 +306,14 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
           overflow: 'hidden',
           marginBottom: isMobile ? '1.75rem' : '2.75rem',
           padding: isMobile ? '2.5rem 1.75rem 2.25rem 2.25rem' : '3.5rem 4rem 3rem 4.5rem',
-          background: `linear-gradient(140deg, ${P_DARK} 0%, ${P} 52%, ${P_LIGHT} 100%)`,
-          boxShadow: `0 8px 48px ${P_GLOW}, 0 2px 0 rgba(255,255,255,0.08) inset`,
+          background: `linear-gradient(140deg, #005a52 0%, #00968a 38%, ${P} 70%, #2ecfc4 100%)`,
+          boxShadow: `0 8px 48px rgba(0,150,138,0.28), 0 2px 0 rgba(255,255,255,0.08) inset`,
         }}
       >
         {/* Imagen de fondo difuminada */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(22px)', transform: 'scale(1.15)', opacity: 0.12, pointerEvents: 'none', mixBlendMode: 'overlay' }} />
-        {/* Overlay sutil para profundidad */}
-        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, rgba(0,111,130,0.45) 0%, transparent 60%)`, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("/hero-hidrogeno.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(32px)', transform: 'scale(1.2)', opacity: 0.18, pointerEvents: 'none', mixBlendMode: 'soft-light' }} />
+        {/* Overlay verde suave */}
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, rgba(0,90,82,0.5) 0%, rgba(0,150,138,0.2) 50%, transparent 80%)`, pointerEvents: 'none' }} />
         {/* Orbe brillante superior derecha */}
         <div style={{ position: 'absolute', top: '-80px', right: isMobile ? '-50px' : '-10px', width: isMobile ? '260px' : '400px', height: isMobile ? '260px' : '400px', borderRadius: '50%', background: `radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 60%)`, pointerEvents: 'none' }} />
         {/* Orbe inferior izquierda */}
