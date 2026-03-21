@@ -194,24 +194,6 @@ function TarjetaProducto({
           {p.nombre}
         </h3>
 
-        {p.descripcion && !isMobile && (
-          <p
-            style={{
-              margin: 0,
-              color: TEXT_SECONDARY,
-              fontSize: '0.85rem',
-              lineHeight: 1.6,
-              flexGrow: 1,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {p.descripcion}
-          </p>
-        )}
-
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.15rem' }}>
           <span style={{ fontSize: '0.82rem', fontWeight: 400, color: P_GREEN }}>$</span>
           <span style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 700, color: P_DARK, letterSpacing: '-0.02em' }}>
