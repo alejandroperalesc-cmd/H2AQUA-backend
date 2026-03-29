@@ -6,7 +6,7 @@
   "scripts": {
   "dev": "ts-node src/server.ts",
   "build": "prisma generate && tsc -p tsconfig.backend.json",
-  "start": "prisma migrate deploy && node dist/server.js"
+  "start": "DATABASE_URL=$DIRECT_URL npx prisma migrate deploy && node dist/server.js"
 }
 ,
   "dependencies": {

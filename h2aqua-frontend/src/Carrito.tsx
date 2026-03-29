@@ -2,7 +2,8 @@ import type { ItemCarrito } from './App';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_CARD, BG_CARD_ALT,
-  GOLD, GOLD_LIGHT, GOLD_GLOW,
+  GOLD,
+  GRAD_MAIN, PANTONE_GLOW,
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
   BORDER, BORDER_SUBTLE,
   ERROR,
@@ -50,12 +51,12 @@ export default function Carrito({
             padding: '0.85rem 2rem',
             borderRadius: '999px',
             border: 'none',
-            background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
+            background: GRAD_MAIN,
             color: '#ffffff',
             fontWeight: 700,
             fontSize: '0.95rem',
             cursor: 'pointer',
-            boxShadow: `0 4px 14px ${GOLD_GLOW}`,
+            boxShadow: `0 4px 14px ${PANTONE_GLOW}`,
           }}
         >
           Ver tienda en línea
@@ -322,12 +323,12 @@ export default function Carrito({
               padding: '0.9rem',
               borderRadius: '0.75rem',
               border: 'none',
-              background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})`,
+              background: GRAD_MAIN,
               color: '#ffffff',
               fontWeight: 700,
               fontSize: '1rem',
               cursor: 'pointer',
-              boxShadow: `0 4px 16px ${GOLD_GLOW}`,
+              boxShadow: `0 4px 16px ${PANTONE_GLOW}`,
               letterSpacing: '0.02em',
             }}
           >

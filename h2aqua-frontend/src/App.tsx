@@ -124,115 +124,302 @@ function PageBanner({
 
 // ─── Home ──────────────────────────────────────────────────────────────────────
 
+const STATS = [
+  { value: 'H₂', label: 'Molécula más pequeña del universo' },
+  { value: '1,000+', label: 'Estudios científicos publicados' },
+  { value: '100%', label: 'Antioxidante selectivo y natural' },
+  { value: '6', label: 'Formas de aplicación terapéutica' },
+];
+
+const BENEFICIOS = [
+  {
+    label: 'Reduce inflamación',
+    desc: 'Neutraliza los radicales libres que provocan inflamación crónica, aliviando dolor articular y muscular de forma natural.',
+    img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Más energía y vitalidad',
+    desc: 'Optimiza la función mitocondrial — la central energética de tus células — mejorando el rendimiento físico y mental.',
+    img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Salud celular profunda',
+    desc: 'Protege el ADN y las mitocondrias del daño oxidativo, apoyando la regeneración celular desde el interior.',
+    img: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Piel luminosa',
+    desc: 'Reduce el estrés oxidativo en la piel, favoreciendo la hidratación profunda, luminosidad y efectos antiaging visibles.',
+    img: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Sistema inmune fuerte',
+    desc: 'Regula la respuesta inflamatoria y refuerza las defensas naturales del organismo sin efectos secundarios.',
+    img: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Claridad mental',
+    desc: 'Efecto neuroprotector comprobado: reduce la niebla mental, mejora la concentración y la calidad del sueño.',
+    img: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=600&fit=crop&q=85',
+  },
+];
+
+const TERAPIAS_H2 = [
+  {
+    numero: '01',
+    titulo: 'Terapia de Hidrógeno Molecular',
+    tag: 'Bienestar Celular',
+    descripcion: 'Tratamiento que DESINFLÁMA y reduce el ESTRÉS OXIDATIVO apoyando la salud desde el interior.',
+    keywords: ['DESINFLAMACIÓN', 'ESTRÉS OXIDATIVO'],
+    items: ['Sesiones de hidrógeno', 'Paquetes de sesiones'],
+    grad: 'linear-gradient(135deg, #0b4a55 0%, #006d77 60%, #00968a 100%)',
+  },
+  {
+    numero: '02',
+    titulo: 'Experiencia Premium de Hidrógeno Molecular',
+    tag: 'Equilibrio Celular',
+    descripcion: 'El H₂ actúa como ANTIOXIDANTE SELECTIVO neutralizando radicales libres sin afectar los beneficiosos.',
+    keywords: ['ANTIOXIDANTE SELECTIVO', 'EQUILIBRIO CELULAR'],
+    items: ['Agua hidrogenada', 'Accesorio tópico', 'Terapia con goggles', 'Terapia en cuero cabelludo'],
+    grad: 'linear-gradient(135deg, #006d77 0%, #00A9C0 60%, #00B7C4 100%)',
+  },
+];
+
+const SERVICIOS_COMPLEMENTARIOS = [
+  {
+    label: 'Tratamientos Faciales',
+    desc: 'Limpieza profunda, hidratación y revitalización con técnicas profesionales. Mejora la luminosidad y apariencia natural de tu piel.',
+    img: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Skincare Coreano',
+    desc: 'Fórmulas K-Beauty con ingredientes activos innovadores: hidratación profunda, nutrición y cuidado intensivo para todo tipo de piel.',
+    img: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Make up, Cabello y Cuerpo',
+    desc: 'Productos diseñados para una piel saludable y luminosa con rutinas efectivas que mantienen la piel limpia, hidratada y protegida.',
+    img: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&fit=crop&q=85',
+  },
+  {
+    label: 'Nutrición y Suplementos',
+    desc: 'Suplementos seleccionados para la salud de la piel, el bienestar del cuerpo y un sistema inmunológico fuerte desde adentro.',
+    img: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&fit=crop&q=85',
+  },
+];
+
+function BeneficioCard({ b, isMobile }: { b: typeof BENEFICIOS[0]; isMobile: boolean }) {
+  const [hovered, setHovered] = useState(false);
+  const active = isMobile || hovered;
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'relative', borderRadius: '1.1rem', overflow: 'hidden',
+        aspectRatio: isMobile ? '3 / 4' : '4 / 5',
+        cursor: 'default',
+        boxShadow: hovered
+          ? '0 16px 40px rgba(0,0,0,0.22)'
+          : '0 2px 12px rgba(0,0,0,0.1)',
+        transform: hovered ? 'translateY(-5px)' : 'translateY(0)',
+        transition: 'box-shadow 0.35s ease, transform 0.35s ease',
+      }}
+    >
+      {/* Imagen */}
+      <img
+        src={b.img}
+        alt={b.label}
+        style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover',
+          transform: hovered ? 'scale(1.07)' : 'scale(1)',
+          transition: 'transform 0.55s ease',
+        }}
+      />
+
+      {/* Overlay — reposo: gradiente sutil abajo / hover: cubre todo */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: active
+          ? 'linear-gradient(to top, rgba(11,74,85,0.97) 0%, rgba(0,109,119,0.88) 55%, rgba(0,150,138,0.70) 100%)'
+          : 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)',
+        transition: 'background 0.4s ease',
+      }} />
+
+      {/* Línea acento superior — solo en hover */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
+        background: `linear-gradient(90deg, #00B7C4, #006d77)`,
+        opacity: hovered ? 1 : 0,
+        transition: 'opacity 0.35s ease',
+      }} />
+
+      {/* Contenido */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', flexDirection: 'column',
+        justifyContent: active ? 'center' : 'flex-end',
+        padding: isMobile ? '1rem' : '1.25rem',
+        transition: 'justify-content 0.1s',
+      }}>
+        {/* Punto decorativo */}
+        <div style={{
+          width: '28px', height: '3px', borderRadius: '2px',
+          background: '#00B7C4',
+          marginBottom: '0.65rem',
+          opacity: active ? 1 : 0,
+          transform: active ? 'scaleX(1)' : 'scaleX(0)',
+          transformOrigin: 'left',
+          transition: 'opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s',
+        }} />
+
+        <div style={{
+          fontWeight: 700, color: '#ffffff',
+          fontSize: isMobile ? '0.88rem' : '0.95rem',
+          lineHeight: 1.3,
+          marginBottom: active ? '0.55rem' : 0,
+          textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+          transition: 'margin-bottom 0.3s ease',
+        }}>
+          {b.label}
+        </div>
+
+        <div style={{
+          color: 'rgba(255,255,255,0.82)', fontSize: '0.78rem',
+          lineHeight: 1.6,
+          opacity: active ? 1 : 0,
+          transform: active ? 'translateY(0)' : 'translateY(8px)',
+          transition: 'opacity 0.35s ease 0.08s, transform 0.35s ease 0.08s',
+          maxHeight: active ? '120px' : '0',
+          overflow: 'hidden',
+        }}>
+          {b.desc}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Home({ irA }: { irA: (vista: Vista) => void }) {
   const isMobile = useIsMobile();
 
   return (
-    <div style={{ maxWidth: '1120px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 4rem' }}>
+    <div style={{ maxWidth: '1120px', margin: '0 auto', padding: isMobile ? '1.5rem 0 3rem' : '2.5rem 0 5rem' }}>
 
-      {/* HERO — gradiente teal profundo */}
+      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       <section
         style={{
           position: 'relative',
-          borderRadius: isMobile ? '1rem' : '1.5rem',
+          borderRadius: isMobile ? '1.25rem' : '1.75rem',
           overflow: 'hidden',
-          minHeight: isMobile ? '340px' : '440px',
+          minHeight: isMobile ? '380px' : '480px',
           marginBottom: isMobile ? '2rem' : '3rem',
-          background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 35%, #009aaa 70%, #00B7C4 100%)',
+          background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #00968a 75%, #00B7C4 100%)',
+          display: 'flex',
+          alignItems: 'center',
         }}
       >
-        {/* Burbujas decorativas */}
-        <div style={{
-          position: 'absolute', top: '-80px', right: '-80px',
-          width: '380px', height: '380px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 65%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '20px', right: '8%',
-          width: '180px', height: '180px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', top: '30%', right: '28%',
-          width: '80px', height: '80px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-        {/* Línea inferior */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px',
-          background: 'linear-gradient(90deg, rgba(255,255,255,0.35), transparent)',
-          pointerEvents: 'none',
-        }} />
+        {/* Burbujas H₂ decorativas */}
+        {[
+          { size: 420, top: '-100px', right: '-80px', op: 0.07 },
+          { size: 200, bottom: '10px', right: '12%', op: 0.06 },
+          { size: 90,  top: '35%',    right: '32%',  op: 0.08 },
+          { size: 50,  top: '20%',    right: '22%',  op: 0.10 },
+          { size: 140, bottom: '25%', right: '5%',   op: 0.05 },
+        ].map((b, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            width: b.size, height: b.size, borderRadius: '50%',
+            top: (b as any).top, bottom: (b as any).bottom,
+            right: (b as any).right, left: (b as any).left,
+            background: `radial-gradient(circle, rgba(255,255,255,${b.op}) 0%, transparent 65%)`,
+            pointerEvents: 'none',
+          }} />
+        ))}
 
-        <div style={{ position: 'relative', padding: isMobile ? '2.5rem 1.75rem' : '3.75rem 3.5rem', maxWidth: '560px' }}>
-          <p style={{
-            textTransform: 'uppercase',
-            letterSpacing: '0.25em',
-            fontSize: '0.7rem',
-            marginBottom: '1rem',
-            color: 'rgba(255,255,255,0.65)',
-            fontWeight: 600,
+        {/* Molécula H₂ decorativa — esquina derecha desktop */}
+        {!isMobile && (
+          <div style={{
+            position: 'absolute', right: '6%', top: '50%', transform: 'translateY(-50%)',
+            width: '220px', height: '220px', pointerEvents: 'none', opacity: 0.18,
           }}>
-            Hidrógeno molecular · Wellness
+            <div style={{
+              position: 'absolute', width: '90px', height: '90px', borderRadius: '50%',
+              border: '2px solid rgba(255,255,255,0.8)', top: '20px', left: '10px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: '1.4rem',
+            }}>H</div>
+            <div style={{
+              position: 'absolute', width: '90px', height: '90px', borderRadius: '50%',
+              border: '2px solid rgba(255,255,255,0.8)', top: '20px', right: '10px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: '1.4rem',
+            }}>H</div>
+            <div style={{
+              position: 'absolute', height: '2px', width: '42px',
+              backgroundColor: 'rgba(255,255,255,0.6)', top: '65px', left: '89px',
+            }} />
+            <div style={{
+              position: 'absolute', width: '60px', height: '60px', borderRadius: '50%',
+              border: '2px solid rgba(255,255,255,0.5)', bottom: '10px', left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontSize: '0.9rem',
+            }}>H₂</div>
+          </div>
+        )}
+
+        <div style={{ position: 'relative', padding: isMobile ? '2.75rem 1.75rem' : '4rem 3.5rem', maxWidth: '600px' }}>
+          <p style={{
+            textTransform: 'uppercase', letterSpacing: '0.28em',
+            fontSize: '0.68rem', marginBottom: '1.1rem',
+            color: 'rgba(255,255,255,0.6)', fontWeight: 600,
+          }}>
+            H2AQUA · Hidrógeno Molecular · Wellness
           </p>
 
           <h1 style={{
-            fontSize: isMobile ? '2rem' : '2.9rem',
-            fontWeight: 300,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            marginBottom: '1.25rem',
-            lineHeight: 1.18,
-            color: '#ffffff',
+            fontSize: isMobile ? '2.1rem' : '3.1rem',
+            fontWeight: 200, letterSpacing: '0.02em',
+            marginBottom: '1.25rem', lineHeight: 1.15, color: '#ffffff',
           }}>
-            Bienestar profundo
+            Bienestar
             <br />
-            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>con hidrógeno molecular</span>
+            <span style={{ fontWeight: 600 }}>desde adentro</span>
           </h1>
 
           <p style={{
-            fontSize: '1rem',
-            lineHeight: 1.75,
-            marginBottom: '2rem',
-            color: 'rgba(255,255,255,0.72)',
+            fontSize: isMobile ? '0.97rem' : '1.05rem',
+            lineHeight: 1.8, marginBottom: '2.25rem',
+            color: 'rgba(255,255,255,0.72)', maxWidth: '460px',
           }}>
-            Terapias que ayudan a desinflamar, desintoxicar y equilibrar tu
-            cuerpo desde adentro, neutralizando radicales libres y protegiendo tus células.
+            La molécula más pequeña del universo penetra hasta el núcleo de tus células,
+            neutralizando radicales libres y activando tu capacidad natural de sanar.
           </p>
 
-          <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => irA('tienda')}
               style={{
-                padding: '0.9rem 1.9rem',
-                borderRadius: '999px',
-                border: 'none',
-                background: '#ffffff',
-                color: TEAL,
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.92rem',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                letterSpacing: '0.02em',
+                padding: '0.95rem 2rem', borderRadius: '999px', border: 'none',
+                background: '#ffffff', color: TEAL,
+                cursor: 'pointer', fontWeight: 700, fontSize: '0.92rem',
+                boxShadow: '0 6px 24px rgba(0,0,0,0.18)', letterSpacing: '0.02em',
               }}
             >
-              Ver tienda en línea
+              Explorar tienda
             </button>
             <button
               onClick={() => irA('citas')}
               style={{
-                padding: '0.9rem 1.9rem',
-                borderRadius: '999px',
-                border: '1px solid rgba(255,255,255,0.45)',
-                backgroundColor: 'transparent',
-                color: '#ffffff',
-                cursor: 'pointer',
-                fontWeight: 400,
-                fontSize: '0.92rem',
-                letterSpacing: '0.02em',
+                padding: '0.95rem 2rem', borderRadius: '999px',
+                border: '1.5px solid rgba(255,255,255,0.5)',
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                color: '#ffffff', cursor: 'pointer',
+                fontWeight: 500, fontSize: '0.92rem', letterSpacing: '0.02em',
+                backdropFilter: 'blur(4px)',
               }}
             >
               Agenda tu terapia
@@ -241,139 +428,307 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
         </div>
       </section>
 
-      {/* ¿QUÉ ES EL HIDRÓGENO? */}
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.3fr) minmax(0, 1fr)',
-          gap: isMobile ? '1.5rem' : '2.5rem',
-          alignItems: 'center',
-          marginBottom: isMobile ? '2rem' : '3rem',
-        }}
-      >
-        <div>
-          <p style={{ margin: '0 0 0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
-            Qué es
+      {/* ── STATS BAR ─────────────────────────────────────────────────────────── */}
+      <section style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+        gap: '1px',
+        backgroundColor: BORDER,
+        borderRadius: '1.25rem',
+        overflow: 'hidden',
+        marginBottom: isMobile ? '2rem' : '3rem',
+        boxShadow: `0 2px 16px ${GOLD_GLOW}`,
+      }}>
+        {STATS.map((s) => (
+          <div key={s.value} style={{
+            backgroundColor: BG_CARD, padding: isMobile ? '1.25rem 1rem' : '1.5rem 1.75rem',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              fontSize: isMobile ? '1.7rem' : '2.1rem', fontWeight: 700,
+              color: TEAL, letterSpacing: '-0.02em', lineHeight: 1,
+              marginBottom: '0.4rem',
+            }}>{s.value}</div>
+            <div style={{ fontSize: '0.78rem', color: TEXT_MUTED, lineHeight: 1.4 }}>{s.label}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* ── QUÉ ES EL HIDRÓGENO ──────────────────────────────────────────────── */}
+      <section style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gap: isMobile ? '1.5rem' : '2rem',
+        marginBottom: isMobile ? '2rem' : '3rem',
+        alignItems: 'stretch',
+      }}>
+        <div style={{
+          borderRadius: '1.5rem', overflow: 'hidden',
+          background: 'linear-gradient(145deg, #0b4a55 0%, #006d77 50%, #00968a 100%)',
+          padding: isMobile ? '2rem 1.75rem' : '2.75rem 2.5rem',
+          position: 'relative',
+        }}>
+          <div style={{
+            position: 'absolute', top: '-50px', right: '-50px',
+            width: '200px', height: '200px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 65%)',
+            pointerEvents: 'none',
+          }} />
+          <p style={{ margin: '0 0 0.6rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>
+            La ciencia detrás
           </p>
-          <h2 style={{ fontSize: isMobile ? '1.4rem' : '1.7rem', marginBottom: '0.85rem', color: TEXT_PRIMARY, fontWeight: 400 }}>
-            El hidrógeno molecular
+          <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.9rem', color: '#ffffff', fontWeight: 300, lineHeight: 1.25, marginBottom: '1.1rem' }}>
+            ¿Qué es el<br /><strong style={{ fontWeight: 700 }}>Hidrógeno Molecular?</strong>
           </h2>
-          <p style={{ marginBottom: '0.75rem', color: TEXT_SECONDARY, fontSize: '0.97rem', lineHeight: 1.8 }}>
-            Es la molécula más pequeña que existe y puede llegar a tejidos y células
-            a través del torrente sanguíneo. Actúa como antioxidante y antiinflamatorio.
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.95rem', lineHeight: 1.8, marginBottom: '1.25rem' }}>
+            Es la molécula <strong style={{ color: '#ffffff' }}>más pequeña que existe</strong> — tan diminuta que
+            penetra membranas celulares, la barrera hematoencefálica y llega directamente al ADN.
           </p>
-          <p style={{ color: TEXT_SECONDARY, fontSize: '0.97rem', lineHeight: 1.8 }}>
-            En H2Aqua utilizamos terapias de hidrógeno molecular para apoyar procesos
-            de desinflamación, desintoxicación y equilibrio general.
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.93rem', lineHeight: 1.8, margin: 0 }}>
+            A diferencia de otros antioxidantes, el H₂ es <strong style={{ color: '#ffffff' }}>selectivo</strong>:
+            solo neutraliza los radicales libres más dañinos (·OH y ONOO⁻) sin interferir
+            con los beneficiosos.
           </p>
         </div>
 
-        {/* Card beneficios con acento teal */}
-        <div
-          style={{
-            borderRadius: '1.25rem',
-            overflow: 'hidden',
-            boxShadow: `0 4px 24px ${GOLD_GLOW}`,
-            border: BORDER,
-          }}
-        >
-          {/* Header de la card */}
-          <div style={{
-            padding: '1rem 1.6rem',
-            background: `linear-gradient(135deg, ${TEAL} 0%, ${GOLD} 100%)`,
-          }}>
-            <h3 style={{
-              margin: 0,
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.18em',
-              color: '#ffffff',
-              fontWeight: 600,
-            }}>
-              Beneficios que puedes sentir
-            </h3>
-          </div>
-          {/* Lista */}
-          <div style={{ padding: '1.4rem 1.6rem', backgroundColor: BG_CARD }}>
-            <ul style={{
-              listStyle: 'none',
-              padding: 0,
-              margin: 0,
-              display: 'grid',
-              rowGap: '0.75rem',
-              fontSize: '0.93rem',
-              color: TEXT_SECONDARY,
-            }}>
-              {[
-                'Disminución de dolor e inflamación articular.',
-                'Mejora del descanso, energía y claridad mental.',
-                'Apoyo al sistema inmune y recuperación física.',
-                'Piel más hidratada y aspecto más luminoso.',
-              ].map((b) => (
-                <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
-                  <span style={{
-                    width: '6px', height: '6px', borderRadius: '50%',
-                    background: GOLD, flexShrink: 0, marginTop: '0.45rem',
-                  }} />
-                  {b}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* Datos clave */}
+        <div style={{
+          borderRadius: '1.5rem',
+          border: BORDER,
+          backgroundColor: BG_CARD,
+          padding: isMobile ? '1.75rem' : '2.5rem',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1.25rem',
+        }}>
+          <p style={{ margin: 0, fontSize: '0.65rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+            ¿Cómo actúa?
+          </p>
+          {[
+            { n: '01', titulo: 'Penetra cualquier célula', texto: 'Su tamaño subatómico le permite llegar a mitocondrias y al núcleo celular donde ningún otro antioxidante alcanza.' },
+            { n: '02', titulo: 'Antioxidante selectivo', texto: 'Solo neutraliza los radicales hidroxilo (·OH) y peroxinitrito (ONOO⁻), los más destructivos, sin eliminar los beneficiosos.' },
+            { n: '03', titulo: 'Sin efectos secundarios', texto: 'El subproducto de la reacción es agua pura. 100% natural, seguro y avalado por más de 1,000 estudios clínicos.' },
+          ].map((item) => (
+            <div key={item.n} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <span style={{
+                fontSize: '0.65rem', fontWeight: 700, color: TEAL,
+                backgroundColor: `rgba(0,109,119,0.08)`,
+                border: `1px solid rgba(0,109,119,0.18)`,
+                borderRadius: '999px', padding: '0.2rem 0.55rem',
+                flexShrink: 0, marginTop: '0.15rem',
+              }}>{item.n}</span>
+              <div>
+                <div style={{ fontWeight: 600, color: TEXT_PRIMARY, fontSize: '0.9rem', marginBottom: '0.2rem' }}>{item.titulo}</div>
+                <div style={{ color: TEXT_SECONDARY, fontSize: '0.82rem', lineHeight: 1.6 }}>{item.texto}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section
-        style={{
-          borderRadius: '1.25rem',
-          overflow: 'hidden',
-          border: BORDER,
-          boxShadow: `0 2px 16px ${GOLD_GLOW}`,
-        }}
-      >
-        {/* Banda teal superior */}
+      {/* ── BENEFICIOS — full width ───────────────────────────────────────────── */}
+      <section style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
+        <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            <p style={{ margin: '0 0 0.3rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+              Beneficios comprobados
+            </p>
+            <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.75rem', color: TEXT_PRIMARY, fontWeight: 300 }}>
+              Lo que puedes <strong style={{ fontWeight: 700 }}>sentir y ver</strong>
+            </h2>
+          </div>
+          {!isMobile && (
+            <p style={{ margin: 0, fontSize: '0.78rem', color: TEXT_MUTED }}>
+              Pasa el cursor para descubrir más
+            </p>
+          )}
+        </div>
         <div style={{
-          height: '4px',
-          background: `linear-gradient(90deg, ${TEAL}, ${GOLD}, ${GOLD_LIGHT})`,
-        }} />
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+          gap: isMobile ? '0.75rem' : '1rem',
+        }}>
+          {BENEFICIOS.map((b) => (
+            <BeneficioCard key={b.label} b={b} isMobile={isMobile} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── TERAPIAS DE HIDRÓGENO ─────────────────────────────────────────────── */}
+      <section style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <p style={{ margin: '0 0 0.3rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+            Lo esencial
+          </p>
+          <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.75rem', color: TEXT_PRIMARY, fontWeight: 300 }}>
+            Nuestras terapias de <strong style={{ fontWeight: 700 }}>Hidrógeno Molecular</strong>
+          </h2>
+        </div>
+
         <div style={{
-          padding: isMobile ? '1.75rem 1.5rem' : '2rem 2.5rem',
-          backgroundColor: BG_CARD,
-          display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          justifyContent: 'space-between',
-          alignItems: isMobile ? 'flex-start' : 'center',
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: '1.25rem',
         }}>
+          {TERAPIAS_H2.map((t) => (
+            <div key={t.numero} style={{
+              borderRadius: '1.5rem', overflow: 'hidden',
+              boxShadow: `0 4px 24px ${GOLD_GLOW}`,
+              border: BORDER,
+              backgroundColor: BG_CARD,
+            }}>
+              {/* Header degradado */}
+              <div style={{
+                background: t.grad, padding: '1.5rem 1.75rem',
+                position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{
+                  position: 'absolute', top: '-30px', right: '-30px',
+                  width: '130px', height: '130px', borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 65%)',
+                  pointerEvents: 'none',
+                }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{
+                    fontSize: '2rem', fontWeight: 200, color: 'rgba(255,255,255,0.35)',
+                    lineHeight: 1, letterSpacing: '-0.03em',
+                  }}>{t.numero}</span>
+                  <span style={{
+                    fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.15em',
+                    textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)',
+                    backgroundColor: 'rgba(255,255,255,0.12)',
+                    padding: '0.25rem 0.65rem', borderRadius: '999px',
+                  }}>{t.tag}</span>
+                </div>
+                <h3 style={{
+                  margin: '0.5rem 0 0', fontSize: isMobile ? '1.05rem' : '1.15rem',
+                  color: '#ffffff', fontWeight: 500, lineHeight: 1.35,
+                }}>{t.titulo}</h3>
+              </div>
+
+              {/* Cuerpo */}
+              <div style={{ padding: '1.5rem 1.75rem' }}>
+                <p style={{ margin: '0 0 1rem', color: TEXT_SECONDARY, fontSize: '0.92rem', lineHeight: 1.7 }}>
+                  {t.descripcion}
+                </p>
+                {/* Keywords destacadas */}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.1rem' }}>
+                  {t.keywords.map((k) => (
+                    <span key={k} style={{
+                      fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em',
+                      color: TEAL, backgroundColor: `rgba(0,109,119,0.09)`,
+                      padding: '0.25rem 0.7rem', borderRadius: '999px',
+                      border: `1px solid rgba(0,109,119,0.2)`,
+                    }}>{k}</span>
+                  ))}
+                </div>
+                {/* Sub-servicios */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  {t.items.map((item) => (
+                    <div key={item} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.65rem',
+                      fontSize: '0.9rem', color: TEXT_PRIMARY,
+                    }}>
+                      <span style={{
+                        width: '6px', height: '6px', borderRadius: '50%',
+                        backgroundColor: GOLD, flexShrink: 0,
+                      }} />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── SERVICIOS COMPLEMENTARIOS ────────────────────────────────────────── */}
+      <section style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
+        <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
-            <h2 style={{ fontSize: isMobile ? '1.15rem' : '1.4rem', marginBottom: '0.4rem', color: TEXT_PRIMARY, fontWeight: 400 }}>
-              Regálale a tu cuerpo una pausa profunda
+            <p style={{ margin: '0 0 0.3rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+              También ofrecemos
+            </p>
+            <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.75rem', color: TEXT_PRIMARY, fontWeight: 300 }}>
+              Servicios <strong style={{ fontWeight: 700 }}>complementarios</strong>
             </h2>
-            <p style={{ margin: 0, fontSize: '0.93rem', color: TEXT_SECONDARY }}>
-              Agenda tu sesión de hidrógeno molecular y comienza a sentir los beneficios.
+          </div>
+          {!isMobile && (
+            <p style={{ margin: 0, fontSize: '0.78rem', color: TEXT_MUTED }}>
+              Pasa el cursor para descubrir más
+            </p>
+          )}
+        </div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gap: isMobile ? '0.75rem' : '1rem',
+        }}>
+          {SERVICIOS_COMPLEMENTARIOS.map((s) => (
+            <BeneficioCard key={s.label} b={s} isMobile={isMobile} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ────────────────────────────────────────────────────────── */}
+      <section style={{
+        borderRadius: '1.75rem', overflow: 'hidden',
+        background: 'linear-gradient(135deg, #0b4a55 0%, #006d77 50%, #00B7C4 100%)',
+        padding: isMobile ? '2.25rem 1.75rem' : '3rem 3.5rem',
+        position: 'relative',
+        textAlign: isMobile ? 'center' : 'left',
+      }}>
+        <div style={{
+          position: 'absolute', top: '-60px', right: '-60px',
+          width: '300px', height: '300px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'center' : 'center',
+          justifyContent: 'space-between',
+          gap: '1.75rem',
+          position: 'relative',
+        }}>
+          <div>
+            <p style={{ margin: '0 0 0.4rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>
+              Da el primer paso
+            </p>
+            <h2 style={{ margin: '0 0 0.5rem', fontSize: isMobile ? '1.4rem' : '2rem', color: '#ffffff', fontWeight: 300, lineHeight: 1.2 }}>
+              Regálale a tu cuerpo<br /><strong style={{ fontWeight: 700 }}>una pausa profunda</strong>
+            </h2>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.65)', fontSize: '0.95rem' }}>
+              Agenda tu sesión y comienza a sentir los beneficios del hidrógeno molecular.
             </p>
           </div>
-
-          <button
-            onClick={() => irA('citas')}
-            style={{
-              padding: '0.9rem 1.9rem',
-              borderRadius: '999px',
-              border: 'none',
-              background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
-              color: '#ffffff',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '0.93rem',
-              whiteSpace: 'nowrap',
-              boxShadow: `0 4px 18px ${GOLD_GLOW}`,
-              alignSelf: isMobile ? 'stretch' : 'auto',
-              textAlign: 'center',
-            }}
-          >
-            Agenda tu cita
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
+            <button
+              onClick={() => irA('citas')}
+              style={{
+                padding: '1rem 2.25rem', borderRadius: '999px', border: 'none',
+                background: '#ffffff', color: TEAL,
+                cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem',
+                boxShadow: '0 6px 24px rgba(0,0,0,0.2)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Agenda tu cita
+            </button>
+            <button
+              onClick={() => irA('tienda')}
+              style={{
+                padding: '0.85rem 2.25rem', borderRadius: '999px',
+                border: '1.5px solid rgba(255,255,255,0.4)',
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                color: '#ffffff', cursor: 'pointer',
+                fontWeight: 400, fontSize: '0.92rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Ver tienda
+            </button>
+          </div>
         </div>
       </section>
     </div>

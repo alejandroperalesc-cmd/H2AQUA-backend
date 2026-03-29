@@ -7,6 +7,7 @@ import {
   GOLD, GOLD_GLOW,
   TEAL,
   TEXT_MUTED,
+  GRAD_MAIN,
 } from './theme';
 
 interface ProductoDestacado {
@@ -58,11 +59,26 @@ export default function CarruselDestacados({ onAgregarAlCarrito }: Props) {
     <section style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
 
       {/* Etiqueta de sección */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-        <span style={{ fontSize: '0.68rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
-          ★ Productos destacados
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+        <div style={{
+          width: '3px', height: '1.1rem',
+          background: GRAD_MAIN,
+          borderRadius: '2px',
+          flexShrink: 0,
+        }} />
+        <span style={{
+          fontSize: '0.82rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          background: GRAD_MAIN,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+        }}>
+          ✦ Nuestros Consentidos y Promociones
         </span>
-        <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, rgba(0,183,196,0.20), transparent)` }} />
+        <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, rgba(0,169,192,0.35), transparent)` }} />
       </div>
 
       {/* Contenedor del carrusel */}
@@ -129,7 +145,7 @@ export default function CarruselDestacados({ onAgregarAlCarrito }: Props) {
                 maxWidth: isMobile ? '100%' : '56%',
               }}>
                 <p style={{ margin: '0 0 0.4rem', fontSize: '0.68rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
-                  Destacado
+                  Consentido
                 </p>
                 <h3 style={{
                   margin: '0 0 0.5rem',

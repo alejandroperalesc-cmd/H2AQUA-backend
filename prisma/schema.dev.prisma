@@ -1,11 +1,14 @@
+// Local development schema — SQLite
+// Usage: npx prisma migrate dev --schema=prisma/schema.dev.prisma
+//        npx prisma studio --schema=prisma/schema.dev.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Cliente {
@@ -34,18 +37,12 @@ model Producto {
   precio      Float
   stock       Int      @default(0)
   imagenUrl   String?
-
-  // antes:
-  // categoria   String   // 'ITEM' | 'TERAPIA'
-  // ahora (opcional):
   categoria   String?  // 'ITEM' | 'TERAPIA'
-
   estado      String   @default("ACTIVO")
   seccion     Int      @default(1)
   destacado   Boolean  @default(false)
   pedidos     PedidoProducto[]
 }
-
 
 model Cita {
   id         Int      @id @default(autoincrement())

@@ -225,12 +225,13 @@ app.get("/productos", async (req, res) => {
 app.patch("/productos/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, precio, imagenUrl, categoria, seccion, destacado } = req.body;
+    const { nombre, descripcion, precio, stock, imagenUrl, categoria, seccion, destacado } = req.body;
 
     const data: Record<string, any> = {};
     if (nombre !== undefined)      data.nombre      = nombre;
     if (descripcion !== undefined) data.descripcion = descripcion;
     if (precio !== undefined)      data.precio      = Number(precio);
+    if (stock !== undefined)       data.stock       = Number(stock);
     if (imagenUrl !== undefined)   data.imagenUrl   = imagenUrl;
     if (categoria !== undefined)   data.categoria   = categoria;
     if (seccion !== undefined)     data.seccion     = Number(seccion);
@@ -245,6 +246,18 @@ app.patch("/productos/:id", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al actualizar producto" });
+  }
+});
+
+// Eliminar TODOS los productos
+app.delete("/productos", async (_req, res) => {
+  try {
+    await prisma.pedidoProducto.deleteMany();
+    await prisma.producto.deleteMany();
+    res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al eliminar todos los productos" });
   }
 });
 
