@@ -6,7 +6,8 @@ import NuevoProducto from './NuevoProducto';
 import TiendaProductos from './TiendaProductos';
 import CitasCalendarioAdmin from './CitasCalendarioAdmin';
 import Carrito from './Carrito';
-import { FiShoppingCart, FiMenu, FiX } from 'react-icons/fi';
+import TarjetaRegalo from './TarjetaRegalo';
+import { FiShoppingCart, FiMenu, FiX, FiMapPin, FiPhone, FiMail, FiLock, FiLogOut } from 'react-icons/fi';
 import { useIsMobile } from './useIsMobile';
 import {
   BG_DARK, BG_CARD, BG_CARD_ALT,
@@ -16,7 +17,7 @@ import {
   BORDER, BORDER_SUBTLE,
 } from './theme';
 
-type Vista = 'home' | 'lista' | 'nuevo' | 'tienda' | 'citas' | 'citas-calendario' | 'carrito';
+type Vista = 'home' | 'lista' | 'nuevo' | 'tienda' | 'citas' | 'citas-calendario' | 'carrito' | 'regalo';
 
 export type ItemCarrito = {
   id: number;
@@ -24,6 +25,14 @@ export type ItemCarrito = {
   precio: number;
   cantidad: number;
   imagenUrl?: string | null;
+  // Gift card fields
+  esRegalo?: boolean;
+  codigoRegalo?: string;
+  emailDestinatario?: string;
+  paraRegalo?: string;
+  deRegalo?: string;
+  mensajeRegalo?: string;
+  nombreTarjeta?: string;
 };
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -731,6 +740,121 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
           </div>
         </div>
       </section>
+
+      {/* ── CONTACTO ─────────────────────────────────────────────────────────── */}
+      <section style={{
+        marginTop: isMobile ? '2rem' : '3rem',
+        borderRadius: '1.5rem',
+        overflow: 'hidden',
+        border: BORDER,
+        backgroundColor: BG_CARD,
+        boxShadow: `0 2px 20px ${GOLD_GLOW}`,
+      }}>
+        {/* Banda superior */}
+        <div style={{ height: '3px', background: `linear-gradient(90deg, ${TEAL}, ${GOLD}, ${TEAL})` }} />
+
+        <div style={{ padding: isMobile ? '1.75rem 1.5rem' : '2rem 2.5rem' }}>
+          {/* Encabezado */}
+          <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 0.25rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+              Visítanos
+            </p>
+            <h2 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.4rem', color: TEXT_PRIMARY, fontWeight: 300 }}>
+              Encuéntranos <strong style={{ fontWeight: 700 }}>aquí</strong>
+            </h2>
+          </div>
+
+          {/* Los tres items en fila */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: isMobile ? '0' : '0',
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            border: BORDER,
+          }}>
+            {/* Dirección */}
+            <div style={{
+              padding: isMobile ? '1.25rem 1rem' : '1.5rem',
+              display: 'flex', alignItems: 'center', gap: '1rem',
+              borderRight: isMobile ? 'none' : BORDER,
+              borderBottom: isMobile ? BORDER : 'none',
+              backgroundColor: BG_CARD,
+            }}>
+              <div style={{
+                width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0,
+                background: `linear-gradient(135deg, ${TEAL}, #00968a)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <FiMapPin size={18} color="#ffffff" />
+              </div>
+              <div>
+                <p style={{ margin: '0 0 0.2rem', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>Dirección</p>
+                <p style={{ margin: 0, color: TEXT_PRIMARY, fontWeight: 600, fontSize: '0.88rem', lineHeight: 1.4 }}>Av. de las Fuentes 665</p>
+                <p style={{ margin: 0, color: TEXT_SECONDARY, fontSize: '0.8rem', lineHeight: 1.5 }}>Jardines del Pedregal, Álvaro Obregón · C.P. 01900</p>
+              </div>
+            </div>
+
+            {/* WhatsApp */}
+            <a
+              href="https://wa.me/525525601138"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: isMobile ? '1.25rem 1rem' : '1.5rem',
+                display: 'flex', alignItems: 'center', gap: '1rem',
+                borderRight: isMobile ? 'none' : BORDER,
+                borderBottom: isMobile ? BORDER : 'none',
+                backgroundColor: BG_CARD,
+                textDecoration: 'none', cursor: 'pointer',
+                transition: 'background-color 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = BG_CARD_ALT; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = BG_CARD; }}
+            >
+              <div style={{
+                width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0,
+                background: 'linear-gradient(135deg, #25D366, #128C7E)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <FiPhone size={18} color="#ffffff" />
+              </div>
+              <div>
+                <p style={{ margin: '0 0 0.2rem', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>WhatsApp</p>
+                <p style={{ margin: 0, color: TEXT_PRIMARY, fontWeight: 600, fontSize: '0.95rem' }}>55 2560 1138</p>
+                <p style={{ margin: 0, color: '#25D366', fontSize: '0.78rem', fontWeight: 500 }}>Escríbenos →</p>
+              </div>
+            </a>
+
+            {/* Email */}
+            <a
+              href="mailto:info@h2aqua.com.mx"
+              style={{
+                padding: isMobile ? '1.25rem 1rem' : '1.5rem',
+                display: 'flex', alignItems: 'center', gap: '1rem',
+                backgroundColor: BG_CARD,
+                textDecoration: 'none', cursor: 'pointer',
+                transition: 'background-color 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = BG_CARD_ALT; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = BG_CARD; }}
+            >
+              <div style={{
+                width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0,
+                background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <FiMail size={18} color="#ffffff" />
+              </div>
+              <div>
+                <p style={{ margin: '0 0 0.2rem', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>Correo</p>
+                <p style={{ margin: 0, color: TEXT_PRIMARY, fontWeight: 600, fontSize: '0.88rem' }}>info@h2aqua.com.mx</p>
+                <p style={{ margin: 0, color: GOLD, fontSize: '0.78rem', fontWeight: 500 }}>Envíanos un mensaje →</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -1164,11 +1288,36 @@ function App() {
   });
   const [vista, setVista] = useState<Vista>('home');
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('h2aqua_admin') === '1');
+  const [loginModal, setLoginModal] = useState(false);
+  const [loginPass, setLoginPass] = useState('');
+  const [loginError, setLoginError] = useState(false);
 
   useEffect(() => {
     try { localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito)); }
     catch { /* sin localStorage */ }
   }, [carrito]);
+
+  const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? 'h2aqua2025';
+
+  function handleLogin() {
+    if (loginPass === ADMIN_PASSWORD) {
+      localStorage.setItem('h2aqua_admin', '1');
+      setIsAdmin(true);
+      setLoginModal(false);
+      setLoginPass('');
+      setLoginError(false);
+    } else {
+      setLoginError(true);
+      setLoginPass('');
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('h2aqua_admin');
+    setIsAdmin(false);
+    if (['lista', 'nuevo', 'citas-calendario'].includes(vista)) setVista('home');
+  }
 
   function irA(nuevaVista: Vista) { setVista(nuevaVista); setMenuAbierto(false); }
 
@@ -1190,14 +1339,22 @@ function App() {
   function eliminarDelCarrito(id: number) { setCarrito((prev) => prev.filter((i) => i.id !== id)); }
   function vaciarCarrito() { setCarrito([]); }
 
-  const navItems = [
-    { key: 'home',             label: 'Inicio' },
-    { key: 'tienda',           label: 'Tienda' },
-    { key: 'citas',            label: 'Citas' },
+  const navItemsPublicos = [
+    { key: 'home',    label: 'Inicio' },
+    { key: 'tienda',  label: 'Tienda' },
+    { key: 'regalo',  label: 'Tarjeta Regalo' },
+    { key: 'citas',   label: 'Citas' },
+  ] as const;
+
+  const navItemsAdmin = [
     { key: 'citas-calendario', label: 'Calendario' },
     { key: 'lista',            label: 'Productos' },
     { key: 'nuevo',            label: 'Nuevo producto' },
   ] as const;
+
+  const navItems = isAdmin
+    ? [...navItemsPublicos, ...navItemsAdmin]
+    : navItemsPublicos;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: BG_DARK }}>
@@ -1259,6 +1416,24 @@ function App() {
               </nav>
 
               <div style={{ width: '1px', height: '20px', backgroundColor: BORDER, margin: '0 0.25rem' }} />
+              {isAdmin ? (
+                <button
+                  onClick={handleLogout}
+                  title="Cerrar sesión admin"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.75rem', borderRadius: '999px', border: `1px solid ${BORDER}`, backgroundColor: 'transparent', color: TEXT_MUTED, fontSize: '0.75rem', cursor: 'pointer' }}
+                >
+                  <FiLogOut size={13} /> Admin
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setLoginModal(true); setLoginError(false); setLoginPass(''); }}
+                  title="Acceso administrador"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', border: `1px solid ${BORDER}`, backgroundColor: 'transparent', color: TEXT_MUTED, cursor: 'pointer' }}
+                >
+                  <FiLock size={13} />
+                </button>
+              )}
+              <div style={{ width: '1px', height: '20px', backgroundColor: BORDER, margin: '0 0.25rem' }} />
               <CarritoIcono carrito={carrito} onClick={() => setVista('carrito')} />
             </div>
           )}
@@ -1317,17 +1492,75 @@ function App() {
         )}
       </header>
 
+      {/* ── Modal login admin ── */}
+      {loginModal && (
+        <div
+          onClick={() => setLoginModal(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ backgroundColor: BG_CARD, borderRadius: '1.25rem', border: BORDER, padding: '2rem', width: '100%', maxWidth: '360px', boxShadow: `0 20px 60px rgba(0,0,0,0.2)` }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <FiLock size={16} color="#fff" />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>Acceso restringido</p>
+                <h2 style={{ margin: 0, fontSize: '1.15rem', color: TEXT_PRIMARY, fontWeight: 600 }}>Panel de administración</h2>
+              </div>
+            </div>
+
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={loginPass}
+              autoFocus
+              onChange={(e) => { setLoginPass(e.target.value); setLoginError(false); }}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              style={{
+                width: '100%', padding: '0.7rem 0.9rem', borderRadius: '0.6rem',
+                border: loginError ? '1px solid #e0556a' : BORDER,
+                backgroundColor: BG_CARD_ALT, color: TEXT_PRIMARY,
+                fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box',
+                fontFamily: 'inherit',
+              }}
+            />
+            {loginError && (
+              <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: '#e0556a' }}>Contraseña incorrecta</p>
+            )}
+
+            <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1.1rem' }}>
+              <button
+                onClick={() => setLoginModal(false)}
+                style={{ flex: 1, padding: '0.65rem', borderRadius: '0.6rem', border: BORDER, backgroundColor: 'transparent', color: TEXT_SECONDARY, fontSize: '0.88rem', cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleLogin}
+                style={{ flex: 1, padding: '0.65rem', borderRadius: '0.6rem', border: 'none', background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: '#fff', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Entrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Banda teal superior decorativa bajo el header */}
       <div style={{ height: '3px', background: `linear-gradient(90deg, ${TEAL}, ${GOLD}, ${GOLD_LIGHT}, transparent)` }} />
 
       {/* ── Main ── */}
-      <main style={{ padding: isMobile ? '0 1rem' : '0 2rem' }}>
+      <main style={{ padding: isMobile ? '0 1rem' : '0 2rem', overflowX: 'hidden' }}>
         {vista === 'home'             && <Home irA={irA} />}
         {vista === 'citas'            && <Citas />}
-        {vista === 'lista'            && <Productos />}
-        {vista === 'nuevo'            && <NuevoProducto />}
-        {vista === 'citas-calendario' && <CitasCalendarioAdmin />}
+        {vista === 'lista'            && isAdmin && <Productos />}
+        {vista === 'nuevo'            && isAdmin && <NuevoProducto />}
+        {vista === 'citas-calendario' && isAdmin && <CitasCalendarioAdmin />}
         {vista === 'tienda'           && <TiendaProductos carrito={carrito} onAgregarAlCarrito={agregarAlCarrito} />}
+        {vista === 'regalo'           && <TarjetaRegalo onAgregarAlCarrito={agregarAlCarrito} irAlCarrito={() => irA('carrito')} />}
         {vista === 'carrito'          && (
           <Carrito
             carrito={carrito}

@@ -12,3 +12,14 @@ export const SECCIONES: Seccion[] = [
   { numero: 6, nombre: 'Nutrición y Suplementos' },
   { numero: 7, nombre: 'Promociones / Ofertas' },
 ];
+
+// Etiquetas cortas para el navegador flotante de la tienda
+export const ETIQUETAS: string[] = [
+  'Hidrógeno Molecular',
+  'Premium H₂',
+  'Faciales',
+  'Skincare Coreano',
+  'Make up & Cuerpo',
+  'Nutrición',
+  'Promociones',
+];

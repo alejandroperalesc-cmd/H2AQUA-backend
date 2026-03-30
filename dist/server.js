@@ -8,6 +8,7 @@ const client_1 = require("@prisma/client");
 const cors_1 = __importDefault(require("cors"));
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
+const nodemailer_1 = __importDefault(require("nodemailer"));
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
 // Puerto y URL base (local o Render)
@@ -144,6 +145,8 @@ app.post("/productos", async (req, res) => {
     try {
         console.log('BODY /productos:', req.body);
         const { nombre, descripcion, precio, stock, imagenUrl, categoria, // 'ITEM' | 'TERAPIA'
+        seccion, // número de sección en la tienda (1-4)
+        destacado, // boolean
          } = req.body;
         if (!nombre || !precio) {
             return res
@@ -164,6 +167,8 @@ app.post("/productos", async (req, res) => {
                 imagenUrl,
                 categoria,
                 estado: "ACTIVO",
+                seccion: seccion !== null && seccion !== void 0 ? seccion : 1,
+                destacado: destacado !== null && destacado !== void 0 ? destacado : false,
             },
         });
         res.status(201).json(producto);
@@ -184,6 +189,51 @@ app.get("/productos", async (req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).json({ error: "Error al obtener productos" });
+    }
+});
+// Actualizar datos de un producto
+app.patch("/productos/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, descripcion, precio, stock, imagenUrl, categoria, seccion, destacado } = req.body;
+        const data = {};
+        if (nombre !== undefined)
+            data.nombre = nombre;
+        if (descripcion !== undefined)
+            data.descripcion = descripcion;
+        if (precio !== undefined)
+            data.precio = Number(precio);
+        if (stock !== undefined)
+            data.stock = Number(stock);
+        if (imagenUrl !== undefined)
+            data.imagenUrl = imagenUrl;
+        if (categoria !== undefined)
+            data.categoria = categoria;
+        if (seccion !== undefined)
+            data.seccion = Number(seccion);
+        if (destacado !== undefined)
+            data.destacado = Boolean(destacado);
+        const producto = await prisma.producto.update({
+            where: { id: Number(id) },
+            data,
+        });
+        res.json(producto);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al actualizar producto" });
+    }
+});
+// Eliminar TODOS los productos
+app.delete("/productos", async (_req, res) => {
+    try {
+        await prisma.pedidoProducto.deleteMany();
+        await prisma.producto.deleteMany();
+        res.status(204).send();
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al eliminar todos los productos" });
     }
 });
 // Eliminar un producto (solo una vez)
@@ -233,6 +283,23 @@ app.get("/productos-tienda", async (_req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).json({ error: "Error al obtener productos para tienda" });
+    }
+});
+// Productos destacados para el carrusel de la tienda
+app.get("/productos-destacados", async (_req, res) => {
+    try {
+        const productos = await prisma.producto.findMany({
+            where: {
+                destacado: true,
+                estado: { in: ["ACTIVO", "AGOTADO"] },
+            },
+            orderBy: { nombre: "asc" },
+        });
+        res.json(productos);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al obtener productos destacados" });
     }
 });
 // ---------- CITAS ----------
@@ -390,6 +457,141 @@ app.get("/pedidos", async (req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).json({ error: "Error al obtener pedidos" });
+    }
+});
+// ─── Checkout: registrar cliente + pedido ────────────────────────────────────
+// items: [{ productoId: number, cantidad: number }]  (gift cards excluded)
+app.post("/checkout", async (req, res) => {
+    try {
+        const { nombre, email, telefono, direccion, items } = req.body;
+        if (!nombre || !email) {
+            return res.status(400).json({ error: "nombre y email son obligatorios" });
+        }
+        // Find-or-create cliente
+        let cliente = await prisma.cliente.findUnique({ where: { email } });
+        if (!cliente) {
+            cliente = await prisma.cliente.create({
+                data: { nombre, email, telefono: telefono || null, direccion: direccion || null },
+            });
+        }
+        else {
+            // Update info in case it changed
+            cliente = await prisma.cliente.update({
+                where: { email },
+                data: { nombre, telefono: telefono || cliente.telefono, direccion: direccion || cliente.direccion },
+            });
+        }
+        // Create pedido only if there are real product items
+        let pedido = null;
+        const productItems = Array.isArray(items) ? items.filter((i) => i.productoId > 0) : [];
+        if (productItems.length > 0) {
+            const productosIds = productItems.map((it) => it.productoId);
+            const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } });
+            let total = 0;
+            const itemsConPrecio = productItems.map((it) => {
+                const prod = productos.find((p) => p.id === it.productoId);
+                if (!prod)
+                    throw new Error(`Producto no encontrado: ${it.productoId}`);
+                total += prod.precio * it.cantidad;
+                return { cantidad: it.cantidad, precioUnit: prod.precio, productoId: it.productoId };
+            });
+            pedido = await prisma.pedido.create({
+                data: {
+                    clienteId: cliente.id,
+                    total: Math.round(total),
+                    estado: "PENDIENTE",
+                    notas: direccion ? `Dirección de entrega: ${direccion}` : null,
+                    items: { create: itemsConPrecio },
+                },
+                include: { items: { include: { producto: true } } },
+            });
+        }
+        res.status(201).json({ cliente, pedido });
+    }
+    catch (error) {
+        console.error("Error en checkout:", error);
+        res.status(500).json({ error: error.message || "Error al procesar el pedido" });
+    }
+});
+// ─── Enviar tarjeta de regalo por correo ─────────────────────────────────────
+app.post("/enviar-regalo", async (req, res) => {
+    try {
+        const { codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta } = req.body;
+        if (!codigo || !emailDestinatario || !para || !de || !monto) {
+            return res.status(400).json({ error: "Faltan datos obligatorios" });
+        }
+        const transporter = nodemailer_1.default.createTransport({
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: Number(process.env.SMTP_PORT || 587),
+            secure: process.env.SMTP_PORT === '465',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+        const mensajeHtml = mensaje
+            ? `<p style="font-style:italic; color:#4a6b75; margin:0 0 1.5rem; line-height:1.7;">"${mensaje}"</p>`
+            : '';
+        const html = `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0; padding:0; background:#f2f8f9; font-family: Georgia, 'Times New Roman', serif;">
+  <div style="max-width:560px; margin:0 auto; background:#f2f8f9; padding:32px 16px;">
+
+    <!-- Header -->
+    <div style="text-align:center; margin-bottom:28px;">
+      <p style="margin:0; font-size:11px; letter-spacing:0.28em; text-transform:uppercase; color:#8eaab4; font-family: Arial, sans-serif;">Wellness · Hidrógeno Molecular</p>
+      <h1 style="margin:6px 0 0; font-size:28px; font-weight:200; letter-spacing:0.04em; color:#1a3a40;">H2AQUA</h1>
+    </div>
+
+    <!-- Card visual -->
+    <div style="border-radius:16px; overflow:hidden; margin-bottom:28px;
+      background: linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #00968a 75%, #00B7C4 100%);
+      padding: 32px 28px;">
+      <p style="margin:0 0 4px; font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:rgba(255,255,255,0.6); font-family:Arial,sans-serif;">H2AQUA · Tarjeta de Regalo</p>
+      <p style="margin:0 0 20px; font-size:13px; color:rgba(255,255,255,0.7); font-family:Arial,sans-serif;">${nombreTarjeta}</p>
+      <p style="margin:0; font-size:42px; font-weight:200; color:#fff; letter-spacing:0.02em; text-align:center;">$${Number(monto).toLocaleString('es-MX')}</p>
+      <p style="margin:4px 0 0; font-size:11px; color:rgba(255,255,255,0.55); text-align:center; font-family:Arial,sans-serif; letter-spacing:0.1em;">MXN</p>
+    </div>
+
+    <!-- Content card -->
+    <div style="background:#fff; border-radius:16px; padding:28px 28px 24px; margin-bottom:20px;">
+      <p style="margin:0 0 6px; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#00B7C4; font-weight:bold; font-family:Arial,sans-serif;">Para</p>
+      <p style="margin:0 0 20px; font-size:20px; font-weight:300; color:#1a3a40;">${para}</p>
+
+      ${mensajeHtml}
+
+      <p style="margin:0 0 8px; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#8eaab4; font-family:Arial,sans-serif;">Tu código de regalo</p>
+      <div style="background:#f2f8f9; border-radius:10px; padding:16px; text-align:center; border: 1px solid rgba(0,169,192,0.20);">
+        <p style="margin:0; font-size:22px; font-weight:700; letter-spacing:0.18em; color:#006d77; font-family: 'Courier New', monospace;">${codigo}</p>
+      </div>
+
+      <p style="margin:16px 0 0; font-size:12px; color:#8eaab4; line-height:1.6; font-family:Arial,sans-serif;">
+        Presenta este código en nuestras instalaciones o mencionalo al hacer tu pedido en línea para hacer válida tu tarjeta de regalo.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center;">
+      <p style="margin:0 0 4px; font-size:11px; color:#8eaab4; font-family:Arial,sans-serif;">Con cariño de <strong style="color:#4a6b75;">${de}</strong></p>
+      <p style="margin:0; font-size:10px; color:#aac5cc; font-family:Arial,sans-serif;">info@h2aqua.com.mx · Avenida de las Fuentes 665</p>
+    </div>
+
+  </div>
+</body>
+</html>`;
+        await transporter.sendMail({
+            from: `"H2AQUA" <${process.env.SMTP_USER}>`,
+            to: emailDestinatario,
+            subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`,
+            html,
+        });
+        res.json({ ok: true });
+    }
+    catch (error) {
+        console.error('Error enviando regalo:', error);
+        res.status(500).json({ error: error.message || "Error al enviar el correo" });
     }
 });
 // ---------- INICIO DEL SERVIDOR ----------

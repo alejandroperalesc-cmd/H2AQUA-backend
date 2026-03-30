@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import type { ItemCarrito } from './App';
 import { API_URL } from './api';
-import { SECCIONES } from './secciones';
+import { SECCIONES, ETIQUETAS } from './secciones';
 import CarruselDestacados from './CarruselDestacados';
 import { useIsMobile } from './useIsMobile';
 import {
@@ -40,16 +40,6 @@ const P_DEEP  = TEAL_DEEP;      // #0b4a55  — ocean profundo (home hero)
 const P_LIGHT = GOLD_LIGHT;     // #33c9d4  — tiffany claro (home)
 const P_GLOW  = PANTONE_GLOW;
 
-const ETIQUETAS = [
-  'Hidrógeno Molecular',
-  'Experiencia Premium',
-  'Facial',
-  'Skincare Coreano',
-  'K-Beauty',
-  'Nutrición',
-  'Bienestar',
-  'Promociones',
-];
 
 // ─── Tarjeta de producto ──────────────────────────────────────────────────────
 
@@ -371,7 +361,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
 
           {/* Tags de secciones */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {SECCIONES.map((sec, i) => (
+            {SECCIONES.map((sec) => (
               <button
                 key={sec.numero}
                 onClick={() => scrollToSeccion(sec.numero)}
@@ -379,7 +369,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.28)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.6)'; e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.28)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
               >
-                {ETIQUETAS[i] ?? sec.nombre}
+                {sec.nombre}
               </button>
             ))}
           </div>
