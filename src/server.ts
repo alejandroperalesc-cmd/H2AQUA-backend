@@ -4,6 +4,7 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -36,20 +37,18 @@ app.use(cors({
 // Middleware JSON
 app.use(express.json());
 
-// Servir carpeta de uploads de forma estática
+// Servir carpeta de uploads de forma estática (fallback local)
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Configuración de Multer para guardar imágenes en /uploads
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, '..', 'uploads'),
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  },
-});
+// Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL    ?? '',
+  process.env.SUPABASE_SERVICE_KEY ?? '',
+);
+const SUPABASE_BUCKET = 'Productos';
 
-const upload = multer({ storage });
+// Multer — memory storage (file goes to Supabase, not disk)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Ruta simple de prueba
 app.get("/", (req, res) => {
@@ -144,16 +143,35 @@ app.get("/servicios", async (req, res) => {
   }
 });
 
-// ---------- SUBIDA DE IMÁGENES ----------
+// ---------- SUBIDA DE IMÁGENES (Supabase Storage) ----------
 
-
-app.post('/upload-imagen', upload.single('imagen'), (req, res) => {
+app.post('/upload-imagen', upload.single('imagen'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No se recibió ningún archivo' });
   }
 
-  const url = `${BASE_URL}/uploads/${req.file.filename}`;
-  res.json({ url });
+  try {
+    const ext      = path.extname(req.file.originalname) || '.jpg';
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+
+    const { error } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .upload(filename, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from(SUPABASE_BUCKET)
+      .getPublicUrl(filename);
+
+    res.json({ url: data.publicUrl });
+  } catch (err: any) {
+    console.error('Supabase upload error:', err);
+    res.status(500).json({ error: 'Error al subir la imagen' });
+  }
 });
 
 // ---------- PRODUCTOS ----------

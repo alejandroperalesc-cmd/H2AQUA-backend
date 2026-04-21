@@ -149,7 +149,7 @@ const BENEFICIOS = [
   {
     label: 'Más energía y vitalidad',
     desc: 'Optimiza la función mitocondrial — la central energética de tus células — mejorando el rendimiento físico y mental.',
-    img: `${import.meta.env.VITE_API_URL}/uploads/ENERGYVIT.jpg`,
+    img: 'https://brovfbutfvqzbuwhsopd.supabase.co/storage/v1/object/public/Productos/ENERGYVIT.jpg',
   },
   {
     label: 'Salud celular profunda',
@@ -159,7 +159,7 @@ const BENEFICIOS = [
   {
     label: 'Piel luminosa',
     desc: 'Reduce el estrés oxidativo en la piel, favoreciendo la hidratación profunda, luminosidad y efectos antiaging visibles.',
-    img: `${import.meta.env.VITE_API_URL}/uploads/CARACOREA.webp`,
+    img: 'https://brovfbutfvqzbuwhsopd.supabase.co/storage/v1/object/public/Productos/CARACOREA.webp',
   },
   {
     label: 'Sistema inmune fuerte',
@@ -198,22 +198,22 @@ const SERVICIOS_COMPLEMENTARIOS = [
   {
     label: 'Tratamientos Faciales',
     desc: 'Limpieza profunda, hidratación y revitalización con técnicas profesionales. Mejora la luminosidad y apariencia natural de tu piel.',
-    img: `${import.meta.env.VITE_API_URL}/uploads/Tratamientosfaciales.jpeg`,
+    img: 'https://brovfbutfvqzbuwhsopd.supabase.co/storage/v1/object/public/Productos/Tratamientosfaciales.jpeg',
   },
   {
     label: 'Skincare Coreano',
     desc: 'Fórmulas K-Beauty con ingredientes activos innovadores: hidratación profunda, nutrición y cuidado intensivo para todo tipo de piel.',
-    img: `${import.meta.env.VITE_API_URL}/uploads/SKCOREA.jpeg`,
+    img: 'https://brovfbutfvqzbuwhsopd.supabase.co/storage/v1/object/public/Productos/SKCOREA.jpeg',
   },
   {
     label: 'Make up, Cabello y Cuerpo',
     desc: 'Productos diseñados para una piel saludable y luminosa con rutinas efectivas que mantienen la piel limpia, hidratada y protegida.',
-    img: `${import.meta.env.VITE_API_URL}/uploads/MAQUILLAJEH2A.jpg`,
+    img: 'https://brovfbutfvqzbuwhsopd.supabase.co/storage/v1/object/public/Productos/MAQUILLAJEH2A.jpg',
   },
   {
     label: 'Nutrición y Suplementos',
     desc: 'Suplementos seleccionados para la salud de la piel, el bienestar del cuerpo y un sistema inmunológico fuerte desde adentro.',
-    img: `${import.meta.env.VITE_API_URL}/uploads/NUTYSUP.avif`,
+    img: 'https://brovfbutfvqzbuwhsopd.supabase.co/storage/v1/object/public/Productos/NUTYSUP.avif',
   },
 ];
 
