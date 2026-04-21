@@ -18,6 +18,7 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const allowedOrigins = [
   'http://localhost:5173',
   'https://h2aqua.com.mx',
+  'https://www.h2aqua.com.mx',
 ];
 
 app.use(cors({
