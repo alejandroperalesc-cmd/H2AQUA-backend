@@ -565,6 +565,80 @@ app.post("/checkout", async (req, res) => {
   }
 });
 
+// ─── Helper: enviar tarjeta de regalo por correo ─────────────────────────────
+interface GiftCardData {
+  codigo: string;
+  emailDestinatario: string;
+  para: string;
+  de: string;
+  mensaje?: string;
+  monto: number;
+  nombreTarjeta: string;
+}
+
+async function sendGiftCardEmail(gift: GiftCardData): Promise<void> {
+  const transporter = nodemailer.createTransport({
+    host:       process.env.SMTP_HOST || 'smtp.titan.email',
+    port:       Number(process.env.SMTP_PORT || 587),
+    secure:     process.env.SMTP_PORT === '465',
+    requireTLS: true,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  const { codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta } = gift;
+  const mensajeHtml = mensaje
+    ? `<p style="font-style:italic; color:#4a6b75; margin:0 0 1.5rem; line-height:1.7;">"${mensaje}"</p>`
+    : '';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0; padding:0; background:#f2f8f9; font-family: Georgia, 'Times New Roman', serif;">
+  <div style="max-width:560px; margin:0 auto; background:#f2f8f9; padding:32px 16px;">
+    <div style="text-align:center; margin-bottom:28px;">
+      <p style="margin:0; font-size:11px; letter-spacing:0.28em; text-transform:uppercase; color:#8eaab4; font-family: Arial, sans-serif;">Wellness · Hidrógeno Molecular</p>
+      <h1 style="margin:6px 0 0; font-size:28px; font-weight:200; letter-spacing:0.04em; color:#1a3a40;">H2AQUA</h1>
+    </div>
+    <div style="border-radius:16px; overflow:hidden; margin-bottom:28px;
+      background: linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #00968a 75%, #00B7C4 100%);
+      padding: 32px 28px;">
+      <p style="margin:0 0 4px; font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:rgba(255,255,255,0.6); font-family:Arial,sans-serif;">H2AQUA · Tarjeta de Regalo</p>
+      <p style="margin:0 0 20px; font-size:13px; color:rgba(255,255,255,0.7); font-family:Arial,sans-serif;">${nombreTarjeta}</p>
+      <p style="margin:0; font-size:42px; font-weight:200; color:#fff; letter-spacing:0.02em; text-align:center;">$${Number(monto).toLocaleString('es-MX')}</p>
+      <p style="margin:4px 0 0; font-size:11px; color:rgba(255,255,255,0.55); text-align:center; font-family:Arial,sans-serif; letter-spacing:0.1em;">MXN</p>
+    </div>
+    <div style="background:#fff; border-radius:16px; padding:28px 28px 24px; margin-bottom:20px;">
+      <p style="margin:0 0 6px; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#00B7C4; font-weight:bold; font-family:Arial,sans-serif;">Para</p>
+      <p style="margin:0 0 20px; font-size:20px; font-weight:300; color:#1a3a40;">${para}</p>
+      ${mensajeHtml}
+      <p style="margin:0 0 8px; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#8eaab4; font-family:Arial,sans-serif;">Tu código de regalo</p>
+      <div style="background:#f2f8f9; border-radius:10px; padding:16px; text-align:center; border: 1px solid rgba(0,169,192,0.20);">
+        <p style="margin:0; font-size:22px; font-weight:700; letter-spacing:0.18em; color:#006d77; font-family: 'Courier New', monospace;">${codigo}</p>
+      </div>
+      <p style="margin:16px 0 0; font-size:12px; color:#8eaab4; line-height:1.6; font-family:Arial,sans-serif;">
+        Presenta este código en nuestras instalaciones o mencionalo al hacer tu pedido en línea para hacer válida tu tarjeta de regalo.
+      </p>
+    </div>
+    <div style="text-align:center;">
+      <p style="margin:0 0 4px; font-size:11px; color:#8eaab4; font-family:Arial,sans-serif;">Con cariño de <strong style="color:#4a6b75;">${de}</strong></p>
+      <p style="margin:0; font-size:10px; color:#aac5cc; font-family:Arial,sans-serif;">info@h2aqua.com.mx · Avenida de las Fuentes 665</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  await transporter.sendMail({
+    from: `"H2AQUA" <${process.env.SMTP_USER}>`,
+    to: emailDestinatario,
+    subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`,
+    html,
+  });
+}
+
 // ─── Enviar tarjeta de regalo por correo ─────────────────────────────────────
 app.post("/enviar-regalo", async (req, res) => {
   try {
@@ -574,81 +648,10 @@ app.post("/enviar-regalo", async (req, res) => {
       return res.status(400).json({ error: "Faltan datos obligatorios" });
     }
 
-    const transporter = nodemailer.createTransport({
-      host:       process.env.SMTP_HOST || 'smtp.titan.email',
-      port:       Number(process.env.SMTP_PORT || 587),
-      secure:     process.env.SMTP_PORT === '465',
-      requireTLS: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const mensajeHtml = mensaje
-      ? `<p style="font-style:italic; color:#4a6b75; margin:0 0 1.5rem; line-height:1.7;">"${mensaje}"</p>`
-      : '';
-
-    const html = `
-<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0; padding:0; background:#f2f8f9; font-family: Georgia, 'Times New Roman', serif;">
-  <div style="max-width:560px; margin:0 auto; background:#f2f8f9; padding:32px 16px;">
-
-    <!-- Header -->
-    <div style="text-align:center; margin-bottom:28px;">
-      <p style="margin:0; font-size:11px; letter-spacing:0.28em; text-transform:uppercase; color:#8eaab4; font-family: Arial, sans-serif;">Wellness · Hidrógeno Molecular</p>
-      <h1 style="margin:6px 0 0; font-size:28px; font-weight:200; letter-spacing:0.04em; color:#1a3a40;">H2AQUA</h1>
-    </div>
-
-    <!-- Card visual -->
-    <div style="border-radius:16px; overflow:hidden; margin-bottom:28px;
-      background: linear-gradient(135deg, #0b4a55 0%, #006d77 40%, #00968a 75%, #00B7C4 100%);
-      padding: 32px 28px;">
-      <p style="margin:0 0 4px; font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:rgba(255,255,255,0.6); font-family:Arial,sans-serif;">H2AQUA · Tarjeta de Regalo</p>
-      <p style="margin:0 0 20px; font-size:13px; color:rgba(255,255,255,0.7); font-family:Arial,sans-serif;">${nombreTarjeta}</p>
-      <p style="margin:0; font-size:42px; font-weight:200; color:#fff; letter-spacing:0.02em; text-align:center;">$${Number(monto).toLocaleString('es-MX')}</p>
-      <p style="margin:4px 0 0; font-size:11px; color:rgba(255,255,255,0.55); text-align:center; font-family:Arial,sans-serif; letter-spacing:0.1em;">MXN</p>
-    </div>
-
-    <!-- Content card -->
-    <div style="background:#fff; border-radius:16px; padding:28px 28px 24px; margin-bottom:20px;">
-      <p style="margin:0 0 6px; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#00B7C4; font-weight:bold; font-family:Arial,sans-serif;">Para</p>
-      <p style="margin:0 0 20px; font-size:20px; font-weight:300; color:#1a3a40;">${para}</p>
-
-      ${mensajeHtml}
-
-      <p style="margin:0 0 8px; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#8eaab4; font-family:Arial,sans-serif;">Tu código de regalo</p>
-      <div style="background:#f2f8f9; border-radius:10px; padding:16px; text-align:center; border: 1px solid rgba(0,169,192,0.20);">
-        <p style="margin:0; font-size:22px; font-weight:700; letter-spacing:0.18em; color:#006d77; font-family: 'Courier New', monospace;">${codigo}</p>
-      </div>
-
-      <p style="margin:16px 0 0; font-size:12px; color:#8eaab4; line-height:1.6; font-family:Arial,sans-serif;">
-        Presenta este código en nuestras instalaciones o mencionalo al hacer tu pedido en línea para hacer válida tu tarjeta de regalo.
-      </p>
-    </div>
-
-    <!-- Footer -->
-    <div style="text-align:center;">
-      <p style="margin:0 0 4px; font-size:11px; color:#8eaab4; font-family:Arial,sans-serif;">Con cariño de <strong style="color:#4a6b75;">${de}</strong></p>
-      <p style="margin:0; font-size:10px; color:#aac5cc; font-family:Arial,sans-serif;">info@h2aqua.com.mx · Avenida de las Fuentes 665</p>
-    </div>
-
-  </div>
-</body>
-</html>`;
-
     try {
-      await transporter.sendMail({
-        from: `"H2AQUA" <${process.env.SMTP_USER}>`,
-        to: emailDestinatario,
-        subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`,
-        html,
-      });
+      await sendGiftCardEmail({ codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta });
       res.json({ ok: true, emailSent: true });
     } catch (mailError: any) {
-      // Log the error but don't fail the request — the order already completed
       console.error('SMTP error (non-fatal):', mailError.message);
       res.json({ ok: true, emailSent: false, smtpError: mailError.message });
     }
@@ -725,6 +728,200 @@ app.post('/api/paypal/capture-order', async (req, res) => {
   } catch (error: any) {
     console.error('PayPal capture-order:', error);
     res.status(500).json({ error: error.message || 'Error capturing PayPal payment' });
+  }
+});
+
+// ─── Clip ─────────────────────────────────────────────────────────────────────
+
+const CLIP_BASE = 'https://api.payclip.com';
+
+function getClipAuthHeader(): string {
+  const apiKey    = process.env.CLIP_API_KEY    ?? '';
+  const secretKey = process.env.CLIP_SECRET_KEY ?? '';
+  return `Basic ${Buffer.from(`${apiKey}:${secretKey}`).toString('base64')}`;
+}
+
+// Temporary in-memory store for pending Clip payments (keyed by payment_request_id)
+interface ClipPendingOrder {
+  nombre:    string;
+  email:     string;
+  telefono:  string;
+  direccion: string;
+  items:     { productoId: number; cantidad: number }[];
+  regalos:   GiftCardData[];
+}
+const clipPendingOrders = new Map<string, ClipPendingOrder>();
+
+// POST /api/clip/create-payment — create a Clip payment link and return the URL
+app.post('/api/clip/create-payment', async (req, res) => {
+  try {
+    const { nombre, email, telefono, direccion, items, regalos, total } = req.body as {
+      nombre: string; email: string; telefono?: string; direccion?: string;
+      items?: { productoId: number; cantidad: number }[];
+      regalos?: GiftCardData[];
+      total: number;
+    };
+
+    if (!nombre || !email || !total) {
+      return res.status(400).json({ error: 'nombre, email y total son obligatorios' });
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL ?? 'https://h2aqua.com.mx';
+    const webhookUrl  = `${BASE_URL}/api/clip/webhook`;
+    const expiresAt   = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(); // 2 hours
+
+    const clipRes = await fetch(`${CLIP_BASE}/v2/checkout`, {
+      method:  'POST',
+      headers: {
+        'Authorization': getClipAuthHeader(),
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({
+        amount:               Number(total),
+        currency:             'MXN',
+        purchase_description: `H2AQUA · Pedido de ${nombre}`.slice(0, 250),
+        webhook_url:          webhookUrl,
+        redirection_url: {
+          success:  `${frontendUrl}?clip=success&nombre=${encodeURIComponent(nombre)}`,
+          error:    `${frontendUrl}?clip=error`,
+          default:  frontendUrl,
+        },
+        expires_at: expiresAt,
+        metadata:   { email, nombre },
+      }),
+    });
+
+    if (!clipRes.ok) {
+      const errBody = await clipRes.text();
+      console.error('Clip create-payment error:', clipRes.status, errBody);
+      return res.status(502).json({ error: 'Error al crear el pago con Clip' });
+    }
+
+    const clipData = await clipRes.json() as {
+      payment_request_id:  string;
+      payment_request_url: string;
+    };
+
+    const paymentUrl = clipData.payment_request_url;
+    if (!paymentUrl) {
+      console.error('Clip: no URL in response', clipData);
+      return res.status(502).json({ error: 'Clip no devolvió una URL de pago' });
+    }
+
+    // Store order data until webhook confirms
+    clipPendingOrders.set(clipData.payment_request_id, {
+      nombre,
+      email,
+      telefono:  telefono  ?? '',
+      direccion: direccion ?? '',
+      items:     items     ?? [],
+      regalos:   regalos   ?? [],
+    });
+    // Auto-remove after 4 hours
+    setTimeout(() => clipPendingOrders.delete(clipData.payment_request_id), 4 * 60 * 60 * 1000);
+
+    res.json({ url: paymentUrl, paymentRequestId: clipData.payment_request_id });
+
+  } catch (error: any) {
+    console.error('Clip create-payment:', error);
+    res.status(500).json({ error: error.message || 'Error al crear el pago con Clip' });
+  }
+});
+
+// POST /api/clip/webhook — Clip calls this when a payment completes
+app.post('/api/clip/webhook', async (req, res) => {
+  // Always respond 200 quickly so Clip doesn't retry
+  res.status(200).json({ ok: true });
+
+  try {
+    const { payment_request_id, resource_status } = req.body as {
+      payment_request_id: string;
+      resource_status:    string;
+    };
+
+    console.log('Clip webhook:', { payment_request_id, resource_status });
+
+    if (resource_status !== 'COMPLETED') return;
+
+    const pending = clipPendingOrders.get(payment_request_id);
+    if (!pending) {
+      console.warn('Clip webhook: no pending order for', payment_request_id);
+      return;
+    }
+
+    // Verify payment with Clip before fulfilling (avoid spoofed webhooks)
+    try {
+      const checkRes = await fetch(
+        `${CLIP_BASE}/v2/checkout/${payment_request_id}`,
+        { headers: { 'Authorization': getClipAuthHeader() } },
+      );
+      if (checkRes.ok) {
+        const checkData = await checkRes.json() as { resource_status?: string; status?: string };
+        const confirmed = checkData.resource_status === 'COMPLETED' || checkData.status === 'approved';
+        if (!confirmed) {
+          console.warn('Clip webhook: status not confirmed via API', checkData);
+          return;
+        }
+      }
+    } catch (verifyErr) {
+      console.warn('Clip webhook: could not verify via API (proceeding anyway):', verifyErr);
+    }
+
+    const { nombre, email, telefono, direccion, items, regalos } = pending;
+
+    // Find-or-create cliente
+    let cliente = await prisma.cliente.findUnique({ where: { email } });
+    if (!cliente) {
+      cliente = await prisma.cliente.create({
+        data: { nombre, email, telefono: telefono || null, direccion: direccion || null },
+      });
+    } else {
+      cliente = await prisma.cliente.update({
+        where: { email },
+        data: { nombre, telefono: telefono || cliente.telefono, direccion: direccion || cliente.direccion },
+      });
+    }
+
+    // Create pedido for real product items
+    const productItems = items.filter((i) => i.productoId > 0);
+    if (productItems.length > 0) {
+      const productosIds = productItems.map((it) => it.productoId);
+      const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } });
+
+      let total = 0;
+      const itemsConPrecio = productItems.map((it) => {
+        const prod = productos.find((p) => p.id === it.productoId);
+        if (!prod) throw new Error(`Producto no encontrado: ${it.productoId}`);
+        total += prod.precio * it.cantidad;
+        return { cantidad: it.cantidad, precioUnit: prod.precio, productoId: it.productoId };
+      });
+
+      await prisma.pedido.create({
+        data: {
+          clienteId: cliente.id,
+          total:     Math.round(total),
+          estado:    'PENDIENTE',
+          notas:     `Pago Clip · ${payment_request_id}${direccion ? `\nEntrega: ${direccion}` : ''}`,
+          items:     { create: itemsConPrecio },
+        },
+      });
+    }
+
+    // Send gift card emails
+    for (const regalo of regalos) {
+      if (!regalo.codigo || !regalo.emailDestinatario) continue;
+      try {
+        await sendGiftCardEmail(regalo);
+      } catch (mailErr: any) {
+        console.warn('Clip webhook: gift card email failed (non-fatal):', mailErr.message);
+      }
+    }
+
+    clipPendingOrders.delete(payment_request_id);
+    console.log('Clip webhook: order fulfilled for', email);
+
+  } catch (error: any) {
+    console.error('Clip webhook processing error:', error);
   }
 });
 

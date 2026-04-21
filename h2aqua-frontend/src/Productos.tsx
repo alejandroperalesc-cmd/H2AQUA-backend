@@ -34,6 +34,7 @@ function Productos() {
   const [form, setForm] = useState({
     nombre: '', descripcion: '', precio: '', stock: '0', imagenUrl: '', categoria: '', seccion: '1', destacado: false,
   });
+  const [busqueda, setBusqueda] = useState('');
   const [cambiandoSeccion, setCambiandoSeccion] = useState<number | null>(null);
   const [cambiandoDestacado, setCambiandoDestacado] = useState<number | null>(null);
   const [modalBorrar, setModalBorrar] = useState(false);
@@ -209,7 +210,10 @@ function Productos() {
             Panel de productos
           </h1>
           <p style={{ margin: '0.4rem 0 0', color: TEXT_SECONDARY, fontSize: '0.95rem' }}>
-            {productos.length} productos registrados · Asigna secciones y gestiona el catálogo.
+            {busqueda
+              ? `${productos.filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase())).length} de ${productos.length} productos`
+              : `${productos.length} productos registrados`
+            } · Asigna secciones y gestiona el catálogo.
           </p>
         </div>
         <button
@@ -225,6 +229,37 @@ function Productos() {
           Borrar todos los productos
         </button>
       </header>
+
+      {/* Buscador */}
+      <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
+        <span style={{
+          position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)',
+          fontSize: '0.9rem', color: TEXT_MUTED, pointerEvents: 'none',
+        }}>🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar producto por nombre…"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          style={{
+            ...inputStyle,
+            paddingLeft: '2.25rem',
+            paddingRight: busqueda ? '2.25rem' : '0.75rem',
+            fontSize: '0.95rem',
+          }}
+        />
+        {busqueda && (
+          <button
+            onClick={() => setBusqueda('')}
+            style={{
+              position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: TEXT_MUTED, fontSize: '1rem', lineHeight: 1, padding: 0,
+            }}
+            title="Limpiar búsqueda"
+          >✕</button>
+        )}
+      </div>
 
       {/* Modal: borrar todos */}
       {modalBorrar && (
@@ -303,7 +338,9 @@ function Productos() {
 
       {/* Lista */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {productos.map((p) => {
+        {productos
+          .filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+          .map((p) => {
           const enEdicion = editandoId === p.id;
           const seccionActual = p.seccion;
           const guardandoSeccion = cambiandoSeccion === p.id;

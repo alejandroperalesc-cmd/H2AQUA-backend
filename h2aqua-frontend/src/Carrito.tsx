@@ -78,7 +78,8 @@ export default function Carrito({
   const [ciudad, setCiudad]         = useState('');
   const [referencia, setReferencia] = useState('');
 
-  const [procesando, setProcesando] = useState(false);
+  const [procesando, setProcesando]   = useState(false);
+  const [cargandoClip, setCargandoClip] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -175,11 +176,11 @@ export default function Carrito({
             </button>
             <span style={{ color: TEXT_MUTED, fontSize: '0.65rem' }}>›</span>
             <span style={{ fontSize: '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600, color: paso === 'pago' ? TEAL : TEXT_MUTED }}>
-              Pago
+              Confirmar
             </span>
           </div>
           <h1 style={{ margin: 0, fontSize: isMobile ? '1.5rem' : '2rem', color: TEXT_PRIMARY, fontWeight: 300, letterSpacing: '0.04em' }}>
-            {paso === 'carrito' ? 'Tu carrito' : paso === 'checkout' ? 'Datos de envío' : 'Pago seguro'}
+            {paso === 'carrito' ? 'Tu carrito' : paso === 'checkout' ? 'Datos de envío' : 'Confirmar pedido'}
           </h1>
         </div>
         {paso === 'carrito' && (
@@ -345,7 +346,7 @@ export default function Carrito({
                   letterSpacing: '0.02em', transition: 'all 0.2s',
                 }}
               >
-                Continuar al pago →
+                Continuar →
               </button>
 
               {!puedeConfirmar && (
@@ -356,120 +357,181 @@ export default function Carrito({
             </div>
           )}
 
-          {/* PASO 3 — Pago con PayPal */}
-          {paso === 'pago' && (
-            <div style={{ backgroundColor: BG_CARD, borderRadius: '1.25rem', padding: isMobile ? '1.5rem' : '2rem', border: `1px solid ${BORDER}` }}>
-              {/* Resumen de datos */}
-              <div style={{ marginBottom: '1.5rem', padding: '0.85rem 1rem', borderRadius: '0.75rem', backgroundColor: BG_CARD_ALT, border: `1px solid ${BORDER}` }}>
-                <p style={{ margin: '0 0 0.2rem', fontSize: '0.72rem', color: TEXT_MUTED, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Datos de entrega</p>
-                <p style={{ margin: 0, fontWeight: 600, color: TEXT_PRIMARY, fontSize: '0.9rem' }}>{nombre}</p>
-                <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>{email}{telefono ? ` · ${telefono}` : ''}</p>
-                {calle && (
-                  <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>
-                    {calle} {numExt}{numInt ? ` Int. ${numInt}` : ''}, Col. {colonia}, CP {codigoPostal}, {ciudad}
-                    {referencia ? ` · ${referencia}` : ''}
-                  </p>
-                )}
-              </div>
+          {/* PASO 3 — Pago */}
+          {paso === 'pago' && (() => {
+            const direccionFmt = calle
+              ? [
+                  `${calle.trim()} ${numExt.trim()}${numInt.trim() ? ` Int. ${numInt.trim()}` : ''}`,
+                  `Col. ${colonia.trim()}`,
+                  `CP ${codigoPostal.trim()}`,
+                  ciudad.trim(),
+                  ...(referencia.trim() ? [`Ref: ${referencia.trim()}`] : []),
+                ].join(', ')
+              : '';
 
-              <p style={{ margin: '0 0 1.25rem', fontSize: '0.8rem', color: TEXT_MUTED, textAlign: 'center', lineHeight: 1.6 }}>
-                Elige tu método de pago. Puedes usar tu cuenta de PayPal o pagar con tarjeta de débito / crédito.
-              </p>
+            async function pagarConClip() {
+              setCargandoClip(true);
+              setErrorMsg('');
+              try {
+                const res = await fetch(`${API_URL}/api/clip/create-payment`, {
+                  method:  'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body:    JSON.stringify({
+                    nombre:    nombre.trim(),
+                    email:     email.trim(),
+                    telefono:  telefono.trim(),
+                    direccion: direccionFmt,
+                    items:     productItems,
+                    regalos:   regalosPayload,
+                    total:     subtotal,
+                  }),
+                });
+                if (!res.ok) {
+                  const body = await res.json().catch(() => ({})) as { error?: string };
+                  throw new Error(body.error ?? 'No se pudo crear el pago con Clip');
+                }
+                const { url } = await res.json() as { url: string };
+                window.location.href = url;
+              } catch (err: unknown) {
+                setErrorMsg(err instanceof Error ? err.message : 'Error al conectar con Clip');
+                setCargandoClip(false);
+              }
+            }
 
-              {errorMsg && (
-                <div style={{ marginBottom: '1rem', backgroundColor: 'rgba(224,85,106,0.08)', borderRadius: '0.65rem', padding: '0.75rem 1rem', border: `1px solid rgba(224,85,106,0.25)` }}>
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: ERROR, lineHeight: 1.5 }}>{errorMsg}</p>
+            return (
+              <div style={{ backgroundColor: BG_CARD, borderRadius: '1.25rem', padding: isMobile ? '1.5rem' : '2rem', border: `1px solid ${BORDER}` }}>
+
+                {/* Resumen de datos */}
+                <div style={{ marginBottom: '1.5rem', padding: '0.85rem 1rem', borderRadius: '0.75rem', backgroundColor: BG_CARD_ALT, border: `1px solid ${BORDER}` }}>
+                  <p style={{ margin: '0 0 0.2rem', fontSize: '0.72rem', color: TEXT_MUTED, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Datos de entrega</p>
+                  <p style={{ margin: 0, fontWeight: 600, color: TEXT_PRIMARY, fontSize: '0.9rem' }}>{nombre}</p>
+                  <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>{email}{telefono ? ` · ${telefono}` : ''}</p>
+                  {direccionFmt && <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>{direccionFmt}</p>}
                 </div>
-              )}
 
-              <PayPalScriptProvider options={{
-                clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '',
-                currency: 'MXN',
-                locale:   'es_MX',
-              }}>
-                <PayPalButtons
-                  style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
-                  disabled={procesando}
-                  createOrder={async () => {
-                    const res = await fetch(`${API_URL}/api/paypal/create-order`, {
-                      method:  'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body:    JSON.stringify({ total: subtotal }),
-                    });
-                    if (!res.ok) throw new Error('No se pudo iniciar el pago');
-                    const data = await res.json() as { orderID: string };
-                    return data.orderID;
-                  }}
-                  onApprove={async (data) => {
-                    setProcesando(true);
-                    setErrorMsg('');
-                    try {
-                      // 1. Capture the PayPal payment
-                      const captureRes = await fetch(`${API_URL}/api/paypal/capture-order`, {
-                        method:  'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body:    JSON.stringify({ orderID: data.orderID }),
-                      });
-                      if (!captureRes.ok) {
-                        const body = await captureRes.json().catch(() => ({})) as { error?: string };
-                        throw new Error(body.error ?? 'Error al capturar el pago');
-                      }
+                {errorMsg && (
+                  <div style={{ marginBottom: '1.25rem', backgroundColor: 'rgba(224,85,106,0.08)', borderRadius: '0.65rem', padding: '0.75rem 1rem', border: `1px solid rgba(224,85,106,0.25)` }}>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: ERROR, lineHeight: 1.5 }}>{errorMsg}</p>
+                  </div>
+                )}
 
-                      // 2. Save order in the database
-                      const checkoutRes = await fetch(`${API_URL}/checkout`, {
-                        method:  'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body:    JSON.stringify({
-                          nombre:    nombre.trim(),
-                          email:     email.trim(),
-                          telefono:  telefono.trim(),
-                          direccion: [
-                            `${calle.trim()} ${numExt.trim()}${numInt.trim() ? ` Int. ${numInt.trim()}` : ''}`,
-                            `Col. ${colonia.trim()}`,
-                            `CP ${codigoPostal.trim()}`,
-                            ciudad.trim(),
-                            ...(referencia.trim() ? [`Ref: ${referencia.trim()}`] : []),
-                          ].join(', '),
-                          items:     productItems,
-                        }),
-                      });
-                      if (!checkoutRes.ok) {
-                        const body = await checkoutRes.json().catch(() => ({})) as { error?: string };
-                        throw new Error(body.error ?? 'Error al registrar el pedido');
-                      }
+                {/* ── Clip ── */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED }}>
+                    Pago con tarjeta
+                  </p>
+                  <button
+                    disabled={cargandoClip || procesando}
+                    onClick={pagarConClip}
+                    style={{
+                      width: '100%', padding: '0.95rem', borderRadius: '0.75rem', border: 'none',
+                      background: (cargandoClip || procesando) ? `rgba(0,109,119,0.25)` : GRAD_MAIN,
+                      color: (cargandoClip || procesando) ? TEXT_MUTED : '#fff',
+                      fontWeight: 700, fontSize: '1rem',
+                      cursor: (cargandoClip || procesando) ? 'default' : 'pointer',
+                      boxShadow: (cargandoClip || procesando) ? 'none' : `0 4px 16px ${PANTONE_GLOW}`,
+                      letterSpacing: '0.02em', transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                    }}
+                  >
+                    <span>💳</span>
+                    {cargandoClip ? 'Redirigiendo a Clip…' : 'Pagar con Clip'}
+                  </button>
+                  <p style={{ margin: '0.5rem 0 0', textAlign: 'center', fontSize: '0.72rem', color: TEXT_MUTED }}>
+                    🔒 Débito · Crédito · Transferencia — procesado por Clip
+                  </p>
+                </div>
 
-                      // 3. Send gift card emails (non-fatal — order is already complete)
-                      for (const regalo of regalosPayload) {
-                        if (!regalo.codigo || !regalo.emailDestinatario) continue;
+                {/* Divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.25rem 0' }}>
+                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
+                  <span style={{ fontSize: '0.75rem', color: TEXT_MUTED, letterSpacing: '0.1em' }}>o también</span>
+                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
+                </div>
+
+                {/* ── PayPal ── */}
+                <div>
+                  <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED }}>
+                    Pago con PayPal
+                  </p>
+                  <PayPalScriptProvider options={{
+                    clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '',
+                    currency: 'MXN',
+                    locale:   'es_MX',
+                  }}>
+                    <PayPalButtons
+                      style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
+                      disabled={procesando || cargandoClip}
+                      createOrder={async () => {
+                        const res = await fetch(`${API_URL}/api/paypal/create-order`, {
+                          method:  'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body:    JSON.stringify({ total: subtotal }),
+                        });
+                        if (!res.ok) throw new Error('No se pudo iniciar el pago');
+                        const data = await res.json() as { orderID: string };
+                        return data.orderID;
+                      }}
+                      onApprove={async (data) => {
+                        setProcesando(true);
+                        setErrorMsg('');
                         try {
-                          await fetch(`${API_URL}/enviar-regalo`, {
+                          const captureRes = await fetch(`${API_URL}/api/paypal/capture-order`, {
                             method:  'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body:    JSON.stringify(regalo),
+                            body:    JSON.stringify({ orderID: data.orderID }),
                           });
-                        } catch (emailErr) {
-                          console.warn('Email send failed (non-fatal):', emailErr);
+                          if (!captureRes.ok) {
+                            const body = await captureRes.json().catch(() => ({})) as { error?: string };
+                            throw new Error(body.error ?? 'Error al capturar el pago');
+                          }
+
+                          const checkoutRes = await fetch(`${API_URL}/checkout`, {
+                            method:  'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body:    JSON.stringify({
+                              nombre:    nombre.trim(),
+                              email:     email.trim(),
+                              telefono:  telefono.trim(),
+                              direccion: direccionFmt,
+                              items:     productItems,
+                            }),
+                          });
+                          if (!checkoutRes.ok) {
+                            const body = await checkoutRes.json().catch(() => ({})) as { error?: string };
+                            throw new Error(body.error ?? 'Error al registrar el pedido');
+                          }
+
+                          for (const regalo of regalosPayload) {
+                            if (!regalo.codigo || !regalo.emailDestinatario) continue;
+                            try {
+                              await fetch(`${API_URL}/enviar-regalo`, {
+                                method:  'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body:    JSON.stringify(regalo),
+                              });
+                            } catch (emailErr) {
+                              console.warn('Email send failed (non-fatal):', emailErr);
+                            }
+                          }
+
+                          onVaciar();
+                          setPaso('exito');
+                        } catch (err: unknown) {
+                          setErrorMsg(err instanceof Error ? err.message : 'Error al procesar el pago');
+                        } finally {
+                          setProcesando(false);
                         }
-                      }
+                      }}
+                      onError={() => setErrorMsg('Ocurrió un error con PayPal. Intenta de nuevo.')}
+                      onCancel={() => setErrorMsg('Pago cancelado. Puedes intentarlo cuando quieras.')}
+                    />
+                  </PayPalScriptProvider>
+                </div>
 
-                      onVaciar();
-                      setPaso('exito');
-                    } catch (err: unknown) {
-                      setErrorMsg(err instanceof Error ? err.message : 'Error al procesar el pago');
-                    } finally {
-                      setProcesando(false);
-                    }
-                  }}
-                  onError={() => setErrorMsg('Ocurrió un error con PayPal. Intenta de nuevo.')}
-                  onCancel={() => setErrorMsg('Pago cancelado. Puedes intentarlo cuando quieras.')}
-                />
-              </PayPalScriptProvider>
-
-              <p style={{ margin: '1rem 0 0', textAlign: 'center', fontSize: '0.72rem', color: TEXT_MUTED }}>
-                🔒 Pago 100% seguro procesado por PayPal
-              </p>
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Resumen de orden (siempre visible) ── */}
@@ -518,7 +580,7 @@ export default function Carrito({
           {(paso === 'checkout' || paso === 'pago') && (
             <div style={{ padding: '0.6rem 0.9rem', borderRadius: '0.6rem', backgroundColor: BG_CARD_ALT, border: `1px solid ${BORDER}` }}>
               <p style={{ margin: 0, fontSize: '0.76rem', color: TEXT_MUTED, textAlign: 'center' }}>
-                {paso === 'checkout' ? 'Completa el formulario para continuar' : '🔒 Pago seguro con PayPal'}
+                {paso === 'checkout' ? 'Completa el formulario para continuar' : 'Revisa tu pedido y confirma'}
               </p>
             </div>
           )}

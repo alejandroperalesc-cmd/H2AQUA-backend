@@ -149,7 +149,7 @@ const BENEFICIOS = [
   {
     label: 'Más energía y vitalidad',
     desc: 'Optimiza la función mitocondrial — la central energética de tus células — mejorando el rendimiento físico y mental.',
-    img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&fit=crop&q=85',
+    img: `${import.meta.env.VITE_API_URL}/uploads/ENERGYVIT.jpg`,
   },
   {
     label: 'Salud celular profunda',
@@ -159,7 +159,7 @@ const BENEFICIOS = [
   {
     label: 'Piel luminosa',
     desc: 'Reduce el estrés oxidativo en la piel, favoreciendo la hidratación profunda, luminosidad y efectos antiaging visibles.',
-    img: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&fit=crop&q=85',
+    img: `${import.meta.env.VITE_API_URL}/uploads/CARACOREA.webp`,
   },
   {
     label: 'Sistema inmune fuerte',
@@ -198,22 +198,22 @@ const SERVICIOS_COMPLEMENTARIOS = [
   {
     label: 'Tratamientos Faciales',
     desc: 'Limpieza profunda, hidratación y revitalización con técnicas profesionales. Mejora la luminosidad y apariencia natural de tu piel.',
-    img: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=600&fit=crop&q=85',
+    img: `${import.meta.env.VITE_API_URL}/uploads/Tratamientosfaciales.jpeg`,
   },
   {
     label: 'Skincare Coreano',
     desc: 'Fórmulas K-Beauty con ingredientes activos innovadores: hidratación profunda, nutrición y cuidado intensivo para todo tipo de piel.',
-    img: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&fit=crop&q=85',
+    img: `${import.meta.env.VITE_API_URL}/uploads/SKCOREA.jpeg`,
   },
   {
     label: 'Make up, Cabello y Cuerpo',
     desc: 'Productos diseñados para una piel saludable y luminosa con rutinas efectivas que mantienen la piel limpia, hidratada y protegida.',
-    img: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&fit=crop&q=85',
+    img: `${import.meta.env.VITE_API_URL}/uploads/MAQUILLAJEH2A.jpg`,
   },
   {
     label: 'Nutrición y Suplementos',
     desc: 'Suplementos seleccionados para la salud de la piel, el bienestar del cuerpo y un sistema inmunológico fuerte desde adentro.',
-    img: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&fit=crop&q=85',
+    img: `${import.meta.env.VITE_API_URL}/uploads/NUTYSUP.avif`,
   },
 ];
 
@@ -1292,6 +1292,23 @@ function App() {
   const [loginModal, setLoginModal] = useState(false);
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState(false);
+
+  // Detect return from Clip payment redirect (?clip=success)
+  const [clipSuccessNombre, setClipSuccessNombre] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('clip') === 'success' ? (params.get('nombre') ?? 'Cliente') : null;
+  });
+  useEffect(() => {
+    if (clipSuccessNombre) {
+      // Clear cart — payment was completed on Clip's side
+      setCarrito([]);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('clip');
+      url.searchParams.delete('nombre');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
   useEffect(() => {
     try { localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito)); }
     catch { /* sin localStorage */ }
@@ -1357,6 +1374,56 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: BG_DARK }}>
+
+      {/* ── Clip payment success overlay ── */}
+      {clipSuccessNombre && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          backgroundColor: 'rgba(0,0,0,0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '1.5rem',
+        }}>
+          <div style={{
+            backgroundColor: BG_CARD, borderRadius: '1.5rem',
+            padding: '2.5rem 2rem', maxWidth: '420px', width: '100%',
+            textAlign: 'center',
+            border: `1px solid ${TEAL}44`,
+            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{
+              width: '64px', height: '64px', borderRadius: '50%',
+              margin: '0 auto 1.25rem',
+              background: `linear-gradient(135deg, ${TEAL}, #00B7C4)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="28" height="22" viewBox="0 0 28 22" fill="none">
+                <path d="M2 11L10 19L26 2" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p style={{ margin: '0 0 0.4rem', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
+              ¡Pago recibido!
+            </p>
+            <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.6rem', color: TEXT_PRIMARY, fontWeight: 300 }}>
+              Gracias, {clipSuccessNombre.split(' ')[0]}
+            </h2>
+            <p style={{ margin: '0 0 2rem', color: TEXT_SECONDARY, fontSize: '0.92rem', lineHeight: 1.7 }}>
+              Tu pago con Clip fue procesado correctamente. Recibirás la confirmación de tu pedido y nos pondremos en contacto para coordinar la entrega.
+            </p>
+            <button
+              onClick={() => setClipSuccessNombre(null)}
+              style={{
+                padding: '0.85rem 2rem', borderRadius: '999px', border: 'none',
+                background: `linear-gradient(135deg, ${TEAL}, #00B7C4)`,
+                color: '#fff', fontWeight: 700, fontSize: '0.95rem',
+                cursor: 'pointer',
+                boxShadow: `0 4px 14px ${TEAL}55`,
+              }}
+            >
+              Seguir explorando
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Header ── */}
       <header

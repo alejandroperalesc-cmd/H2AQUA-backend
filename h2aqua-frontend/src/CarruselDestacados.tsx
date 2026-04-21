@@ -122,18 +122,28 @@ export default function CarruselDestacados({ onAgregarAlCarrito }: Props) {
                 <img
                   src={prod.imagenUrl}
                   alt={prod.nombre}
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  style={{
+                    position: 'absolute', inset: 0, width: '100%', height: '100%',
+                    objectFit: 'cover', display: 'block',
+                    filter: 'brightness(1.08) saturate(1.15)',
+                  }}
                 />
               ) : (
                 <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, #0b4a55, #006d77, ${GOLD})` }} />
               )}
 
-              {/* Overlay degradado */}
+              {/* Overlay teal — suave, sin tonos grises */}
               <div style={{
                 position: 'absolute', inset: 0,
                 background: isMobile
-                  ? 'linear-gradient(0deg, rgba(8,35,45,0.92) 0%, rgba(8,35,45,0.55) 50%, transparent 100%)'
-                  : 'linear-gradient(90deg, rgba(8,35,45,0.88) 0%, rgba(8,35,45,0.55) 45%, rgba(8,35,45,0.10) 100%)',
+                  ? 'linear-gradient(0deg, rgba(11,74,85,0.68) 0%, rgba(0,109,119,0.18) 45%, rgba(0,183,196,0.04) 70%, rgba(0,183,196,0) 100%)'
+                  : 'linear-gradient(90deg, rgba(11,74,85,0.65) 0%, rgba(0,109,119,0.16) 48%, rgba(0,183,196,0.04) 68%, rgba(0,183,196,0) 100%)',
+              }} />
+              {/* Tinte teal global casi imperceptible */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(0,150,138,0.08)',
+                mixBlendMode: 'color',
               }} />
 
               {/* Contenido */}
