@@ -655,10 +655,10 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
         <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
             <p style={{ margin: '0 0 0.3rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, fontWeight: 600 }}>
-              También ofrecemos
+              Más de nosotros
             </p>
             <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.75rem', color: TEXT_PRIMARY, fontWeight: 300 }}>
-              Servicios <strong style={{ fontWeight: 700 }}>complementarios</strong>
+              También <strong style={{ fontWeight: 700 }}>ofrecemos</strong>
             </h2>
           </div>
           {!isMobile && (
@@ -1292,7 +1292,6 @@ function App() {
   const [loginModal, setLoginModal] = useState(false);
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState(false);
-
   useEffect(() => {
     try { localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito)); }
     catch { /* sin localStorage */ }

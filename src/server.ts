@@ -639,17 +639,92 @@ app.post("/enviar-regalo", async (req, res) => {
 </body>
 </html>`;
 
-    await transporter.sendMail({
-      from: `"H2AQUA" <${process.env.SMTP_USER}>`,
-      to: emailDestinatario,
-      subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`,
-      html,
-    });
-
-    res.json({ ok: true });
+    try {
+      await transporter.sendMail({
+        from: `"H2AQUA" <${process.env.SMTP_USER}>`,
+        to: emailDestinatario,
+        subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`,
+        html,
+      });
+      res.json({ ok: true, emailSent: true });
+    } catch (mailError: any) {
+      // Log the error but don't fail the request — the order already completed
+      console.error('SMTP error (non-fatal):', mailError.message);
+      res.json({ ok: true, emailSent: false, smtpError: mailError.message });
+    }
   } catch (error: any) {
-    console.error('Error enviando regalo:', error);
-    res.status(500).json({ error: error.message || "Error al enviar el correo" });
+    console.error('Error en enviar-regalo:', error);
+    res.status(500).json({ error: error.message || "Error al procesar la solicitud" });
+  }
+});
+
+// ─── PayPal ───────────────────────────────────────────────────────────────────
+
+const PAYPAL_BASE =
+  process.env.PAYPAL_MODE === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com';
+
+async function getPayPalToken(): Promise<string> {
+  const clientId = process.env.PAYPAL_CLIENT_ID ?? '';
+  const secret   = process.env.PAYPAL_SECRET ?? '';
+  const creds    = Buffer.from(`${clientId}:${secret}`).toString('base64');
+  const res = await fetch(`${PAYPAL_BASE}/v1/oauth2/token`, {
+    method:  'POST',
+    headers: { Authorization: `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body:    'grant_type=client_credentials',
+  });
+  const data = await res.json() as { access_token: string };
+  return data.access_token;
+}
+
+// POST /api/paypal/create-order — creates a PayPal order and returns the orderID
+app.post('/api/paypal/create-order', async (req, res) => {
+  try {
+    const { total } = req.body as { total: number };
+    if (!total || total <= 0) return res.status(400).json({ error: 'Invalid total' });
+
+    const token    = await getPayPalToken();
+    const orderRes = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        intent: 'CAPTURE',
+        purchase_units: [{
+          amount: { currency_code: 'MXN', value: Number(total).toFixed(2) },
+          description: 'H2AQUA · Tienda en línea',
+        }],
+      }),
+    });
+    const order = await orderRes.json() as { id: string };
+    res.json({ orderID: order.id });
+  } catch (error: any) {
+    console.error('PayPal create-order:', error);
+    res.status(500).json({ error: 'Error creating PayPal order' });
+  }
+});
+
+// POST /api/paypal/capture-order — captures payment after user approves
+app.post('/api/paypal/capture-order', async (req, res) => {
+  try {
+    const { orderID } = req.body as { orderID: string };
+    if (!orderID) return res.status(400).json({ error: 'orderID is required' });
+
+    const token      = await getPayPalToken();
+    const captureRes = await fetch(`${PAYPAL_BASE}/v2/checkout/orders/${orderID}/capture`, {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    });
+    const capture = await captureRes.json() as { status: string; id: string };
+
+    if (capture.status !== 'COMPLETED') {
+      return res.status(400).json({ error: 'Payment was not completed by PayPal' });
+    }
+
+    res.json({ status: capture.status, orderID: capture.id });
+  } catch (error: any) {
+    console.error('PayPal capture-order:', error);
+    res.status(500).json({ error: error.message || 'Error capturing PayPal payment' });
   }
 });
 

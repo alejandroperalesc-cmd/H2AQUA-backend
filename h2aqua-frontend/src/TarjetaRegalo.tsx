@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { useIsMobile } from './useIsMobile';
 import type { ItemCarrito } from './App';
 import {
@@ -293,7 +293,7 @@ function GiftCard({
   tarjeta, Design, selected, onClick, isMobile,
 }: {
   tarjeta: TarjetaOpc;
-  Design: () => JSX.Element;
+  Design: () => ReactElement;
   selected: boolean;
   onClick: () => void;
   isMobile: boolean;

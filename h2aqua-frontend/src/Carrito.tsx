@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { ItemCarrito } from './App';
 import { useIsMobile } from './useIsMobile';
 import {
@@ -62,20 +63,30 @@ export default function Carrito({
   const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
   const regalos = carrito.filter((i) => i.esRegalo);
 
-  // Pasos: 'carrito' | 'checkout' | 'exito'
-  const [paso, setPaso] = useState<'carrito' | 'checkout' | 'exito'>('carrito');
+  // Pasos: 'carrito' | 'checkout' | 'pago' | 'exito'
+  const [paso, setPaso] = useState<'carrito' | 'checkout' | 'pago' | 'exito'>('carrito');
 
   // Datos del comprador
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [direccion, setDireccion] = useState('');
+  const [calle, setCalle]           = useState('');
+  const [numExt, setNumExt]         = useState('');
+  const [numInt, setNumInt]         = useState('');
+  const [codigoPostal, setCodigoPostal] = useState('');
+  const [colonia, setColonia]       = useState('');
+  const [ciudad, setCiudad]         = useState('');
+  const [referencia, setReferencia] = useState('');
 
   const [procesando, setProcesando] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const puedeConfirmar = nombre.trim().length > 0 && emailValido;
+  const puedeConfirmar =
+    nombre.trim().length > 0 && emailValido &&
+    calle.trim().length > 0 && numExt.trim().length > 0 &&
+    codigoPostal.trim().length > 0 && colonia.trim().length > 0 &&
+    ciudad.trim().length > 0;
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.75rem 1rem', borderRadius: '0.65rem',
@@ -84,57 +95,20 @@ export default function Carrito({
     fontFamily: 'inherit', boxSizing: 'border-box',
   };
 
-  async function confirmarPedido() {
-    if (!puedeConfirmar || procesando) return;
-    setErrorMsg('');
-    setProcesando(true);
+  // Construye el payload de regalos para el backend
+  const regalosPayload = regalos.map(item => ({
+    codigo:            item.codigoRegalo ?? '',
+    emailDestinatario: item.emailDestinatario ?? '',
+    para:              item.paraRegalo ?? '',
+    de:                item.deRegalo ?? '',
+    mensaje:           item.mensajeRegalo ?? '',
+    monto:             item.precio,
+    nombreTarjeta:     item.nombreTarjeta ?? item.nombre,
+  }));
 
-    try {
-      // 1. Registrar cliente + pedido de productos reales
-      const productItems = carrito
-        .filter((i) => !i.esRegalo)
-        .map((i) => ({ productoId: i.id, cantidad: i.cantidad }));
-
-      const checkoutResp = await fetch(`${API_URL}/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre: nombre.trim(), email: email.trim(), telefono: telefono.trim(), direccion: direccion.trim(), items: productItems }),
-      });
-
-      if (!checkoutResp.ok) {
-        const body = await checkoutResp.json().catch(() => ({}));
-        throw new Error(body.error ?? `Error HTTP ${checkoutResp.status}`);
-      }
-
-      // 2. Enviar correos para tarjetas de regalo
-      for (const item of regalos) {
-        const resp = await fetch(`${API_URL}/enviar-regalo`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            codigo:            item.codigoRegalo,
-            emailDestinatario: item.emailDestinatario,
-            para:              item.paraRegalo,
-            de:                item.deRegalo,
-            mensaje:           item.mensajeRegalo ?? '',
-            monto:             item.precio,
-            nombreTarjeta:     item.nombreTarjeta ?? item.nombre,
-          }),
-        });
-        if (!resp.ok) {
-          const body = await resp.json().catch(() => ({}));
-          throw new Error(body.error ?? `Error al enviar correo a ${item.emailDestinatario}`);
-        }
-      }
-
-      onVaciar();
-      setPaso('exito');
-    } catch (err: any) {
-      setErrorMsg(err.message ?? 'Ocurrió un error. Intenta de nuevo.');
-    } finally {
-      setProcesando(false);
-    }
-  }
+  const productItems = carrito
+    .filter(i => !i.esRegalo)
+    .map(i => ({ productoId: i.id, cantidad: i.cantidad }));
 
   // ── Éxito ──────────────────────────────────────────────────────────────────
   if (paso === 'exito') {
@@ -187,18 +161,25 @@ export default function Carrito({
           {/* Migas de pan */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <button
-              onClick={() => setPaso('carrito')}
+              onClick={() => paso !== 'carrito' && setPaso('carrito')}
               style={{ background: 'none', border: 'none', padding: 0, cursor: paso === 'carrito' ? 'default' : 'pointer', fontSize: '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600, color: paso === 'carrito' ? TEAL : TEXT_MUTED }}
             >
               Carrito
             </button>
             <span style={{ color: TEXT_MUTED, fontSize: '0.65rem' }}>›</span>
-            <span style={{ fontSize: '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600, color: paso === 'checkout' ? TEAL : TEXT_MUTED }}>
+            <button
+              onClick={() => paso === 'pago' && setPaso('checkout')}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: paso === 'pago' ? 'pointer' : 'default', fontSize: '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600, color: paso === 'checkout' ? TEAL : TEXT_MUTED }}
+            >
               Datos de envío
+            </button>
+            <span style={{ color: TEXT_MUTED, fontSize: '0.65rem' }}>›</span>
+            <span style={{ fontSize: '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600, color: paso === 'pago' ? TEAL : TEXT_MUTED }}>
+              Pago
             </span>
           </div>
           <h1 style={{ margin: 0, fontSize: isMobile ? '1.5rem' : '2rem', color: TEXT_PRIMARY, fontWeight: 300, letterSpacing: '0.04em' }}>
-            {paso === 'carrito' ? 'Tu carrito' : 'Datos de envío'}
+            {paso === 'carrito' ? 'Tu carrito' : paso === 'checkout' ? 'Datos de envío' : 'Pago seguro'}
           </h1>
         </div>
         {paso === 'carrito' && (
@@ -209,6 +190,11 @@ export default function Carrito({
         {paso === 'checkout' && (
           <button onClick={() => { setPaso('carrito'); setErrorMsg(''); }} style={{ padding: '0.45rem 1rem', borderRadius: '0.5rem', border: `1px solid ${BORDER}`, backgroundColor: 'transparent', color: TEXT_SECONDARY, fontSize: '0.82rem', cursor: 'pointer' }}>
             ← Volver al carrito
+          </button>
+        )}
+        {paso === 'pago' && (
+          <button onClick={() => setPaso('checkout')} style={{ padding: '0.45rem 1rem', borderRadius: '0.5rem', border: `1px solid ${BORDER}`, backgroundColor: 'transparent', color: TEXT_SECONDARY, fontSize: '0.82rem', cursor: 'pointer' }}>
+            ← Volver
           </button>
         )}
       </header>
@@ -310,14 +296,34 @@ export default function Carrito({
                   </Campo>
                 </div>
 
-                <Campo label="Dirección de entrega">
-                  <textarea
-                    placeholder="Calle, número, colonia, ciudad…"
-                    value={direccion}
-                    onChange={(e) => setDireccion(e.target.value)}
-                    rows={2}
-                    style={{ ...inputStyle, resize: 'vertical', minHeight: '64px' }}
-                  />
+                <Campo label="Calle" required>
+                  <input type="text" placeholder="Nombre de la calle" value={calle} onChange={(e) => setCalle(e.target.value)} style={inputStyle} />
+                </Campo>
+
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                  <Campo label="Número exterior" required>
+                    <input type="text" placeholder="Ej. 42" value={numExt} onChange={(e) => setNumExt(e.target.value)} style={inputStyle} />
+                  </Campo>
+                  <Campo label="Número interior">
+                    <input type="text" placeholder="Depto, piso… (opcional)" value={numInt} onChange={(e) => setNumInt(e.target.value)} style={inputStyle} />
+                  </Campo>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                  <Campo label="Código postal" required>
+                    <input type="text" placeholder="00000" value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)} style={inputStyle} />
+                  </Campo>
+                  <Campo label="Colonia" required>
+                    <input type="text" placeholder="Nombre de la colonia" value={colonia} onChange={(e) => setColonia(e.target.value)} style={inputStyle} />
+                  </Campo>
+                </div>
+
+                <Campo label="Ciudad / Alcaldía" required>
+                  <input type="text" placeholder="Ciudad o Alcaldía" value={ciudad} onChange={(e) => setCiudad(e.target.value)} style={inputStyle} />
+                </Campo>
+
+                <Campo label="Referencia">
+                  <input type="text" placeholder="Entre calles, señas, color de fachada… (opcional)" value={referencia} onChange={(e) => setReferencia(e.target.value)} style={inputStyle} />
                 </Campo>
               </div>
 
@@ -328,8 +334,8 @@ export default function Carrito({
               )}
 
               <button
-                onClick={confirmarPedido}
-                disabled={!puedeConfirmar || procesando}
+                onClick={() => { setErrorMsg(''); setPaso('pago'); }}
+                disabled={!puedeConfirmar}
                 style={{
                   width: '100%', marginTop: '1.5rem', padding: '1rem', borderRadius: '0.75rem', border: 'none',
                   background: puedeConfirmar ? GRAD_MAIN : `rgba(0,109,119,0.25)`,
@@ -339,14 +345,129 @@ export default function Carrito({
                   letterSpacing: '0.02em', transition: 'all 0.2s',
                 }}
               >
-                {procesando ? 'Procesando…' : 'Confirmar pedido'}
+                Continuar al pago →
               </button>
 
               {!puedeConfirmar && (
                 <p style={{ margin: '0.65rem 0 0', textAlign: 'center', fontSize: '0.75rem', color: TEXT_MUTED }}>
-                  Nombre y correo electrónico son obligatorios
+                  Los campos marcados con * son obligatorios
                 </p>
               )}
+            </div>
+          )}
+
+          {/* PASO 3 — Pago con PayPal */}
+          {paso === 'pago' && (
+            <div style={{ backgroundColor: BG_CARD, borderRadius: '1.25rem', padding: isMobile ? '1.5rem' : '2rem', border: `1px solid ${BORDER}` }}>
+              {/* Resumen de datos */}
+              <div style={{ marginBottom: '1.5rem', padding: '0.85rem 1rem', borderRadius: '0.75rem', backgroundColor: BG_CARD_ALT, border: `1px solid ${BORDER}` }}>
+                <p style={{ margin: '0 0 0.2rem', fontSize: '0.72rem', color: TEXT_MUTED, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Datos de entrega</p>
+                <p style={{ margin: 0, fontWeight: 600, color: TEXT_PRIMARY, fontSize: '0.9rem' }}>{nombre}</p>
+                <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>{email}{telefono ? ` · ${telefono}` : ''}</p>
+                {calle && (
+                  <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>
+                    {calle} {numExt}{numInt ? ` Int. ${numInt}` : ''}, Col. {colonia}, CP {codigoPostal}, {ciudad}
+                    {referencia ? ` · ${referencia}` : ''}
+                  </p>
+                )}
+              </div>
+
+              <p style={{ margin: '0 0 1.25rem', fontSize: '0.8rem', color: TEXT_MUTED, textAlign: 'center', lineHeight: 1.6 }}>
+                Elige tu método de pago. Puedes usar tu cuenta de PayPal o pagar con tarjeta de débito / crédito.
+              </p>
+
+              {errorMsg && (
+                <div style={{ marginBottom: '1rem', backgroundColor: 'rgba(224,85,106,0.08)', borderRadius: '0.65rem', padding: '0.75rem 1rem', border: `1px solid rgba(224,85,106,0.25)` }}>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: ERROR, lineHeight: 1.5 }}>{errorMsg}</p>
+                </div>
+              )}
+
+              <PayPalScriptProvider options={{
+                clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '',
+                currency: 'MXN',
+                locale:   'es_MX',
+              }}>
+                <PayPalButtons
+                  style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
+                  disabled={procesando}
+                  createOrder={async () => {
+                    const res = await fetch(`${API_URL}/api/paypal/create-order`, {
+                      method:  'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body:    JSON.stringify({ total: subtotal }),
+                    });
+                    if (!res.ok) throw new Error('No se pudo iniciar el pago');
+                    const data = await res.json() as { orderID: string };
+                    return data.orderID;
+                  }}
+                  onApprove={async (data) => {
+                    setProcesando(true);
+                    setErrorMsg('');
+                    try {
+                      // 1. Capture the PayPal payment
+                      const captureRes = await fetch(`${API_URL}/api/paypal/capture-order`, {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body:    JSON.stringify({ orderID: data.orderID }),
+                      });
+                      if (!captureRes.ok) {
+                        const body = await captureRes.json().catch(() => ({})) as { error?: string };
+                        throw new Error(body.error ?? 'Error al capturar el pago');
+                      }
+
+                      // 2. Save order in the database
+                      const checkoutRes = await fetch(`${API_URL}/checkout`, {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body:    JSON.stringify({
+                          nombre:    nombre.trim(),
+                          email:     email.trim(),
+                          telefono:  telefono.trim(),
+                          direccion: [
+                            `${calle.trim()} ${numExt.trim()}${numInt.trim() ? ` Int. ${numInt.trim()}` : ''}`,
+                            `Col. ${colonia.trim()}`,
+                            `CP ${codigoPostal.trim()}`,
+                            ciudad.trim(),
+                            ...(referencia.trim() ? [`Ref: ${referencia.trim()}`] : []),
+                          ].join(', '),
+                          items:     productItems,
+                        }),
+                      });
+                      if (!checkoutRes.ok) {
+                        const body = await checkoutRes.json().catch(() => ({})) as { error?: string };
+                        throw new Error(body.error ?? 'Error al registrar el pedido');
+                      }
+
+                      // 3. Send gift card emails (non-fatal — order is already complete)
+                      for (const regalo of regalosPayload) {
+                        if (!regalo.codigo || !regalo.emailDestinatario) continue;
+                        try {
+                          await fetch(`${API_URL}/enviar-regalo`, {
+                            method:  'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body:    JSON.stringify(regalo),
+                          });
+                        } catch (emailErr) {
+                          console.warn('Email send failed (non-fatal):', emailErr);
+                        }
+                      }
+
+                      onVaciar();
+                      setPaso('exito');
+                    } catch (err: unknown) {
+                      setErrorMsg(err instanceof Error ? err.message : 'Error al procesar el pago');
+                    } finally {
+                      setProcesando(false);
+                    }
+                  }}
+                  onError={() => setErrorMsg('Ocurrió un error con PayPal. Intenta de nuevo.')}
+                  onCancel={() => setErrorMsg('Pago cancelado. Puedes intentarlo cuando quieras.')}
+                />
+              </PayPalScriptProvider>
+
+              <p style={{ margin: '1rem 0 0', textAlign: 'center', fontSize: '0.72rem', color: TEXT_MUTED }}>
+                🔒 Pago 100% seguro procesado por PayPal
+              </p>
             </div>
           )}
         </div>
@@ -394,9 +515,11 @@ export default function Carrito({
             </button>
           )}
 
-          {paso === 'checkout' && (
+          {(paso === 'checkout' || paso === 'pago') && (
             <div style={{ padding: '0.6rem 0.9rem', borderRadius: '0.6rem', backgroundColor: BG_CARD_ALT, border: `1px solid ${BORDER}` }}>
-              <p style={{ margin: 0, fontSize: '0.76rem', color: TEXT_MUTED, textAlign: 'center' }}>Completa el formulario para confirmar</p>
+              <p style={{ margin: 0, fontSize: '0.76rem', color: TEXT_MUTED, textAlign: 'center' }}>
+                {paso === 'checkout' ? 'Completa el formulario para continuar' : '🔒 Pago seguro con PayPal'}
+              </p>
             </div>
           )}
 
