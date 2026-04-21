@@ -1288,7 +1288,7 @@ function App() {
   });
   const [vista, setVista] = useState<Vista>('home');
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('h2aqua_admin') === '1');
+  const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem('h2aqua_admin') === '1');
   const [loginModal, setLoginModal] = useState(false);
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState(false);
@@ -1318,7 +1318,7 @@ function App() {
 
   function handleLogin() {
     if (loginPass === ADMIN_PASSWORD) {
-      localStorage.setItem('h2aqua_admin', '1');
+      sessionStorage.setItem('h2aqua_admin', '1');
       setIsAdmin(true);
       setLoginModal(false);
       setLoginPass('');
@@ -1330,7 +1330,7 @@ function App() {
   }
 
   function handleLogout() {
-    localStorage.removeItem('h2aqua_admin');
+    sessionStorage.removeItem('h2aqua_admin');
     setIsAdmin(false);
     if (['lista', 'nuevo', 'citas-calendario'].includes(vista)) setVista('home');
   }
