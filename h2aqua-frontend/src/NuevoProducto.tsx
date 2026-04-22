@@ -16,6 +16,8 @@ type NuevoProductoForm = {
   stock: string;
   categoria: string;
   seccion: string;
+  protocolo_limpieza: boolean;
+  protocolo_kbeauty: boolean;
 };
 
 const inputStyle = {
@@ -38,6 +40,26 @@ const labelStyle = {
   letterSpacing: '0.1em',
 };
 
+const TEAL_PROTO = '#00A9C0';
+
+function CheckboxProtocolo({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', userSelect: 'none', padding: '0.65rem 0.9rem', borderRadius: '0.6rem', border: checked ? `1.5px solid ${TEAL_PROTO}` : `1px solid ${TEAL_PROTO}33`, backgroundColor: checked ? `${TEAL_PROTO}0d` : 'transparent', transition: 'all 0.15s ease' }}>
+      <div style={{ width: '20px', height: '20px', borderRadius: '5px', border: `2px solid ${checked ? TEAL_PROTO : '#aac5cc'}`, backgroundColor: checked ? TEAL_PROTO : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s ease' }}>
+        {checked && (
+          <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+            <path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </div>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} style={{ display: 'none' }} />
+      <span style={{ fontSize: '0.88rem', color: checked ? TEAL_PROTO : '#8eaab4', fontWeight: checked ? 600 : 400, letterSpacing: '0.02em' }}>
+        {label}
+      </span>
+    </label>
+  );
+}
+
 function NuevoProducto() {
   const [form, setForm] = useState<NuevoProductoForm>({
     nombre: '',
@@ -46,6 +68,8 @@ function NuevoProducto() {
     stock: '',
     categoria: '',
     seccion: '1',
+    protocolo_limpieza: false,
+    protocolo_kbeauty: false,
   });
   const [imagen, setImagen] = useState<File | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -90,13 +114,15 @@ function NuevoProducto() {
           categoria: form.categoria,
           imagenUrl,
           seccion: Number(form.seccion),
+          protocolo_limpieza: form.protocolo_limpieza,
+          protocolo_kbeauty: form.protocolo_kbeauty,
         }),
       });
 
       if (!resp.ok) throw new Error('Error al guardar el producto');
 
       alert('Producto guardado correctamente.');
-      setForm({ nombre: '', descripcion: '', precio: '', stock: '', categoria: '', seccion: '1' });
+      setForm({ nombre: '', descripcion: '', precio: '', stock: '', categoria: '', seccion: '1', protocolo_limpieza: false, protocolo_kbeauty: false });
       setImagen(null);
     } catch (error) {
       console.error(error);
@@ -183,6 +209,23 @@ function NuevoProducto() {
           </div>
         </div>
 
+        {/* Protocolos de aplicación */}
+        <div>
+          <label style={labelStyle}>Protocolo de aplicación</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.25rem' }}>
+            <CheckboxProtocolo
+              checked={form.protocolo_limpieza}
+              onChange={(v) => setForm((f) => ({ ...f, protocolo_limpieza: v }))}
+              label="Protocolo Facial Limpieza Profunda"
+            />
+            <CheckboxProtocolo
+              checked={form.protocolo_kbeauty}
+              onChange={(v) => setForm((f) => ({ ...f, protocolo_kbeauty: v }))}
+              label="Protocolo K-Beauty Signature Facial"
+            />
+          </div>
+        </div>
+
         {/* Imagen */}
         <div>
           <label htmlFor="imagen" style={labelStyle}>Imagen del producto</label>
@@ -228,7 +271,7 @@ function NuevoProducto() {
             type="button"
             disabled={guardando}
             onClick={() => {
-              setForm({ nombre: '', descripcion: '', precio: '', stock: '', categoria: '', seccion: '1' });
+              setForm({ nombre: '', descripcion: '', precio: '', stock: '', categoria: '', seccion: '1', protocolo_limpieza: false, protocolo_kbeauty: false });
               setImagen(null);
             }}
             style={{

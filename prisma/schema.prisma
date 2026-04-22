@@ -41,10 +41,12 @@ model Producto {
   // ahora (opcional):
   categoria   String?  // 'ITEM' | 'TERAPIA'
 
-  estado      String   @default("ACTIVO")
-  seccion     Int      @default(1)
-  destacado   Boolean  @default(false)
-  pedidos     PedidoProducto[]
+  estado               String   @default("ACTIVO")
+  seccion              Int      @default(1)
+  destacado            Boolean  @default(false)
+  protocolo_limpieza   Boolean  @default(false)
+  protocolo_kbeauty    Boolean  @default(false)
+  pedidos              PedidoProducto[]
 }
 
 

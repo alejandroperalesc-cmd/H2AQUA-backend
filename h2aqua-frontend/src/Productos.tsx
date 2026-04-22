@@ -25,6 +25,19 @@ const estadoColor = (e: string) =>
   e === 'ACTIVO' ? SUCCESS : e === 'AGOTADO' ? WARNING : TEXT_MUTED;
 
 const CONFIRM_PHRASE = 'borrar base de datos';
+const TEAL_PROTO = '#00A9C0';
+
+function CheckboxProtocoloEdit({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer', userSelect: 'none', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: checked ? `1.5px solid ${TEAL_PROTO}` : `1px solid ${TEAL_PROTO}33`, backgroundColor: checked ? `${TEAL_PROTO}0d` : 'transparent', transition: 'all 0.15s ease' }}>
+      <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: `2px solid ${checked ? TEAL_PROTO : '#aac5cc'}`, backgroundColor: checked ? TEAL_PROTO : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s ease' }}>
+        {checked && <svg width="10" height="7" viewBox="0 0 11 8" fill="none"><path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+      </div>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} style={{ display: 'none' }} />
+      <span style={{ fontSize: '0.84rem', color: checked ? TEAL_PROTO : TEXT_MUTED, fontWeight: checked ? 600 : 400 }}>{label}</span>
+    </label>
+  );
+}
 
 function Productos() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -33,6 +46,7 @@ function Productos() {
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [form, setForm] = useState({
     nombre: '', descripcion: '', precio: '', stock: '0', imagenUrl: '', categoria: '', seccion: '1', destacado: false,
+    protocolo_limpieza: false, protocolo_kbeauty: false,
   });
   const [busqueda, setBusqueda] = useState('');
   const [cambiandoSeccion, setCambiandoSeccion] = useState<number | null>(null);
@@ -147,6 +161,8 @@ function Productos() {
       categoria: p.categoria ?? '',
       seccion: String(p.seccion ?? 1),
       destacado: p.destacado ?? false,
+      protocolo_limpieza: p.protocolo_limpieza ?? false,
+      protocolo_kbeauty: p.protocolo_kbeauty ?? false,
     });
   }
 
@@ -169,6 +185,8 @@ function Productos() {
           categoria: form.categoria || null,
           seccion: Number(form.seccion),
           destacado: form.destacado,
+          protocolo_limpieza: form.protocolo_limpieza,
+          protocolo_kbeauty: form.protocolo_kbeauty,
         }),
       });
       if (!resp.ok) {
@@ -551,6 +569,20 @@ function Productos() {
                       ★ Destacar en el carrusel de la tienda
                     </span>
                   </label>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <p style={{ margin: '0 0 0.25rem', fontSize: '0.78rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Protocolo de aplicación</p>
+                    <CheckboxProtocoloEdit
+                      checked={form.protocolo_limpieza}
+                      onChange={(v) => setForm((f) => ({ ...f, protocolo_limpieza: v }))}
+                      label="Protocolo Facial Limpieza Profunda"
+                    />
+                    <CheckboxProtocoloEdit
+                      checked={form.protocolo_kbeauty}
+                      onChange={(v) => setForm((f) => ({ ...f, protocolo_kbeauty: v }))}
+                      label="Protocolo K-Beauty Signature Facial"
+                    />
+                  </div>
 
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.78rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.08em' }}>URL de imagen</label>

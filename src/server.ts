@@ -245,17 +245,19 @@ app.get("/productos", async (req, res) => {
 app.patch("/productos/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, precio, stock, imagenUrl, categoria, seccion, destacado } = req.body;
+    const { nombre, descripcion, precio, stock, imagenUrl, categoria, seccion, destacado, protocolo_limpieza, protocolo_kbeauty } = req.body;
 
     const data: Record<string, any> = {};
-    if (nombre !== undefined)      data.nombre      = nombre;
-    if (descripcion !== undefined) data.descripcion = descripcion;
-    if (precio !== undefined)      data.precio      = Number(precio);
-    if (stock !== undefined)       data.stock       = Number(stock);
-    if (imagenUrl !== undefined)   data.imagenUrl   = imagenUrl;
-    if (categoria !== undefined)   data.categoria   = categoria;
-    if (seccion !== undefined)     data.seccion     = Number(seccion);
-    if (destacado !== undefined)   data.destacado   = Boolean(destacado);
+    if (nombre !== undefined)              data.nombre              = nombre;
+    if (descripcion !== undefined)         data.descripcion         = descripcion;
+    if (precio !== undefined)              data.precio              = Number(precio);
+    if (stock !== undefined)               data.stock               = Number(stock);
+    if (imagenUrl !== undefined)           data.imagenUrl           = imagenUrl;
+    if (categoria !== undefined)           data.categoria           = categoria;
+    if (seccion !== undefined)             data.seccion             = Number(seccion);
+    if (destacado !== undefined)           data.destacado           = Boolean(destacado);
+    if (protocolo_limpieza !== undefined)  data.protocolo_limpieza  = Boolean(protocolo_limpieza);
+    if (protocolo_kbeauty !== undefined)   data.protocolo_kbeauty   = Boolean(protocolo_kbeauty);
 
     const producto = await prisma.producto.update({
       where: { id: Number(id) },
@@ -355,10 +357,179 @@ app.get("/productos-destacados", async (_req, res) => {
 
 // ---------- CITAS ----------
 
+// ─── Helper: emails de cita nueva (pendiente de pago) ─────────────────────────
+async function sendCitaNuevaEmails(data: {
+  nombre: string; telefono: string; correo?: string | null;
+  terapia: string; fechaHora: Date; precio?: number | null;
+}): Promise<void> {
+  const transporter = nodemailer.createTransport({
+    host:       process.env.SMTP_HOST || 'smtp.gmail.com',
+    port:       Number(process.env.SMTP_PORT || 587),
+    secure:     process.env.SMTP_PORT === '465',
+    requireTLS: true,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+
+  const { nombre, telefono, correo, terapia, fechaHora, precio } = data;
+  const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
+  const horaFmt  = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
+
+  const adminHtml = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f2f8f9;font-family:Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+  <div style="text-align:center;margin-bottom:24px;">
+    <p style="margin:0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#8eaab4;">Wellness · Hidrógeno Molecular</p>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:200;color:#1a3a40;">H2AQUA</h1>
+  </div>
+  <div style="border-radius:16px;background:linear-gradient(135deg,#0b4a55,#006d77 50%,#00B7C4);padding:28px;text-align:center;margin-bottom:20px;">
+    <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.65);">Nueva Cita Recibida</p>
+    <p style="margin:0;font-size:22px;font-weight:300;color:#fff;">${terapia}</p>
+  </div>
+  <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+    <p style="margin:0 0 14px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Datos del Cliente</p>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;width:100px;">Nombre</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;font-weight:600;">${nombre}</td></tr>
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Teléfono</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;">${telefono}</td></tr>
+      ${correo ? `<tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Correo</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;">${correo}</td></tr>` : ''}
+    </table>
+  </div>
+  <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+    <p style="margin:0 0 14px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Detalles de la Cita</p>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;width:100px;">Terapia</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;font-weight:600;">${terapia}</td></tr>
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Fecha</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;text-transform:capitalize;">${fechaFmt}</td></tr>
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Hora</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;font-weight:600;">${horaFmt}</td></tr>
+      ${precio != null ? `<tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Precio</td><td style="padding:5px 0;color:#006d77;font-size:15px;font-weight:700;">$${precio.toLocaleString('es-MX')} MXN</td></tr>` : ''}
+    </table>
+  </div>
+  <div style="background:rgba(255,193,7,0.1);border-radius:12px;padding:16px;border:1px solid rgba(255,193,7,0.3);text-align:center;">
+    <p style="margin:0;font-size:13px;color:#856404;">Estado: <strong>PENDIENTE DE PAGO</strong> · Confirmar por WhatsApp o correo</p>
+  </div>
+  <div style="text-align:center;margin-top:20px;">
+    <p style="margin:0 0 4px;font-size:11px;color:#8eaab4;">info@h2aqua.com.mx</p>
+    <p style="margin:0;font-size:11px;color:#8eaab4;">WhatsApp: 55 2560 1138</p>
+  </div>
+</div>
+</body></html>`;
+
+  const clienteHtml = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f2f8f9;font-family:Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+  <div style="text-align:center;margin-bottom:24px;">
+    <p style="margin:0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#8eaab4;">Wellness · Hidrógeno Molecular</p>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:200;color:#1a3a40;">H2AQUA</h1>
+  </div>
+  <div style="border-radius:16px;background:linear-gradient(135deg,#0b4a55,#006d77 50%,#00B7C4);padding:28px;text-align:center;margin-bottom:20px;">
+    <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.65);">Solicitud Recibida</p>
+    <p style="margin:0;font-size:26px;font-weight:200;color:#fff;">Tu cita está registrada</p>
+  </div>
+  <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+    <p style="margin:0 0 14px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Resumen de tu Cita</p>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;width:100px;">Terapia</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;font-weight:600;">${terapia}</td></tr>
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Fecha</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;text-transform:capitalize;">${fechaFmt}</td></tr>
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Hora</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;font-weight:600;">${horaFmt}</td></tr>
+      ${precio != null ? `<tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Precio</td><td style="padding:5px 0;color:#006d77;font-size:15px;font-weight:700;">$${precio.toLocaleString('es-MX')} MXN</td></tr>` : ''}
+    </table>
+  </div>
+  <div style="background:rgba(255,193,7,0.1);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(255,193,7,0.3);">
+    <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#856404;text-transform:uppercase;letter-spacing:0.1em;">⏳ Pendiente de confirmación</p>
+    <p style="margin:0;font-size:13px;color:#664d03;line-height:1.7;">Tu cita ha sido registrada y está <strong>pendiente de pago</strong>. Para confirmarla, comunícate con nosotros:<br><strong>WhatsApp: 55 2560 1138</strong> o escríbenos a <strong>info@h2aqua.com.mx</strong>. Una vez confirmado el pago recibirás un correo de confirmación.</p>
+  </div>
+  <div style="background:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;">
+    <p style="margin:0 0 8px;font-size:12px;color:#8eaab4;">¿Necesitas ayuda?</p>
+    <p style="margin:0 0 4px;font-size:14px;color:#006d77;font-weight:600;">info@h2aqua.com.mx</p>
+    <p style="margin:0;font-size:13px;color:#006d77;">WhatsApp: 55 2560 1138</p>
+  </div>
+  <div style="text-align:center;margin-top:16px;">
+    <p style="margin:0;font-size:10px;color:#aac5cc;">H2AQUA · Avenida de las Fuentes 665</p>
+  </div>
+</div>
+</body></html>`;
+
+  await transporter.sendMail({
+    from: `"H2AQUA" <${process.env.SMTP_USER}>`,
+    to:   process.env.SMTP_USER ?? 'h2aquamexico@gmail.com',
+    subject: `📅 Nueva cita — ${nombre} · ${fechaFmt} ${horaFmt}`,
+    html: adminHtml,
+  });
+
+  if (correo) {
+    await transporter.sendMail({
+      from: `"H2AQUA" <${process.env.SMTP_USER}>`,
+      to:   correo,
+      subject: `📅 Tu cita H2AQUA está registrada — ${fechaFmt} ${horaFmt}`,
+      html: clienteHtml,
+    });
+  }
+}
+
+// ─── Helper: email de confirmación de cita ────────────────────────────────────
+async function sendCitaConfirmadaEmail(data: {
+  correo: string; nombre: string; terapia: string; fechaHora: Date; precio?: number | null;
+}): Promise<void> {
+  const transporter = nodemailer.createTransport({
+    host:       process.env.SMTP_HOST || 'smtp.gmail.com',
+    port:       Number(process.env.SMTP_PORT || 587),
+    secure:     process.env.SMTP_PORT === '465',
+    requireTLS: true,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+
+  const { correo, nombre, terapia, fechaHora, precio } = data;
+  const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
+  const horaFmt  = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
+
+  const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f2f8f9;font-family:Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+  <div style="text-align:center;margin-bottom:24px;">
+    <p style="margin:0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#8eaab4;">Wellness · Hidrógeno Molecular</p>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:200;color:#1a3a40;">H2AQUA</h1>
+  </div>
+  <div style="border-radius:16px;background:linear-gradient(135deg,#0b4a55,#006d77 50%,#00B7C4);padding:28px;text-align:center;margin-bottom:20px;">
+    <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.65);">¡Cita Confirmada!</p>
+    <p style="margin:0;font-size:26px;font-weight:200;color:#fff;">Te esperamos, ${nombre.split(' ')[0]}</p>
+  </div>
+  <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+    <p style="margin:0 0 14px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Detalles de tu Cita Confirmada</p>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;width:100px;">Terapia</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;font-weight:600;">${terapia}</td></tr>
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Fecha</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;text-transform:capitalize;">${fechaFmt}</td></tr>
+      <tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Hora</td><td style="padding:5px 0;color:#1a3a40;font-size:13px;font-weight:600;">${horaFmt}</td></tr>
+      ${precio != null ? `<tr><td style="padding:5px 0;color:#8eaab4;font-size:13px;">Precio</td><td style="padding:5px 0;color:#006d77;font-size:15px;font-weight:700;">$${precio.toLocaleString('es-MX')} MXN</td></tr>` : ''}
+    </table>
+  </div>
+  <div style="background:rgba(0,183,196,0.08);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(0,183,196,0.2);text-align:center;">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#006d77;">✅ Tu pago fue confirmado</p>
+    <p style="margin:0;font-size:13px;color:#1a3a40;line-height:1.7;">Tu cita está <strong>confirmada</strong>. Te esperamos en nuestras instalaciones en la fecha y hora indicadas. Si necesitas hacer algún cambio, contáctanos con anticipación:<br><strong>WhatsApp: 55 2560 1138</strong> · info@h2aqua.com.mx</p>
+  </div>
+  <div style="background:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;">
+    <p style="margin:0 0 8px;font-size:12px;color:#8eaab4;">¿Tienes dudas?</p>
+    <p style="margin:0 0 4px;font-size:14px;color:#006d77;font-weight:600;">info@h2aqua.com.mx</p>
+    <p style="margin:0;font-size:13px;color:#006d77;">WhatsApp: 55 2560 1138</p>
+  </div>
+  <div style="text-align:center;margin-top:16px;">
+    <p style="margin:0;font-size:10px;color:#aac5cc;">H2AQUA · Avenida de las Fuentes 665</p>
+  </div>
+</div>
+</body></html>`;
+
+  await transporter.sendMail({
+    from: `"H2AQUA" <${process.env.SMTP_USER}>`,
+    to:   correo,
+    subject: `✅ ¡Cita confirmada! ${terapia} — ${fechaFmt} ${horaFmt}`,
+    html,
+  });
+}
+
 // Crear una nueva cita
 app.post("/citas", async (req, res) => {
   try {
-    const { fechaHora, servicioId, notas, estado } = req.body;
+    const { fechaHora, servicioId, notas, estado, nombre, telefono, correo, terapia, precio } = req.body;
 
     if (!fechaHora) {
       return res.status(400).json({
@@ -380,6 +551,19 @@ app.post("/citas", async (req, res) => {
         estado, // "PENDIENTE" por default si no mandas
       },
     });
+
+    try {
+      await sendCitaNuevaEmails({
+        nombre:   nombre ?? 'Sin nombre',
+        telefono: telefono ?? '',
+        correo:   correo || null,
+        terapia:  terapia ?? 'Terapia H2AQUA',
+        fechaHora: new Date(fechaHora),
+        precio:   precio ?? null,
+      });
+    } catch (emailErr: any) {
+      console.error('Cita email error (non-fatal):', emailErr.message);
+    }
 
     res.status(201).json(cita);
   } catch (error) {
@@ -437,6 +621,30 @@ app.patch("/citas/:id/estado", async (req, res) => {
       where: { id: Number(id) },
       data: { estado },
     });
+
+    // Si se confirma, enviar email de confirmación al cliente
+    if (estado === 'CONFIRMADA' && cita.notas) {
+      try {
+        const correoMatch = cita.notas.match(/Correo:\s*([\w.+%-]+@[\w.-]+\.[a-z]{2,})/i);
+        const nombreMatch = cita.notas.match(/Nombre:\s*([^,]+)/);
+        const terapiaMatch = cita.notas.match(/Terapia:\s*(.+)$/);
+        const correoCliente = correoMatch?.[1] ?? null;
+        const nombreCliente = nombreMatch?.[1]?.trim() ?? 'Cliente';
+        const terapiaNombre = terapiaMatch?.[1]?.trim() ?? 'Terapia H2AQUA';
+
+        if (correoCliente) {
+          await sendCitaConfirmadaEmail({
+            correo:    correoCliente,
+            nombre:    nombreCliente,
+            terapia:   terapiaNombre,
+            fechaHora: new Date(cita.fechaHora),
+          });
+          console.log(`Confirmation email sent to ${correoCliente} for cita ${id}`);
+        }
+      } catch (emailErr: any) {
+        console.error('Cita confirmation email error (non-fatal):', emailErr.message);
+      }
+    }
 
     res.json(cita);
   } catch (error) {
@@ -524,9 +732,112 @@ app.get("/pedidos", async (req, res) => {
   }
 });
 
+// ─── Helper: enviar correos de confirmación de pedido ────────────────────────
+interface OrderEmailData {
+  pedidoId: number;
+  nombre: string;
+  email: string;
+  telefono?: string | null;
+  direccion?: string | null;
+  items: Array<{ nombre: string; cantidad: number; precioUnit: number }>;
+  total: number;
+}
+
+async function sendOrderEmails(data: OrderEmailData): Promise<void> {
+  const numeroOrdenLog = `H2-${String(data.pedidoId).padStart(5, '0')}`;
+  console.log('sendOrderEmails called for order:', numeroOrdenLog, '→', data.email);
+  const transporter = nodemailer.createTransport({
+    host:       process.env.SMTP_HOST || 'smtp.titan.email',
+    port:       Number(process.env.SMTP_PORT || 587),
+    secure:     process.env.SMTP_PORT === '465',
+    requireTLS: true,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+
+  const { pedidoId, nombre, email, telefono, direccion, items, total } = data;
+  const numeroOrden = `H2-${String(pedidoId).padStart(5, '0')}`;
+
+  const itemsHtml = items.map(item => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid #e8f0f2;color:#1a3a40;font-size:13px;">${item.nombre}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #e8f0f2;text-align:center;color:#4a6b75;font-size:13px;">${item.cantidad}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #e8f0f2;text-align:right;color:#1a3a40;font-size:13px;font-weight:600;">$${(item.precioUnit * item.cantidad).toLocaleString('es-MX')}</td>
+    </tr>`).join('');
+
+  const buildHtml = (isAdmin: boolean) => `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f2f8f9;font-family:Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;background:#f2f8f9;padding:32px 16px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <p style="margin:0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#8eaab4;">Wellness · Hidrógeno Molecular</p>
+      <h1 style="margin:6px 0 0;font-size:28px;font-weight:200;letter-spacing:0.04em;color:#1a3a40;">H2AQUA</h1>
+    </div>
+    <div style="border-radius:16px;background:linear-gradient(135deg,#0b4a55,#006d77 50%,#00B7C4);padding:28px;text-align:center;margin-bottom:20px;">
+      <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.65);">${isAdmin ? 'Nuevo Pedido Recibido' : 'Confirmación de Pedido'}</p>
+      <p style="margin:0;font-size:36px;font-weight:200;color:#fff;letter-spacing:0.08em;font-family:'Courier New',monospace;">${numeroOrden}</p>
+    </div>
+    <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+      <p style="margin:0 0 12px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Datos del Cliente</p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:4px 0;color:#8eaab4;font-size:13px;width:110px;">Nombre</td><td style="padding:4px 0;color:#1a3a40;font-size:13px;font-weight:600;">${nombre}</td></tr>
+        <tr><td style="padding:4px 0;color:#8eaab4;font-size:13px;">Correo</td><td style="padding:4px 0;color:#1a3a40;font-size:13px;">${email}</td></tr>
+        ${telefono ? `<tr><td style="padding:4px 0;color:#8eaab4;font-size:13px;">Teléfono</td><td style="padding:4px 0;color:#1a3a40;font-size:13px;">${telefono}</td></tr>` : ''}
+      </table>
+    </div>
+    ${direccion ? `<div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+      <p style="margin:0 0 10px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Dirección de Envío</p>
+      <p style="margin:0;color:#1a3a40;font-size:13px;line-height:1.8;">${direccion}</p>
+    </div>` : ''}
+    <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+      <p style="margin:0 0 12px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Productos</p>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="text-align:left;font-size:11px;color:#8eaab4;font-weight:600;padding-bottom:8px;border-bottom:2px solid #e8f0f2;">Producto</th>
+            <th style="text-align:center;font-size:11px;color:#8eaab4;font-weight:600;padding-bottom:8px;border-bottom:2px solid #e8f0f2;">Cant.</th>
+            <th style="text-align:right;font-size:11px;color:#8eaab4;font-weight:600;padding-bottom:8px;border-bottom:2px solid #e8f0f2;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="padding-top:14px;font-size:14px;color:#4a6b75;font-weight:600;">Total</td>
+            <td style="padding-top:14px;text-align:right;font-size:20px;color:#006d77;font-weight:700;">$${total.toLocaleString('es-MX')} <span style="font-size:12px;font-weight:400;color:#8eaab4;">MXN</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    ${!isAdmin ? `<div style="background:rgba(0,183,196,0.08);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(0,183,196,0.2);text-align:center;">
+      <p style="margin:0;font-size:13px;color:#006d77;line-height:1.7;">Hemos recibido tu pedido. Nos pondremos en contacto contigo a la brevedad para coordinar la entrega.</p>
+    </div>` : ''}
+    <div style="text-align:center;padding-top:8px;">
+      <p style="margin:0 0 4px;font-size:11px;color:#8eaab4;">info@h2aqua.com.mx · WhatsApp: 55 2560 1138</p>
+      <p style="margin:0;font-size:10px;color:#aac5cc;">Avenida de las Fuentes 665</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  await transporter.sendMail({
+    from: `"H2AQUA Tienda" <${process.env.SMTP_USER}>`,
+    to:   process.env.SMTP_USER ?? 'h2aquamexico@gmail.com',
+    subject: `🛒 Nuevo pedido ${numeroOrden} — ${nombre}`,
+    html: buildHtml(true),
+  });
+
+  await transporter.sendMail({
+    from: `"H2AQUA" <${process.env.SMTP_USER}>`,
+    to:   email,
+    subject: `✅ Confirmación de pedido ${numeroOrden} — H2AQUA`,
+    html: buildHtml(false),
+  });
+}
+
 // ─── Checkout: registrar cliente + pedido ────────────────────────────────────
 // items: [{ productoId: number, cantidad: number }]  (gift cards excluded)
 app.post("/checkout", async (req, res) => {
+  console.log('Checkout called with data:', JSON.stringify(req.body));
   try {
     const { nombre, email, telefono, direccion, items } = req.body;
 
@@ -575,6 +886,29 @@ app.post("/checkout", async (req, res) => {
         },
         include: { items: { include: { producto: true } } },
       });
+      console.log('Order created:', pedido.id);
+    }
+
+    if (pedido) {
+      console.log('Calling sendOrderEmails...');
+      try {
+        await sendOrderEmails({
+          pedidoId:  pedido.id,
+          nombre:    cliente.nombre,
+          email:     cliente.email,
+          telefono:  cliente.telefono,
+          direccion: direccion || null,
+          items:     (pedido.items as any[]).map(i => ({
+            nombre:    i.producto?.nombre ?? `Producto #${i.productoId}`,
+            cantidad:  i.cantidad,
+            precioUnit: i.precioUnit,
+          })),
+          total: pedido.total,
+        });
+        console.log('sendOrderEmails completed');
+      } catch (emailErr: any) {
+        console.error('sendOrderEmails ERROR:', emailErr.message);
+      }
     }
 
     res.status(201).json({ cliente, pedido });
@@ -644,7 +978,7 @@ async function sendGiftCardEmail(gift: GiftCardData): Promise<void> {
     </div>
     <div style="text-align:center;">
       <p style="margin:0 0 4px; font-size:11px; color:#8eaab4; font-family:Arial,sans-serif;">Con cariño de <strong style="color:#4a6b75;">${de}</strong></p>
-      <p style="margin:0; font-size:10px; color:#aac5cc; font-family:Arial,sans-serif;">info@h2aqua.com.mx · Avenida de las Fuentes 665</p>
+      <p style="margin:0; font-size:10px; color:#aac5cc; font-family:Arial,sans-serif;">info@h2aqua.com.mx · WhatsApp: 55 2560 1138 · Avenida de las Fuentes 665</p>
     </div>
   </div>
 </body>

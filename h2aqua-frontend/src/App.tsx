@@ -881,10 +881,15 @@ function Citas() {
   const [telefono, setTelefono] = useState('');
   const [correo, setCorreo] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [exitoCita, setExitoCita] = useState(false);
+  const [errorForm, setErrorForm] = useState<string | null>(null);
   const [citasBackend, setCitasBackend] = useState<CitaApi[]>([]);
   const [cargandoCitas, setCargandoCitas] = useState(false);
   const [terapias, setTerapias] = useState<TerapiaApi[]>([]);
   const [terapiaSeleccionadaId, setTerapiaSeleccionadaId] = useState<number | null>(null);
+
+  const telefonoValido = /^\+?[\d\s\-().]{10,15}$/.test(telefono.replace(/\s/g, '')) && telefono.replace(/\D/g, '').length >= 10;
+  const correoValido   = correo === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 
   async function cargarCitas() {
     try {
@@ -915,12 +920,14 @@ function Citas() {
   );
 
   async function confirmarCita() {
-    if (!horaSeleccionada || !nombre || !telefono) {
-      alert('Por favor llena nombre, teléfono y selecciona un horario.');
-      return;
-    }
-    if (!terapiaSeleccionadaId) { alert('Por favor elige una terapia.'); return; }
-    if (horariosOcupados.has(horaSeleccionada)) { alert('Ese horario ya está ocupado, elige otro.'); return; }
+    setErrorForm(null);
+    if (!horaSeleccionada) { setErrorForm('Selecciona un horario.'); return; }
+    if (!terapiaSeleccionadaId) { setErrorForm('Elige una terapia.'); return; }
+    if (!nombre.trim()) { setErrorForm('El nombre es obligatorio.'); return; }
+    if (!telefono.trim()) { setErrorForm('El teléfono es obligatorio.'); return; }
+    if (!telefonoValido) { setErrorForm('Ingresa un número de teléfono válido (mínimo 10 dígitos).'); return; }
+    if (!correoValido) { setErrorForm('El formato del correo electrónico no es válido.'); return; }
+    if (horariosOcupados.has(horaSeleccionada)) { setErrorForm('Ese horario ya está ocupado, elige otro.'); return; }
 
     try {
       setGuardando(true);
@@ -932,17 +939,24 @@ function Citas() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fechaHora, clienteId: 1, servicioId: 1,
-          notas: `Nombre: ${nombre}, Tel: ${telefono}, Correo: ${correo || 'N/A'}, Terapia: ${terapia?.nombre ?? ''}`,
+          fechaHora,
+          clienteId: 1,
+          servicioId: 1,
+          notas: `Nombre: ${nombre.trim()}, Tel: ${telefono.trim()}, Correo: ${correo.trim() || 'N/A'}, Terapia: ${terapia?.nombre ?? ''}`,
           estado: 'PENDIENTE',
+          nombre:   nombre.trim(),
+          telefono: telefono.trim(),
+          correo:   correo.trim() || null,
+          terapia:  terapia?.nombre ?? '',
+          precio:   terapia?.precio ?? null,
         }),
       });
 
-      if (!resp.ok) { alert('No se pudo guardar la cita. Intenta más tarde.'); return; }
-      alert(`Cita reservada para ${nombre} el ${fechaTexto} a las ${horaSeleccionada}.`);
+      if (!resp.ok) { setErrorForm('No se pudo guardar la cita. Intenta más tarde.'); return; }
       await cargarCitas();
+      setExitoCita(true);
       setHoraSeleccionada(null); setNombre(''); setTelefono(''); setCorreo('');
-    } catch { alert('No se pudo guardar la cita. Intenta más tarde.'); }
+    } catch { setErrorForm('No se pudo guardar la cita. Intenta más tarde.'); }
     finally { setGuardando(false); }
   }
 
@@ -1072,32 +1086,74 @@ function Citas() {
               </h2>
             </div>
             <div style={{ padding: '1.4rem', backgroundColor: BG_CARD }}>
-              <p style={{ marginBottom: '1.2rem', color: TEXT_SECONDARY, fontSize: '0.9rem' }}>
-                Cita para <strong style={{ color: TEXT_PRIMARY }}>{fechaTexto}</strong> a las <strong style={{ color: GOLD }}>{horaSeleccionada}</strong>.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <input type="text" placeholder="Nombre completo" value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />
-                <input type="tel" placeholder="Teléfono / WhatsApp" value={telefono} onChange={(e) => setTelefono(e.target.value)} style={inputStyle} />
-                <input type="email" placeholder="Correo electrónico (opcional)" value={correo} onChange={(e) => setCorreo(e.target.value)} style={inputStyle} />
-                <button
-                  onClick={confirmarCita}
-                  disabled={guardando}
-                  style={{
-                    marginTop: '0.5rem',
-                    padding: '0.9rem',
-                    borderRadius: '999px',
-                    border: 'none',
-                    background: guardando ? TEXT_MUTED : `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
-                    color: '#ffffff',
-                    cursor: guardando ? 'default' : 'pointer',
-                    fontWeight: 600,
-                    fontSize: '0.95rem',
-                    boxShadow: guardando ? 'none' : `0 4px 14px ${GOLD_GLOW}`,
-                  }}
-                >
-                  {guardando ? 'Guardando…' : 'Confirmar cita'}
-                </button>
-              </div>
+              {exitoCita ? (
+                <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', margin: '0 auto 1rem', background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="24" height="20" viewBox="0 0 30 24" fill="none"><path d="M2 12L10 20L28 2" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </div>
+                  <p style={{ margin: '0 0 0.4rem', fontWeight: 700, color: TEAL, fontSize: '1rem' }}>¡Cita registrada!</p>
+                  <p style={{ margin: '0 0 1rem', color: TEXT_SECONDARY, fontSize: '0.88rem', lineHeight: 1.6 }}>
+                    Tu cita está <strong>pendiente de confirmación</strong>. Te contactaremos por WhatsApp o correo para confirmar el pago. Una vez confirmado recibirás un correo de confirmación.
+                  </p>
+                  <button onClick={() => setExitoCita(false)} style={{ padding: '0.6rem 1.5rem', borderRadius: '999px', border: 'none', background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: '#fff', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}>
+                    Agendar otra cita
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p style={{ marginBottom: '1.2rem', color: TEXT_SECONDARY, fontSize: '0.9rem' }}>
+                    Cita para <strong style={{ color: TEXT_PRIMARY }}>{fechaTexto}</strong> a las <strong style={{ color: GOLD }}>{horaSeleccionada}</strong>.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <input
+                      type="text" placeholder="Nombre completo *" value={nombre}
+                      onChange={(e) => { setNombre(e.target.value); setErrorForm(null); }}
+                      style={inputStyle}
+                    />
+                    <div>
+                      <input
+                        type="tel" placeholder="Teléfono / WhatsApp * (10 dígitos)" value={telefono}
+                        onChange={(e) => { setTelefono(e.target.value); setErrorForm(null); }}
+                        style={{ ...inputStyle, borderColor: telefono && !telefonoValido ? '#e05569' : undefined }}
+                      />
+                      {telefono && !telefonoValido && (
+                        <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', color: '#e05569' }}>Ingresa un número válido (mínimo 10 dígitos)</p>
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        type="email" placeholder="Correo electrónico (para recibir confirmación)" value={correo}
+                        onChange={(e) => { setCorreo(e.target.value); setErrorForm(null); }}
+                        style={{ ...inputStyle, borderColor: correo && !correoValido ? '#e05569' : undefined }}
+                      />
+                      {correo && !correoValido && (
+                        <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', color: '#e05569' }}>Formato de correo no válido</p>
+                      )}
+                    </div>
+                    {errorForm && (
+                      <div style={{ backgroundColor: 'rgba(224,85,106,0.08)', borderRadius: '0.6rem', padding: '0.65rem 0.9rem', border: '1px solid rgba(224,85,106,0.25)' }}>
+                        <p style={{ margin: 0, fontSize: '0.82rem', color: '#e05569' }}>{errorForm}</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={confirmarCita}
+                      disabled={guardando}
+                      style={{
+                        marginTop: '0.5rem', padding: '0.9rem', borderRadius: '999px', border: 'none',
+                        background: guardando ? TEXT_MUTED : `linear-gradient(135deg, ${TEAL}, ${GOLD})`,
+                        color: '#ffffff', cursor: guardando ? 'default' : 'pointer',
+                        fontWeight: 600, fontSize: '0.95rem',
+                        boxShadow: guardando ? 'none' : `0 4px 14px ${GOLD_GLOW}`,
+                      }}
+                    >
+                      {guardando ? 'Guardando…' : 'Solicitar cita'}
+                    </button>
+                    <p style={{ margin: 0, textAlign: 'center', fontSize: '0.73rem', color: TEXT_MUTED }}>
+                      Tu cita quedará pendiente hasta confirmar el pago por WhatsApp o correo
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </section>
         )}

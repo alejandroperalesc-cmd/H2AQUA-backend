@@ -81,6 +81,7 @@ export default function Carrito({
   const [procesando, setProcesando]   = useState(false);
   const [cargandoClip, setCargandoClip] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [numeroPedido, setNumeroPedido] = useState('');
 
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const puedeConfirmar =
@@ -124,8 +125,14 @@ export default function Carrito({
         <h2 style={{ fontSize: '1.75rem', color: TEXT_PRIMARY, fontWeight: 300, marginBottom: '0.75rem' }}>
           Gracias, {nombre.split(' ')[0]}
         </h2>
+        {numeroPedido && (
+          <div style={{ display: 'inline-block', margin: '0 0 1.5rem', padding: '0.6rem 1.5rem', borderRadius: '0.75rem', background: `linear-gradient(135deg, ${TEAL}22, #00B7C422)`, border: `1px solid ${TEAL}44` }}>
+            <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: TEAL }}>Número de orden</p>
+            <p style={{ margin: 0, fontSize: '1.35rem', fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.12em', color: TEXT_PRIMARY }}>{numeroPedido}</p>
+          </div>
+        )}
         <p style={{ color: TEXT_SECONDARY, fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2rem' }}>
-          Tu pedido ha sido registrado correctamente.
+          Tu pedido ha sido registrado correctamente. Recibirás una confirmación en <strong>{email}</strong>.
           {regalos.length > 0 && ' Los códigos de las tarjetas de regalo ya fueron enviados a los correos indicados.'}
           {' '}Nos pondremos en contacto a la brevedad para coordinar la entrega.
         </p>
@@ -369,6 +376,52 @@ export default function Carrito({
                 ].join(', ')
               : '';
 
+            async function simularVenta() {
+              setProcesando(true);
+              setErrorMsg('');
+              try {
+                const checkoutRes = await fetch(`${API_URL}/checkout`, {
+                  method:  'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body:    JSON.stringify({
+                    nombre:    nombre.trim(),
+                    email:     email.trim(),
+                    telefono:  telefono.trim(),
+                    direccion: direccionFmt,
+                    items:     productItems,
+                  }),
+                });
+                if (!checkoutRes.ok) {
+                  const body = await checkoutRes.json().catch(() => ({})) as { error?: string };
+                  throw new Error(body.error ?? 'Error al registrar el pedido');
+                }
+                const { pedido } = await checkoutRes.json() as { pedido?: { id: number } };
+                if (pedido?.id) {
+                  setNumeroPedido(`H2-${String(pedido.id).padStart(5, '0')}`);
+                }
+
+                for (const regalo of regalosPayload) {
+                  if (!regalo.codigo || !regalo.emailDestinatario) continue;
+                  try {
+                    await fetch(`${API_URL}/enviar-regalo`, {
+                      method:  'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body:    JSON.stringify(regalo),
+                    });
+                  } catch (emailErr) {
+                    console.warn('Gift card email failed (non-fatal):', emailErr);
+                  }
+                }
+
+                onVaciar();
+                setPaso('exito');
+              } catch (err: unknown) {
+                setErrorMsg(err instanceof Error ? err.message : 'Error al procesar el pedido');
+              } finally {
+                setProcesando(false);
+              }
+            }
+
             async function pagarConClip() {
               setCargandoClip(true);
               setErrorMsg('');
@@ -501,6 +554,8 @@ export default function Carrito({
                             const body = await checkoutRes.json().catch(() => ({})) as { error?: string };
                             throw new Error(body.error ?? 'Error al registrar el pedido');
                           }
+                          const { pedido: pp } = await checkoutRes.json() as { pedido?: { id: number } };
+                          if (pp?.id) setNumeroPedido(`H2-${String(pp.id).padStart(5, '0')}`);
 
                           for (const regalo of regalosPayload) {
                             if (!regalo.codigo || !regalo.emailDestinatario) continue;
@@ -527,6 +582,39 @@ export default function Carrito({
                       onCancel={() => setErrorMsg('Pago cancelado. Puedes intentarlo cuando quieras.')}
                     />
                   </PayPalScriptProvider>
+                </div>
+
+                {/* Divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.25rem 0' }}>
+                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
+                  <span style={{ fontSize: '0.75rem', color: TEXT_MUTED, letterSpacing: '0.1em' }}>o también</span>
+                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
+                </div>
+
+                {/* ── Simular venta ── */}
+                <div>
+                  <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED }}>
+                    Registrar pedido sin pago
+                  </p>
+                  <button
+                    disabled={procesando || cargandoClip}
+                    onClick={simularVenta}
+                    style={{
+                      width: '100%', padding: '0.95rem', borderRadius: '0.75rem',
+                      border: `1px solid ${BORDER}`,
+                      background: (procesando || cargandoClip) ? 'transparent' : BG_CARD_ALT,
+                      color: (procesando || cargandoClip) ? TEXT_MUTED : TEXT_SECONDARY,
+                      fontWeight: 600, fontSize: '0.95rem',
+                      cursor: (procesando || cargandoClip) ? 'default' : 'pointer',
+                      letterSpacing: '0.02em', transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                    }}
+                  >
+                    {procesando ? 'Registrando…' : '📋 Simular venta'}
+                  </button>
+                  <p style={{ margin: '0.5rem 0 0', textAlign: 'center', fontSize: '0.72rem', color: TEXT_MUTED }}>
+                    Registra el pedido y envía confirmación por correo
+                  </p>
                 </div>
 
               </div>

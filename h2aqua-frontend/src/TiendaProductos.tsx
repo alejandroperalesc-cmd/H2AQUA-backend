@@ -1,5 +1,5 @@
 // TiendaProductos.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { ItemCarrito } from './App';
 import { API_URL } from './api';
 import { SECCIONES, ETIQUETAS } from './secciones';
@@ -25,6 +25,8 @@ interface ProductoTienda {
   imagenUrl: string | null;
   estado: 'ACTIVO' | 'AGOTADO' | 'INACTIVO';
   seccion: number;
+  protocolo_limpieza?: boolean;
+  protocolo_kbeauty?: boolean;
 }
 
 interface TiendaProductosProps {
@@ -41,16 +43,161 @@ const P_LIGHT = GOLD_LIGHT;     // #33c9d4  — tiffany claro (home)
 const P_GLOW  = PANTONE_GLOW;
 
 
+// ─── Datos de protocolos ──────────────────────────────────────────────────────
+
+const PROTO_LIMPIEZA = {
+  emoji: '💧',
+  titulo: 'PROTOCOLO FACIAL LIMPIEZA PROFUNDA',
+  pasos: [
+    { nombre: 'LIMPIEZA FACIAL', desc: 'Limpiador facial cremoso a base de algas para retirar exceso de sudor, polvo y sebo.' },
+    { nombre: 'EXFOLIACIÓN', desc: 'Exfoliante suave para remover células muertas y preparar la piel.' },
+    { nombre: 'EXTRACCIÓN MANUAL CON SKIN SCRUBBER', desc: 'Retiro de impurezas, comedones y granitos.' },
+    { nombre: 'DESINFECCIÓN DE LA PIEL', desc: 'Solución desinfectante para evitar bacterias o contaminación durante el procedimiento.' },
+    { nombre: 'APLICACIÓN DE ALTA FRECUENCIA', desc: 'Cauterizar, desinfectar y cerrar poros.' },
+    { nombre: 'MASCARILLA', desc: 'Según la necesidad de la piel, dejar actuar aproximadamente 15 minutos.' },
+    { nombre: 'RETIRO DE MASCARILLA', desc: 'Retirar suavemente con agua los residuos.' },
+    { nombre: 'SELLADO FINAL CON RUTINA FACIAL', desc: 'Tónico facial, crema hidratante, contorno de ojos y protector solar SPF 50+.' },
+  ],
+};
+
+const PROTO_KBEAUTY = {
+  emoji: '🌸',
+  titulo: 'PROTOCOLO K-BEAUTY SIGNATURE FACIAL',
+  pasos: [
+    { nombre: 'DOBLE LIMPIEZA FACIAL', desc: 'Paso 1: Limpiador a base de aceite para retirar maquillaje y sebo.\nPaso 2: Limpiador acuoso/espumoso para quitar sudor, polvo y contaminantes.' },
+    { nombre: 'MICRODERMOABRASIÓN', desc: 'Retiro de suciedad y células muertas de la piel.' },
+    { nombre: 'DESINFECCIÓN DE LA PIEL', desc: 'Solución antiséptica para evitar bacterias y cauterizar poros abiertos tras la extracción.' },
+    { nombre: 'MASCARILLA', desc: 'Mascarilla hidratante, dejar actuar 15 minutos.' },
+    { nombre: 'MASAJE', desc: 'Masaje suave en cara, hombros y cabeza.' },
+    { nombre: 'RETIRO DE MASCARILLA', desc: 'Retirar suavemente los residuos.' },
+    { nombre: 'SELLADO FINAL CON RUTINA FACIAL', desc: 'Tónico facial, crema hidratante, contorno de ojos y protector solar SPF 50+.' },
+  ],
+};
+
+// ─── Ícono info ───────────────────────────────────────────────────────────────
+
+function InfoIcon({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <span
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      title="Ver protocolo de aplicación"
+      style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', marginLeft: '6px', opacity: hover ? 0.7 : 1, transition: 'opacity 0.15s', flexShrink: 0, verticalAlign: 'middle' }}
+    >
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="9" r="8.25" stroke="#00A9C0" strokeWidth="1.5" fill="none" />
+        <text x="9" y="13.5" textAnchor="middle" fontSize="10" fontWeight="600" fill="#00A9C0" fontFamily="Georgia, serif" fontStyle="italic">i</text>
+      </svg>
+    </span>
+  );
+}
+
+// ─── Sección de protocolo dentro del modal ────────────────────────────────────
+
+function SeccionProtocolo({ proto }: { proto: typeof PROTO_LIMPIEZA }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
+        <span style={{ fontSize: '1.4rem' }}>{proto.emoji}</span>
+        <h3 style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.18em', color: '#00A9C0', textTransform: 'uppercase' as const }}>
+          {proto.titulo}
+        </h3>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '1rem' }}>
+        {proto.pasos.map((paso, i) => (
+          <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #006d77, #00A9C0)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff' }}>{i + 1}</span>
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: '0 0 0.25rem', fontSize: '0.8rem', fontWeight: 700, color: '#1a3a40', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
+                {paso.nombre}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.88rem', color: '#4a6b75', lineHeight: 1.65, whiteSpace: 'pre-line' as const }}>
+                {paso.desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Modal de protocolo ───────────────────────────────────────────────────────
+
+function ProtocoloModal({ producto, onClose }: { producto: ProductoTienda; onClose: () => void }) {
+  const [visible, setVisible] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 10);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      clearTimeout(t);
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  const ambos = producto.protocolo_limpieza && producto.protocolo_kbeauty;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: `rgba(10,30,35,${visible ? 0.72 : 0})`, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', transition: 'background-color 0.25s ease' }}
+    >
+      <div
+        ref={dialogRef}
+        onClick={(e) => e.stopPropagation()}
+        style={{ backgroundColor: '#fff', borderRadius: '1.5rem', width: '100%', maxWidth: '560px', maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.28)', transform: visible ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.97)', opacity: visible ? 1 : 0, transition: 'all 0.28s cubic-bezier(0.34,1.2,0.64,1)' }}
+      >
+        {/* Header */}
+        <div style={{ background: 'linear-gradient(135deg, #0b4a55, #006d77 50%, #00A9C0)', padding: '1.5rem 1.75rem', borderRadius: '1.5rem 1.5rem 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ margin: '0 0 4px', fontSize: '0.65rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Protocolo de aplicación</p>
+            <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 300, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.3 }}>{producto.nombre}</h2>
+          </div>
+          <button onClick={onClose} style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}>✕</button>
+        </div>
+
+        {/* Contenido */}
+        <div style={{ padding: '1.75rem' }}>
+          {producto.protocolo_limpieza && <SeccionProtocolo proto={PROTO_LIMPIEZA} />}
+
+          {ambos && (
+            <div style={{ margin: '1.75rem 0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, #e8f0f2)' }} />
+              <span style={{ fontSize: '0.7rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8eaab4' }}>y también</span>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, #e8f0f2, transparent)' }} />
+            </div>
+          )}
+
+          {producto.protocolo_kbeauty && <SeccionProtocolo proto={PROTO_KBEAUTY} />}
+
+          <p style={{ margin: '1.5rem 0 0', fontSize: '0.75rem', color: '#aac5cc', textAlign: 'center', letterSpacing: '0.06em' }}>
+            H2AQUA · info@h2aqua.com.mx · WhatsApp: 55 2560 1138
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tarjeta de producto ──────────────────────────────────────────────────────
 
 function TarjetaProducto({
   p,
   onAgregarAlCarrito,
+  onVerProtocolo,
 }: {
   p: ProductoTienda;
   onAgregarAlCarrito: (item: Omit<ItemCarrito, 'cantidad'>) => void;
+  onVerProtocolo: (p: ProductoTienda) => void;
 }) {
   const agotado = p.estado === 'AGOTADO' || p.stock <= 0;
+  const tieneProtocolo = !!(p.protocolo_limpieza || p.protocolo_kbeauty);
   const [hover, setHover] = useState(false);
   const isMobile = useIsMobile();
 
@@ -179,9 +326,16 @@ function TarjetaProducto({
             color: TEXT_PRIMARY,
             lineHeight: 1.35,
             letterSpacing: '0.01em',
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '2px',
           }}
         >
-          {p.nombre}
+          <span>{p.nombre}</span>
+          {tieneProtocolo && (
+            <InfoIcon onClick={(e) => { e.stopPropagation(); onVerProtocolo(p); }} />
+          )}
         </h3>
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.15rem' }}>
@@ -231,6 +385,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
   const [error, setError] = useState<string | null>(null);
   const [seccionActiva, setSeccionActiva] = useState<number>(0);
   const [mostrarArriba, setMostrarArriba] = useState(false);
+  const [productoProtocolo, setProductoProtocolo] = useState<ProductoTienda | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -413,7 +568,7 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '0.75rem' : '1.25rem', alignItems: 'stretch' }}>
                 {productosSec.map((p) => (
-                  <TarjetaProducto key={p.id} p={p} onAgregarAlCarrito={onAgregarAlCarrito} />
+                  <TarjetaProducto key={p.id} p={p} onAgregarAlCarrito={onAgregarAlCarrito} onVerProtocolo={setProductoProtocolo} />
                 ))}
               </div>
             )}
@@ -530,6 +685,9 @@ const TiendaProductos: React.FC<TiendaProductosProps> = ({ carrito: _carrito, on
         </div>
       )}
 
+      {productoProtocolo && (
+        <ProtocoloModal producto={productoProtocolo} onClose={() => setProductoProtocolo(null)} />
+      )}
     </div>
   );
 };

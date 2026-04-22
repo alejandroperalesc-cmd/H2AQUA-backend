@@ -11,6 +11,8 @@ export type Producto = {
   seccion: number;
   destacado: boolean;
   categoria?: string | null;
+  protocolo_limpieza?: boolean;
+  protocolo_kbeauty?: boolean;
 };
 
 export async function obtenerProductos(): Promise<Producto[]> {
