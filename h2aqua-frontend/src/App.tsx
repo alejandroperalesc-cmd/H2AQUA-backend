@@ -5,6 +5,7 @@ import Productos from './Productos';
 import NuevoProducto from './NuevoProducto';
 import TiendaProductos from './TiendaProductos';
 import CitasCalendarioAdmin from './CitasCalendarioAdmin';
+import CostosEnvio from './CostosEnvio';
 import Carrito from './Carrito';
 import TarjetaRegalo from './TarjetaRegalo';
 import { FiShoppingCart, FiMenu, FiX, FiMapPin, FiPhone, FiMail, FiLock, FiLogOut } from 'react-icons/fi';
@@ -17,7 +18,7 @@ import {
   BORDER, BORDER_SUBTLE,
 } from './theme';
 
-type Vista = 'home' | 'lista' | 'nuevo' | 'tienda' | 'citas' | 'citas-calendario' | 'carrito' | 'regalo';
+type Vista = 'home' | 'lista' | 'nuevo' | 'tienda' | 'citas' | 'citas-calendario' | 'carrito' | 'regalo' | 'envios';
 
 export type ItemCarrito = {
   id: number;
@@ -1391,7 +1392,7 @@ function App() {
   function handleLogout() {
     sessionStorage.removeItem('h2aqua_admin');
     setIsAdmin(false);
-    if (['lista', 'nuevo', 'citas-calendario'].includes(vista)) setVista('home');
+    if (['lista', 'nuevo', 'citas-calendario', 'envios'].includes(vista)) setVista('home');
   }
 
   function irA(nuevaVista: Vista) { setVista(nuevaVista); setMenuAbierto(false); }
@@ -1425,6 +1426,7 @@ function App() {
     { key: 'citas-calendario', label: 'Calendario' },
     { key: 'lista',            label: 'Productos' },
     { key: 'nuevo',            label: 'Nuevo producto' },
+    { key: 'envios',           label: 'Costos de envío' },
   ] as const;
 
   const navItems = isAdmin
@@ -1684,6 +1686,7 @@ function App() {
         {vista === 'lista'            && isAdmin && <Productos />}
         {vista === 'nuevo'            && isAdmin && <NuevoProducto />}
         {vista === 'citas-calendario' && isAdmin && <CitasCalendarioAdmin />}
+        {vista === 'envios'           && isAdmin && <CostosEnvio />}
         {vista === 'tienda'           && <TiendaProductos carrito={carrito} onAgregarAlCarrito={agregarAlCarrito} />}
         {vista === 'regalo'           && <TarjetaRegalo onAgregarAlCarrito={agregarAlCarrito} irAlCarrito={() => irA('carrito')} />}
         {vista === 'carrito'          && (

@@ -839,7 +839,7 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
 app.post("/checkout", async (req, res) => {
   console.log('Checkout called with data:', JSON.stringify(req.body));
   try {
-    const { nombre, email, telefono, direccion, items } = req.body;
+    const { nombre, email, telefono, direccion, items, estado: estadoEnvio } = req.body;
 
     if (!nombre || !email) {
       return res.status(400).json({ error: "nombre y email son obligatorios" });
@@ -868,6 +868,13 @@ app.post("/checkout", async (req, res) => {
       const productosIds = productItems.map((it) => it.productoId);
       const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } });
 
+      // Lookup shipping cost for the selected state
+      let costoEnvio = 0;
+      if (estadoEnvio) {
+        const ceRow = await (prisma as any).costoEnvio.findUnique({ where: { estado: estadoEnvio } });
+        if (ceRow) costoEnvio = ceRow.costo;
+      }
+
       let total = 0;
       const itemsConPrecio = productItems.map((it) => {
         const prod = productos.find((p) => p.id === it.productoId);
@@ -875,13 +882,19 @@ app.post("/checkout", async (req, res) => {
         total += prod.precio * it.cantidad;
         return { cantidad: it.cantidad, precioUnit: prod.precio, productoId: it.productoId };
       });
+      total += costoEnvio;
+
+      const notasParts: string[] = [];
+      if (direccion) notasParts.push(`Dirección de entrega: ${direccion}`);
+      if (estadoEnvio) notasParts.push(`Estado: ${estadoEnvio}`);
+      if (costoEnvio > 0) notasParts.push(`Costo de envío: $${costoEnvio}`);
 
       pedido = await prisma.pedido.create({
         data: {
           clienteId: cliente.id,
           total: Math.round(total),
           estado: "PENDIENTE",
-          notas: direccion ? `Dirección de entrega: ${direccion}` : null,
+          notas: notasParts.length > 0 ? notasParts.join(' | ') : null,
           items: { create: itemsConPrecio },
         },
         include: { items: { include: { producto: true } } },
@@ -915,6 +928,34 @@ app.post("/checkout", async (req, res) => {
   } catch (error: any) {
     console.error("Error en checkout:", error);
     res.status(500).json({ error: error.message || "Error al procesar el pedido" });
+  }
+});
+
+// ─── Costos de envío por estado ──────────────────────────────────────────────
+
+app.get("/costos-envio", async (_req, res) => {
+  try {
+    const costos = await (prisma as any).costoEnvio.findMany({ orderBy: { estado: 'asc' } });
+    res.json(costos);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.patch("/costos-envio/:estado", async (req, res) => {
+  try {
+    const { estado } = req.params;
+    const { costo } = req.body;
+    if (costo === undefined || isNaN(Number(costo))) {
+      return res.status(400).json({ error: 'costo es requerido y debe ser un número' });
+    }
+    const updated = await (prisma as any).costoEnvio.update({
+      where: { estado },
+      data:  { costo: Number(costo) },
+    });
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 

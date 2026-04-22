@@ -73,6 +73,12 @@ model Pedido {
   items     PedidoProducto[]
 }
 
+model CostoEnvio {
+  id     Int    @id @default(autoincrement())
+  estado String @unique
+  costo  Float  @default(0)
+}
+
 model PedidoProducto {
   id         Int      @id @default(autoincrement())
   cantidad   Int

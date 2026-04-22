@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { ItemCarrito } from './App';
 import { useIsMobile } from './useIsMobile';
@@ -76,6 +76,7 @@ export default function Carrito({
   const [codigoPostal, setCodigoPostal] = useState('');
   const [colonia, setColonia]       = useState('');
   const [ciudad, setCiudad]         = useState('');
+  const [estadoEnvio, setEstadoEnvio] = useState('');
   const [referencia, setReferencia] = useState('');
 
   const [procesando, setProcesando]   = useState(false);
@@ -83,12 +84,24 @@ export default function Carrito({
   const [errorMsg, setErrorMsg] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
 
+  // Shipping costs from backend
+  const [costosEnvio, setCostosEnvio] = useState<{ estado: string; costo: number }[]>([]);
+  useEffect(() => {
+    fetch(`${API_URL}/costos-envio`)
+      .then((r) => r.json())
+      .then((data: { estado: string; costo: number }[]) => setCostosEnvio(data))
+      .catch(() => {});
+  }, []);
+
+  const costoEnvio = costosEnvio.find((c) => c.estado === estadoEnvio)?.costo ?? 0;
+  const total = subtotal + costoEnvio;
+
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const puedeConfirmar =
     nombre.trim().length > 0 && emailValido &&
     calle.trim().length > 0 && numExt.trim().length > 0 &&
     codigoPostal.trim().length > 0 && colonia.trim().length > 0 &&
-    ciudad.trim().length > 0;
+    ciudad.trim().length > 0 && estadoEnvio.length > 0;
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.75rem 1rem', borderRadius: '0.65rem',
@@ -326,9 +339,34 @@ export default function Carrito({
                   </Campo>
                 </div>
 
-                <Campo label="Ciudad / Alcaldía" required>
-                  <input type="text" placeholder="Ciudad o Alcaldía" value={ciudad} onChange={(e) => setCiudad(e.target.value)} style={inputStyle} />
-                </Campo>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                  <Campo label="Ciudad / Alcaldía" required>
+                    <input type="text" placeholder="Ciudad o Alcaldía" value={ciudad} onChange={(e) => setCiudad(e.target.value)} style={inputStyle} />
+                  </Campo>
+                  <Campo label="Estado" required>
+                    <select
+                      value={estadoEnvio}
+                      onChange={(e) => setEstadoEnvio(e.target.value)}
+                      style={{
+                        ...inputStyle,
+                        cursor: 'pointer',
+                        appearance: 'none',
+                        WebkitAppearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300A9C0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 0.75rem center',
+                        paddingRight: '2.5rem',
+                      }}
+                    >
+                      <option value="">Selecciona un estado…</option>
+                      {costosEnvio.map((c) => (
+                        <option key={c.estado} value={c.estado}>
+                          {c.estado}{c.costo > 0 ? ` — $${c.costo.toLocaleString('es-MX')}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </Campo>
+                </div>
 
                 <Campo label="Referencia">
                   <input type="text" placeholder="Entre calles, señas, color de fachada… (opcional)" value={referencia} onChange={(e) => setReferencia(e.target.value)} style={inputStyle} />
@@ -372,6 +410,7 @@ export default function Carrito({
                   `Col. ${colonia.trim()}`,
                   `CP ${codigoPostal.trim()}`,
                   ciudad.trim(),
+                  ...(estadoEnvio ? [estadoEnvio] : []),
                   ...(referencia.trim() ? [`Ref: ${referencia.trim()}`] : []),
                 ].join(', ')
               : '';
@@ -388,6 +427,7 @@ export default function Carrito({
                     email:     email.trim(),
                     telefono:  telefono.trim(),
                     direccion: direccionFmt,
+                    estado:    estadoEnvio,
                     items:     productItems,
                   }),
                 });
@@ -434,9 +474,10 @@ export default function Carrito({
                     email:     email.trim(),
                     telefono:  telefono.trim(),
                     direccion: direccionFmt,
+                    estado:    estadoEnvio,
                     items:     productItems,
                     regalos:   regalosPayload,
-                    total:     subtotal,
+                    total,
                   }),
                 });
                 if (!res.ok) {
@@ -519,7 +560,7 @@ export default function Carrito({
                         const res = await fetch(`${API_URL}/api/paypal/create-order`, {
                           method:  'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body:    JSON.stringify({ total: subtotal }),
+                          body:    JSON.stringify({ total }),
                         });
                         if (!res.ok) throw new Error('No se pudo iniciar el pago');
                         const data = await res.json() as { orderID: string };
@@ -547,6 +588,7 @@ export default function Carrito({
                               email:     email.trim(),
                               telefono:  telefono.trim(),
                               direccion: direccionFmt,
+                              estado:    estadoEnvio,
                               items:     productItems,
                             }),
                           });
@@ -640,10 +682,24 @@ export default function Carrito({
           </div>
 
           <div style={{ borderTop: BORDER, paddingTop: '1rem', marginBottom: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: costoEnvio > 0 || estadoEnvio ? '0.4rem' : 0 }}>
+              <span style={{ color: TEXT_SECONDARY, fontSize: '0.85rem' }}>Subtotal</span>
+              <span style={{ color: TEXT_PRIMARY, fontWeight: 500, fontSize: '0.95rem' }}>
+                ${subtotal.toLocaleString('es-MX')}
+              </span>
+            </div>
+            {estadoEnvio && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
+                <span style={{ color: TEXT_SECONDARY, fontSize: '0.85rem' }}>Envío ({estadoEnvio})</span>
+                <span style={{ color: costoEnvio > 0 ? TEXT_PRIMARY : TEAL, fontWeight: 500, fontSize: '0.95rem' }}>
+                  {costoEnvio > 0 ? `$${costoEnvio.toLocaleString('es-MX')}` : 'Gratis'}
+                </span>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: estadoEnvio ? BORDER : 'none', paddingTop: estadoEnvio ? '0.6rem' : 0 }}>
               <span style={{ color: TEXT_SECONDARY, fontSize: '0.9rem' }}>Total</span>
               <span style={{ color: GOLD, fontWeight: 700, fontSize: '1.35rem' }}>
-                ${subtotal.toLocaleString('es-MX')} <span style={{ fontSize: '0.8rem', fontWeight: 400, color: TEXT_MUTED }}>MXN</span>
+                ${total.toLocaleString('es-MX')} <span style={{ fontSize: '0.8rem', fontWeight: 400, color: TEXT_MUTED }}>MXN</span>
               </span>
             </div>
           </div>
