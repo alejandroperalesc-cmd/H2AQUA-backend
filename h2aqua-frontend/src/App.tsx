@@ -960,7 +960,6 @@ function Citas() {
     finally { setGuardando(false); }
   }
 
-  const terapiaSeleccionada = terapias.find((t) => t.id === terapiaSeleccionadaId) ?? null;
 
   const inputStyle = {
     padding: '0.65rem 0.9rem',
@@ -1018,19 +1017,23 @@ function Citas() {
               <select
                 value={terapiaSeleccionadaId ?? ''}
                 onChange={(e) => setTerapiaSeleccionadaId(Number(e.target.value))}
-                style={{ ...inputStyle, marginBottom: '0.75rem', cursor: 'pointer' }}
+                style={{
+                  ...inputStyle,
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  padding: '0.8rem 2.5rem 0.8rem 1rem',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300A9C0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundSize: '20px',
+                }}
               >
                 {terapias.map((t) => (
                   <option key={t.id} value={t.id}>{t.nombre} – ${t.precio} MXN</option>
                 ))}
               </select>
-              {terapiaSeleccionada && (
-                <>
-                  <p style={{ margin: 0, color: TEXT_PRIMARY, fontWeight: 500 }}>{terapiaSeleccionada.nombre}</p>
-                  <p style={{ margin: '0.2rem 0', color: TEXT_SECONDARY, fontSize: '0.9rem' }}>{terapiaSeleccionada.descripcion ?? ''}</p>
-                  <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: '1.1rem' }}>${terapiaSeleccionada.precio} MXN</p>
-                </>
-              )}
             </>
           )}
         </div>
