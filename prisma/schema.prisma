@@ -74,9 +74,10 @@ model Pedido {
 }
 
 model CostoEnvio {
-  id     Int    @id @default(autoincrement())
-  estado String @unique
-  costo  Float  @default(0)
+  id     Int     @id @default(autoincrement())
+  estado String  @unique
+  costo  Float   @default(0)
+  activo Boolean @default(true)
 }
 
 model PedidoProducto {

@@ -360,9 +360,7 @@ export default function Carrito({
                     >
                       <option value="">Selecciona un estado…</option>
                       {costosEnvio.map((c) => (
-                        <option key={c.estado} value={c.estado}>
-                          {c.estado}{c.costo > 0 ? ` — $${c.costo.toLocaleString('es-MX')}` : ''}
-                        </option>
+                        <option key={c.estado} value={c.estado}>{c.estado}</option>
                       ))}
                     </select>
                   </Campo>

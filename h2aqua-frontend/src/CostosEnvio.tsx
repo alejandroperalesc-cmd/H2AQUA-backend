@@ -12,16 +12,18 @@ interface CostoEnvio {
   id: number;
   estado: string;
   costo: number;
+  activo: boolean;
 }
 
 export default function CostosEnvio() {
   const [costos, setCostos] = useState<CostoEnvio[]>([]);
   const [editando, setEditando] = useState<Record<string, string>>({});
   const [guardando, setGuardando] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/costos-envio`)
+    fetch(`${API_URL}/costos-envio?todos=1`)
       .then((r) => r.json())
       .then((data: CostoEnvio[]) => {
         setCostos(data);
@@ -54,6 +56,24 @@ export default function CostosEnvio() {
     }
   }
 
+  async function toggleActivo(estado: string, activo: boolean) {
+    setToggling(estado);
+    try {
+      const res = await fetch(`${API_URL}/costos-envio/${encodeURIComponent(estado)}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ activo }),
+      });
+      if (!res.ok) throw new Error();
+      const updated: CostoEnvio = await res.json();
+      setCostos((prev) => prev.map((c) => (c.estado === estado ? updated : c)));
+    } catch {
+      alert('No se pudo actualizar el estado. Intenta de nuevo.');
+    } finally {
+      setToggling(null);
+    }
+  }
+
   return (
     <div style={{ maxWidth: '720px', margin: '0 auto', padding: '2.5rem 0 4rem' }}>
 
@@ -82,7 +102,7 @@ export default function CostosEnvio() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 160px 100px',
+            gridTemplateColumns: '1fr 160px 100px 56px',
             gap: '0.5rem',
             padding: '0.75rem 1.5rem',
             backgroundColor: BG_CARD_ALT,
@@ -92,26 +112,29 @@ export default function CostosEnvio() {
           <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED, fontWeight: 600 }}>Estado</span>
           <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED, fontWeight: 600 }}>Costo (MXN)</span>
           <span></span>
+          <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED, fontWeight: 600, textAlign: 'center' }}>Activo</span>
         </div>
 
         {costos.map((c, idx) => {
           const isGuardando = guardando === c.estado;
-          const isSaved = saved === c.estado;
+          const isToggling  = toggling  === c.estado;
+          const isSaved     = saved     === c.estado;
           const valorActual = editando[c.estado] ?? String(c.costo);
-          const hayCambio = Number(valorActual) !== c.costo;
+          const hayCambio   = Number(valorActual) !== c.costo;
 
           return (
             <div
               key={c.estado}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 160px 100px',
+                gridTemplateColumns: '1fr 160px 100px 56px',
                 gap: '0.5rem',
                 alignItems: 'center',
                 padding: '0.65rem 1.5rem',
                 borderBottom: idx < costos.length - 1 ? BORDER : 'none',
                 backgroundColor: isSaved ? `${TEAL}08` : 'transparent',
-                transition: 'background-color 0.4s',
+                opacity: c.activo ? 1 : 0.45,
+                transition: 'background-color 0.4s, opacity 0.2s',
               }}
             >
               <span style={{ color: TEXT_PRIMARY, fontSize: '0.9rem' }}>{c.estado}</span>
@@ -164,6 +187,32 @@ export default function CostosEnvio() {
               >
                 {isGuardando ? '…' : isSaved ? '✓ Guardado' : 'Guardar'}
               </button>
+
+              {/* Toggle activo */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button
+                  onClick={() => !isToggling && toggleActivo(c.estado, !c.activo)}
+                  title={c.activo ? 'Desactivar estado' : 'Activar estado'}
+                  style={{
+                    width: '38px', height: '22px', borderRadius: '11px', border: 'none',
+                    backgroundColor: c.activo ? TEAL : BORDER,
+                    cursor: isToggling ? 'wait' : 'pointer',
+                    position: 'relative',
+                    transition: 'background-color 0.2s',
+                    flexShrink: 0,
+                    padding: 0,
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute', top: '3px',
+                    left: c.activo ? '19px' : '3px',
+                    width: '16px', height: '16px', borderRadius: '50%',
+                    backgroundColor: '#fff',
+                    transition: 'left 0.2s',
+                    display: 'block',
+                  }} />
+                </button>
+              </div>
             </div>
           );
         })}

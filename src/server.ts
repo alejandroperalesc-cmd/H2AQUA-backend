@@ -933,9 +933,10 @@ app.post("/checkout", async (req, res) => {
 
 // ─── Costos de envío por estado ──────────────────────────────────────────────
 
-app.get("/costos-envio", async (_req, res) => {
+app.get("/costos-envio", async (req, res) => {
   try {
-    const costos = await (prisma as any).costoEnvio.findMany({ orderBy: { estado: 'asc' } });
+    const where = req.query.todos === '1' ? {} : { activo: true };
+    const costos = await (prisma as any).costoEnvio.findMany({ where, orderBy: { estado: 'asc' } });
     res.json(costos);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -945,14 +946,19 @@ app.get("/costos-envio", async (_req, res) => {
 app.patch("/costos-envio/:estado", async (req, res) => {
   try {
     const { estado } = req.params;
-    const { costo } = req.body;
-    if (costo === undefined || isNaN(Number(costo))) {
-      return res.status(400).json({ error: 'costo es requerido y debe ser un número' });
+    const { costo, activo } = req.body;
+    const data: Record<string, unknown> = {};
+    if (costo !== undefined) {
+      if (isNaN(Number(costo))) return res.status(400).json({ error: 'costo debe ser un número' });
+      data.costo = Number(costo);
     }
-    const updated = await (prisma as any).costoEnvio.update({
-      where: { estado },
-      data:  { costo: Number(costo) },
-    });
+    if (activo !== undefined) {
+      data.activo = Boolean(activo);
+    }
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ error: 'Se requiere costo o activo' });
+    }
+    const updated = await (prisma as any).costoEnvio.update({ where: { estado }, data });
     res.json(updated);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

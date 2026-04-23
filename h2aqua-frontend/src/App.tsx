@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import Productos from './Productos';
@@ -1348,6 +1348,8 @@ function App() {
   });
   const [vista, setVista] = useState<Vista>('home');
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [adminMenuAbierto, setAdminMenuAbierto] = useState(false);
+  const adminMenuRef = useRef<HTMLDivElement>(null);
   const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem('h2aqua_admin') === '1');
   const [loginModal, setLoginModal] = useState(false);
   const [loginPass, setLoginPass] = useState('');
@@ -1395,7 +1397,18 @@ function App() {
     if (['lista', 'nuevo', 'citas-calendario', 'envios'].includes(vista)) setVista('home');
   }
 
-  function irA(nuevaVista: Vista) { setVista(nuevaVista); setMenuAbierto(false); }
+  useEffect(() => {
+    if (!adminMenuAbierto) return;
+    function cerrar(e: MouseEvent) {
+      if (adminMenuRef.current && !adminMenuRef.current.contains(e.target as Node)) {
+        setAdminMenuAbierto(false);
+      }
+    }
+    document.addEventListener('mousedown', cerrar);
+    return () => document.removeEventListener('mousedown', cerrar);
+  }, [adminMenuAbierto]);
+
+  function irA(nuevaVista: Vista) { setVista(nuevaVista); setMenuAbierto(false); setAdminMenuAbierto(false); }
 
   function agregarAlCarrito(item: Omit<ItemCarrito, 'cantidad'>) {
     setCarrito((prev) => {
@@ -1429,9 +1442,7 @@ function App() {
     { key: 'envios',           label: 'Costos de envío' },
   ] as const;
 
-  const navItems = isAdmin
-    ? [...navItemsPublicos, ...navItemsAdmin]
-    : navItemsPublicos;
+  const adminVistaActiva = isAdmin && navItemsAdmin.some((i) => i.key === vista);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: BG_DARK }}>
@@ -1518,10 +1529,10 @@ function App() {
           {!isMobile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <nav style={{ display: 'flex', alignItems: 'center', gap: '0.15rem' }}>
-                {navItems.map((item) => (
+                {navItemsPublicos.map((item) => (
                   <button
                     key={item.key}
-                    onClick={() => setVista(item.key)}
+                    onClick={() => irA(item.key)}
                     style={{
                       border: 'none',
                       background: vista === item.key ? GOLD_SUBTLE : 'transparent',
@@ -1540,6 +1551,81 @@ function App() {
                     {item.label}
                   </button>
                 ))}
+
+                {/* Dropdown admin */}
+                {isAdmin && (
+                  <div ref={adminMenuRef} style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => setAdminMenuAbierto((v) => !v)}
+                      style={{
+                        border: 'none',
+                        background: adminVistaActiva || adminMenuAbierto ? GOLD_SUBTLE : 'transparent',
+                        padding: '0.45rem 0.85rem',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer',
+                        color: adminVistaActiva || adminMenuAbierto ? TEAL : TEXT_SECONDARY,
+                        fontWeight: adminVistaActiva ? 600 : 400,
+                        fontSize: '0.82rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        transition: 'all 0.15s ease',
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                      }}
+                    >
+                      Admin
+                      <svg
+                        width="10" height="10" viewBox="0 0 10 10" fill="none"
+                        style={{ transition: 'transform 0.2s', transform: adminMenuAbierto ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                      >
+                        <polyline points="1 3 5 7 9 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+
+                    {adminMenuAbierto && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 0.4rem)',
+                        right: 0,
+                        minWidth: '180px',
+                        backgroundColor: BG_CARD,
+                        border: BORDER,
+                        borderRadius: '0.75rem',
+                        overflow: 'hidden',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                        zIndex: 100,
+                      }}>
+                        {navItemsAdmin.map((item, idx) => (
+                          <button
+                            key={item.key}
+                            onClick={() => irA(item.key)}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              textAlign: 'left',
+                              border: 'none',
+                              borderTop: idx > 0 ? BORDER : 'none',
+                              background: vista === item.key ? GOLD_SUBTLE : 'transparent',
+                              padding: '0.65rem 1rem',
+                              cursor: 'pointer',
+                              color: vista === item.key ? TEAL : TEXT_SECONDARY,
+                              fontWeight: vista === item.key ? 600 : 400,
+                              fontSize: '0.82rem',
+                              whiteSpace: 'nowrap',
+                              transition: 'background 0.1s',
+                            }}
+                            onMouseEnter={(e) => { if (vista !== item.key) (e.currentTarget as HTMLElement).style.backgroundColor = GOLD_SUBTLE; }}
+                            onMouseLeave={(e) => { if (vista !== item.key) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </nav>
 
               <div style={{ width: '1px', height: '20px', backgroundColor: BORDER, margin: '0 0.25rem' }} />
@@ -1595,7 +1681,7 @@ function App() {
             gap: '0.2rem',
             boxShadow: '0 8px 24px rgba(0,183,196,0.08)',
           }}>
-            {navItems.map((item) => (
+            {navItemsPublicos.map((item) => (
               <button
                 key={item.key}
                 onClick={() => irA(item.key)}
@@ -1615,6 +1701,44 @@ function App() {
                 {item.label}
               </button>
             ))}
+
+            {isAdmin && (
+              <>
+                <div style={{
+                  margin: '0.4rem 0 0.2rem',
+                  padding: '0 1rem',
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: TEXT_MUTED,
+                  fontWeight: 600,
+                  borderTop: BORDER,
+                  paddingTop: '0.75rem',
+                }}>
+                  Administración
+                </div>
+                {navItemsAdmin.map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => irA(item.key)}
+                    style={{
+                      border: 'none',
+                      background: vista === item.key ? GOLD_SUBTLE : 'transparent',
+                      padding: '0.65rem 1rem 0.65rem 1.5rem',
+                      borderRadius: '0.6rem',
+                      cursor: 'pointer',
+                      color: vista === item.key ? TEAL : TEXT_SECONDARY,
+                      fontWeight: vista === item.key ? 600 : 400,
+                      fontSize: '0.9rem',
+                      textAlign: 'left',
+                      width: '100%',
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
         )}
       </header>
