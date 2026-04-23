@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { ItemCarrito } from './App';
 import { useIsMobile } from './useIsMobile';
 import {
@@ -532,96 +531,6 @@ export default function Carrito({
                   <p style={{ margin: '0.5rem 0 0', textAlign: 'center', fontSize: '0.72rem', color: TEXT_MUTED }}>
                     🔒 Débito · Crédito · Transferencia — procesado por Clip
                   </p>
-                </div>
-
-                {/* Divider */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.25rem 0' }}>
-                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
-                  <span style={{ fontSize: '0.75rem', color: TEXT_MUTED, letterSpacing: '0.1em' }}>o también</span>
-                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
-                </div>
-
-                {/* ── PayPal ── */}
-                <div>
-                  <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED }}>
-                    Pago con PayPal
-                  </p>
-                  <PayPalScriptProvider options={{
-                    clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '',
-                    currency: 'MXN',
-                    locale:   'es_MX',
-                  }}>
-                    <PayPalButtons
-                      style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
-                      disabled={procesando || cargandoClip}
-                      createOrder={async () => {
-                        const res = await fetch(`${API_URL}/api/paypal/create-order`, {
-                          method:  'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body:    JSON.stringify({ total }),
-                        });
-                        if (!res.ok) throw new Error('No se pudo iniciar el pago');
-                        const data = await res.json() as { orderID: string };
-                        return data.orderID;
-                      }}
-                      onApprove={async (data) => {
-                        setProcesando(true);
-                        setErrorMsg('');
-                        try {
-                          const captureRes = await fetch(`${API_URL}/api/paypal/capture-order`, {
-                            method:  'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body:    JSON.stringify({ orderID: data.orderID }),
-                          });
-                          if (!captureRes.ok) {
-                            const body = await captureRes.json().catch(() => ({})) as { error?: string };
-                            throw new Error(body.error ?? 'Error al capturar el pago');
-                          }
-
-                          const checkoutRes = await fetch(`${API_URL}/checkout`, {
-                            method:  'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body:    JSON.stringify({
-                              nombre:    nombre.trim(),
-                              email:     email.trim(),
-                              telefono:  telefono.trim(),
-                              direccion: direccionFmt,
-                              estado:    estadoEnvio,
-                              items:     productItems,
-                            }),
-                          });
-                          if (!checkoutRes.ok) {
-                            const body = await checkoutRes.json().catch(() => ({})) as { error?: string };
-                            throw new Error(body.error ?? 'Error al registrar el pedido');
-                          }
-                          const { pedido: pp } = await checkoutRes.json() as { pedido?: { id: number } };
-                          if (pp?.id) setNumeroPedido(`H2-${String(pp.id).padStart(5, '0')}`);
-
-                          for (const regalo of regalosPayload) {
-                            if (!regalo.codigo || !regalo.emailDestinatario) continue;
-                            try {
-                              await fetch(`${API_URL}/enviar-regalo`, {
-                                method:  'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body:    JSON.stringify(regalo),
-                              });
-                            } catch (emailErr) {
-                              console.warn('Email send failed (non-fatal):', emailErr);
-                            }
-                          }
-
-                          onVaciar();
-                          setPaso('exito');
-                        } catch (err: unknown) {
-                          setErrorMsg(err instanceof Error ? err.message : 'Error al procesar el pago');
-                        } finally {
-                          setProcesando(false);
-                        }
-                      }}
-                      onError={() => setErrorMsg('Ocurrió un error con PayPal. Intenta de nuevo.')}
-                      onCancel={() => setErrorMsg('Pago cancelado. Puedes intentarlo cuando quieras.')}
-                    />
-                  </PayPalScriptProvider>
                 </div>
 
                 {/* Divider */}
