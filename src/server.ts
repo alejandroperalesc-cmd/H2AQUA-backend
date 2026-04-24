@@ -965,6 +965,44 @@ app.patch("/costos-envio/:estado", async (req, res) => {
   }
 });
 
+// ─── Días bloqueados ─────────────────────────────────────────────────────────
+
+app.get("/dias-bloqueados", async (_req, res) => {
+  try {
+    const dias = await (prisma as any).diaBloqueado.findMany({ orderBy: { fecha: 'asc' } });
+    res.json(dias.map((d: any) => d.fecha));
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/dias-bloqueados", async (req, res) => {
+  try {
+    const { fecha } = req.body;
+    if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+      return res.status(400).json({ error: 'fecha requerida en formato YYYY-MM-DD' });
+    }
+    const dia = await (prisma as any).diaBloqueado.upsert({
+      where:  { fecha },
+      update: {},
+      create: { fecha },
+    });
+    res.json({ fecha: dia.fecha });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete("/dias-bloqueados/:fecha", async (req, res) => {
+  try {
+    const { fecha } = req.params;
+    await (prisma as any).diaBloqueado.delete({ where: { fecha } });
+    res.json({ fecha });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ─── Helper: enviar tarjeta de regalo por correo ─────────────────────────────
 interface GiftCardData {
   codigo: string;

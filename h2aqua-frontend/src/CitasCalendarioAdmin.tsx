@@ -20,11 +20,16 @@ type CitaApi = {
   servicio: { nombre: string };
 };
 
+function toKey(date: Date) { return date.toISOString().slice(0, 10); }
+function esDomingo(date: Date) { return date.getDay() === 0; }
+
 function CitasCalendarioAdmin() {
   const [citas, setCitas] = useState<CitaApi[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState<Date>(new Date());
+  const [diasBloqueados, setDiasBloqueados] = useState<Set<string>>(new Set());
+  const [bloqueando, setBloqueando] = useState(false);
 
   async function cargarCitas() {
     try {
@@ -37,6 +42,36 @@ function CitasCalendarioAdmin() {
       setError('No se pudieron cargar las citas');
     } finally {
       setCargando(false);
+    }
+  }
+
+  async function cargarDiasBloqueados() {
+    try {
+      const resp = await fetch(`${API_URL}/dias-bloqueados`);
+      if (!resp.ok) return;
+      const fechas: string[] = await resp.json();
+      setDiasBloqueados(new Set(fechas));
+    } catch { /* silencioso */ }
+  }
+
+  async function toggleBloqueo(fecha: string, bloquear: boolean) {
+    setBloqueando(true);
+    try {
+      if (bloquear) {
+        await fetch(`${API_URL}/dias-bloqueados`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fecha }),
+        });
+        setDiasBloqueados((prev) => new Set([...prev, fecha]));
+      } else {
+        await fetch(`${API_URL}/dias-bloqueados/${fecha}`, { method: 'DELETE' });
+        setDiasBloqueados((prev) => { const s = new Set(prev); s.delete(fecha); return s; });
+      }
+    } catch {
+      alert('No se pudo actualizar el bloqueo. Intenta de nuevo.');
+    } finally {
+      setBloqueando(false);
     }
   }
 
@@ -54,9 +89,7 @@ function CitasCalendarioAdmin() {
     }
   }
 
-  useEffect(() => { cargarCitas(); }, []);
-
-  function toKey(date: Date) { return date.toISOString().slice(0, 10); }
+  useEffect(() => { cargarCitas(); cargarDiasBloqueados(); }, []);
 
   const citasPorDia = citas.reduce<Record<string, CitaApi[]>>((acc, cita) => {
     const key = cita.fechaHora.slice(0, 10);
@@ -67,6 +100,8 @@ function CitasCalendarioAdmin() {
 
   const keySeleccionado = toKey(fechaSeleccionada);
   const citasDelDia = citasPorDia[keySeleccionado] ?? [];
+  const diaEsDomingo = esDomingo(fechaSeleccionada);
+  const diaEstaBloqueado = diasBloqueados.has(keySeleccionado);
 
   const colorEstado = (estado: string) => {
     if (estado === 'CONFIRMADA') return SUCCESS;
@@ -98,9 +133,26 @@ function CitasCalendarioAdmin() {
           Calendario de citas
         </h1>
         <p style={{ margin: '0.4rem 0 0', color: TEXT_SECONDARY, fontSize: '0.95rem' }}>
-          Visualiza y gestiona todas las citas agendadas por día.
+          Visualiza citas y bloquea días para que no acepten nuevas reservaciones.
         </p>
       </header>
+
+      {/* Leyenda */}
+      <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {[
+          { color: GOLD,  label: 'Tiene citas' },
+          { color: ERROR, label: 'Día bloqueado' },
+        ].map(({ color, label }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: color, display: 'inline-block' }} />
+            <span style={{ fontSize: '0.78rem', color: TEXT_MUTED }}>{label}</span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#ccc', display: 'inline-block' }} />
+          <span style={{ fontSize: '0.78rem', color: TEXT_MUTED }}>Domingo (siempre cerrado)</span>
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '2rem', alignItems: 'flex-start' }}>
 
@@ -112,39 +164,76 @@ function CitasCalendarioAdmin() {
               const d = Array.isArray(value) ? value[0] : value;
               if (d instanceof Date) setFechaSeleccionada(d);
             }}
+            tileDisabled={({ date, view }) => view === 'month' && esDomingo(date)}
             tileContent={({ date, view }) => {
               if (view !== 'month') return null;
-              const citasDia = citasPorDia[toKey(date)];
-              if (!citasDia?.length) return null;
+              const key = toKey(date);
+              const tieneCitas = !!citasPorDia[key]?.length;
+              const bloqueado  = diasBloqueados.has(key);
+              if (!tieneCitas && !bloqueado) return null;
               return (
-                <div
-                  style={{
-                    marginTop: 3,
-                    width: 5,
-                    height: 5,
-                    borderRadius: '999px',
-                    backgroundColor: GOLD,
-                    marginInline: 'auto',
-                  }}
-                />
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 3 }}>
+                  {tieneCitas && (
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: GOLD, display: 'inline-block' }} />
+                  )}
+                  {bloqueado && (
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: ERROR, display: 'inline-block' }} />
+                  )}
+                </div>
               );
             }}
           />
         </div>
 
-        {/* Lista del día */}
+        {/* Panel del día */}
         <div>
-          <h2
-            style={{
-              fontSize: '0.8rem',
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <h2 style={{ margin: 0, fontSize: '0.8rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: GOLD }}>
+              {fechaSeleccionada.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </h2>
+
+            {/* Botón bloquear/desbloquear — no aparece en domingos */}
+            {!diaEsDomingo && (
+              <button
+                onClick={() => toggleBloqueo(keySeleccionado, !diaEstaBloqueado)}
+                disabled={bloqueando}
+                style={{
+                  padding: '0.4rem 1rem',
+                  borderRadius: '999px',
+                  border: `1px solid ${diaEstaBloqueado ? SUCCESS : ERROR}`,
+                  backgroundColor: diaEstaBloqueado ? `${SUCCESS}15` : `${ERROR}12`,
+                  color: diaEstaBloqueado ? SUCCESS : ERROR,
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: bloqueando ? 'wait' : 'pointer',
+                  letterSpacing: '0.04em',
+                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                }}
+              >
+                {bloqueando ? '…' : diaEstaBloqueado ? '✓ Desbloquear día' : '⊘ Bloquear día'}
+              </button>
+            )}
+          </div>
+
+          {/* Banner si el día está bloqueado o es domingo */}
+          {(diaEsDomingo || diaEstaBloqueado) && (
+            <div style={{
               marginBottom: '1rem',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: GOLD,
-            }}
-          >
-            Citas · {fechaSeleccionada.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </h2>
+              padding: '0.65rem 1rem',
+              borderRadius: '0.6rem',
+              backgroundColor: `${ERROR}12`,
+              border: `1px solid ${ERROR}33`,
+            }}>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: ERROR, fontWeight: 500 }}>
+                {diaEsDomingo
+                  ? 'Los domingos están cerrados permanentemente.'
+                  : 'Este día está bloqueado — los clientes no pueden agendar citas.'}
+              </p>
+            </div>
+          )}
 
           {citasDelDia.length === 0 && (
             <p style={{ margin: 0, color: TEXT_MUTED, fontSize: '0.95rem' }}>
@@ -172,9 +261,7 @@ function CitasCalendarioAdmin() {
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
                         <div>
-                          <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: GOLD }}>
-                            {hora}
-                          </p>
+                          <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: GOLD }}>{hora}</p>
                           <p style={{ margin: '0.15rem 0 0', fontSize: '0.88rem', color: TEXT_SECONDARY }}>
                             {cita.servicio.nombre}
                           </p>

@@ -80,6 +80,11 @@ model CostoEnvio {
   activo Boolean @default(true)
 }
 
+model DiaBloqueado {
+  id    Int    @id @default(autoincrement())
+  fecha String @unique // 'YYYY-MM-DD'
+}
+
 model PedidoProducto {
   id         Int      @id @default(autoincrement())
   cantidad   Int

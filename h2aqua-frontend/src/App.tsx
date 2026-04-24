@@ -888,6 +888,7 @@ function Citas() {
   const [cargandoCitas, setCargandoCitas] = useState(false);
   const [terapias, setTerapias] = useState<TerapiaApi[]>([]);
   const [terapiaSeleccionadaId, setTerapiaSeleccionadaId] = useState<number | null>(null);
+  const [diasBloqueados, setDiasBloqueados] = useState<Set<string>>(new Set());
 
   const telefonoValido = /^\+?[\d\s\-().]{10,15}$/.test(telefono.replace(/\s/g, '')) && telefono.replace(/\D/g, '').length >= 10;
   const correoValido   = correo === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
@@ -911,7 +912,14 @@ function Citas() {
     } catch { alert('No se pudieron cargar las terapias disponibles.'); }
   }
 
-  useEffect(() => { cargarCitas(); cargarTerapias(); }, []);
+  useEffect(() => {
+    cargarCitas();
+    cargarTerapias();
+    fetch(`${API_URL}/dias-bloqueados`)
+      .then((r) => r.json())
+      .then((fechas: string[]) => setDiasBloqueados(new Set(fechas)))
+      .catch(() => {});
+  }, []);
 
   const fechaKey = fecha.toISOString().slice(0, 10);
   const horariosOcupados = new Set(
@@ -985,6 +993,11 @@ function Citas() {
           onChange={(value) => {
             const d = Array.isArray(value) ? value[0] : value;
             if (d instanceof Date) { setFecha(d); setHoraSeleccionada(null); }
+          }}
+          tileDisabled={({ date, view }) => {
+            if (view !== 'month') return false;
+            if (date.getDay() === 0) return true;
+            return diasBloqueados.has(date.toISOString().slice(0, 10));
           }}
         />
         <div>
