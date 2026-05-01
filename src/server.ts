@@ -1,8 +1,4 @@
 import dns from 'dns';
-// Force IPv4-first DNS — Node 17+ prefers IPv6 by default, which causes
-// ENETUNREACH on Render where IPv6 outbound is unavailable.
-dns.setDefaultResultOrder('ipv4first');
-
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import cors from 'cors';
@@ -10,11 +6,39 @@ import multer from 'multer';
 import path from 'path';
 import nodemailer from 'nodemailer';
 
-async function sendMailWithRetry(
-  transporter: ReturnType<typeof makeTransporter>,
-  opts: Parameters<ReturnType<typeof makeTransporter>['sendMail']>[0],
-  retries = 2,
-) {
+// Explicitly resolve SMTP hostname to an IPv4 address before connecting.
+// dns.setDefaultResultOrder and the nodemailer `family:4` option are both
+// ignored by Render's runtime — the only reliable fix is calling
+// dns.promises.lookup directly with {family:4} to get an A record.
+async function makeTransporter() {
+  const smtpHostname = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port   = Number(process.env.SMTP_PORT || 465);
+  const secure = port === 465;
+
+  let host = smtpHostname;
+  try {
+    const { address } = await dns.promises.lookup(smtpHostname, { family: 4 });
+    host = address;
+    console.log(`SMTP resolved to IPv4 ${host}`);
+  } catch (e: any) {
+    console.warn(`SMTP IPv4 lookup failed (${e.message}), using hostname`);
+  }
+
+  const opts: any = {
+    host,
+    port,
+    secure,
+    tls: { servername: smtpHostname },   // SNI + cert validation against hostname, not IP
+    ...(secure ? {} : { requireTLS: true }),
+    connectionTimeout: 10_000,
+    greetingTimeout:   10_000,
+    socketTimeout:     15_000,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  };
+  return nodemailer.createTransport(opts);
+}
+
+async function sendMailWithRetry(transporter: any, opts: any, retries = 2) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await transporter.sendMail(opts);
@@ -29,24 +53,6 @@ async function sendMailWithRetry(
       throw err;
     }
   }
-}
-
-function makeTransporter() {
-  const port   = Number(process.env.SMTP_PORT || 465);
-  const secure = port === 465;
-  const opts: any = {
-    host:              process.env.SMTP_HOST || 'smtp.gmail.com',
-    port,
-    secure,
-    family:            4,
-    // requireTLS only applies to STARTTLS (587); 465 is SSL from byte 0
-    ...(secure ? {} : { requireTLS: true }),
-    connectionTimeout: 10_000,
-    greetingTimeout:   10_000,
-    socketTimeout:     15_000,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  };
-  return nodemailer.createTransport(opts);
 }
 import { createClient } from '@supabase/supabase-js';
 
@@ -387,7 +393,7 @@ async function sendCitaNuevaEmails(data: {
   nombre: string; telefono: string; correo?: string | null;
   terapia: string; fechaHora: Date; precio?: number | null;
 }): Promise<void> {
-  const transporter = makeTransporter();
+  const transporter = await makeTransporter();
 
   const { nombre, telefono, correo, terapia, fechaHora, precio } = data;
   const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
@@ -489,7 +495,7 @@ async function sendCitaNuevaEmails(data: {
 async function sendCitaConfirmadaEmail(data: {
   correo: string; nombre: string; terapia: string; fechaHora: Date; precio?: number | null;
 }): Promise<void> {
-  const transporter = makeTransporter();
+  const transporter = await makeTransporter();
 
   const { correo, nombre, terapia, fechaHora, precio } = data;
   const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
@@ -762,7 +768,7 @@ interface OrderEmailData {
 async function sendOrderEmails(data: OrderEmailData): Promise<void> {
   const numeroOrdenLog = `H2-${String(data.pedidoId).padStart(5, '0')}`;
   console.log('sendOrderEmails called for order:', numeroOrdenLog, '→', data.email);
-  const transporter = makeTransporter();
+  const transporter = await makeTransporter();
 
   const { pedidoId, nombre, email, telefono, direccion, recogerEnSucursal, costoEnvio, items, total } = data;
   const numeroOrden = `H2-${String(pedidoId).padStart(5, '0')}`;
@@ -1065,7 +1071,7 @@ interface GiftCardData {
 }
 
 async function sendGiftCardEmail(gift: GiftCardData): Promise<void> {
-  const transporter = makeTransporter();
+  const transporter = await makeTransporter();
 
   const { codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta } = gift;
   const mensajeHtml = mensaje

@@ -5,15 +5,42 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 const dns_1 = __importDefault(require("dns"));
-// Force IPv4-first DNS — Node 17+ prefers IPv6 by default, which causes
-// ENETUNREACH on Render where IPv6 outbound is unavailable.
-dns_1.default.setDefaultResultOrder('ipv4first');
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
 const cors_1 = __importDefault(require("cors"));
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
+// Explicitly resolve SMTP hostname to an IPv4 address before connecting.
+// dns.setDefaultResultOrder and the nodemailer `family:4` option are both
+// ignored by Render's runtime — the only reliable fix is calling
+// dns.promises.lookup directly with {family:4} to get an A record.
+async function makeTransporter() {
+    const smtpHostname = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const port = Number(process.env.SMTP_PORT || 465);
+    const secure = port === 465;
+    let host = smtpHostname;
+    try {
+        const { address } = await dns_1.default.promises.lookup(smtpHostname, { family: 4 });
+        host = address;
+        console.log(`SMTP resolved to IPv4 ${host}`);
+    }
+    catch (e) {
+        console.warn(`SMTP IPv4 lookup failed (${e.message}), using hostname`);
+    }
+    const opts = {
+        host,
+        port,
+        secure,
+        tls: { servername: smtpHostname }, // SNI + cert validation against hostname, not IP
+        ...(secure ? {} : { requireTLS: true }),
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    };
+    return nodemailer_1.default.createTransport(opts);
+}
 async function sendMailWithRetry(transporter, opts, retries = 2) {
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
@@ -30,23 +57,6 @@ async function sendMailWithRetry(transporter, opts, retries = 2) {
             throw err;
         }
     }
-}
-function makeTransporter() {
-    const port = Number(process.env.SMTP_PORT || 465);
-    const secure = port === 465;
-    const opts = {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port,
-        secure,
-        family: 4,
-        // requireTLS only applies to STARTTLS (587); 465 is SSL from byte 0
-        ...(secure ? {} : { requireTLS: true }),
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    };
-    return nodemailer_1.default.createTransport(opts);
 }
 const supabase_js_1 = require("@supabase/supabase-js");
 const app = (0, express_1.default)();
@@ -348,7 +358,7 @@ app.get("/productos-destacados", async (_req, res) => {
 // ─── Helper: emails de cita nueva (pendiente de pago) ─────────────────────────
 async function sendCitaNuevaEmails(data) {
     var _a;
-    const transporter = makeTransporter();
+    const transporter = await makeTransporter();
     const { nombre, telefono, correo, terapia, fechaHora, precio } = data;
     const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
     const horaFmt = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
@@ -442,7 +452,7 @@ async function sendCitaNuevaEmails(data) {
 }
 // ─── Helper: email de confirmación de cita ────────────────────────────────────
 async function sendCitaConfirmadaEmail(data) {
-    const transporter = makeTransporter();
+    const transporter = await makeTransporter();
     const { correo, nombre, terapia, fechaHora, precio } = data;
     const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
     const horaFmt = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
@@ -685,7 +695,7 @@ async function sendOrderEmails(data) {
     var _a;
     const numeroOrdenLog = `H2-${String(data.pedidoId).padStart(5, '0')}`;
     console.log('sendOrderEmails called for order:', numeroOrdenLog, '→', data.email);
-    const transporter = makeTransporter();
+    const transporter = await makeTransporter();
     const { pedidoId, nombre, email, telefono, direccion, recogerEnSucursal, costoEnvio, items, total } = data;
     const numeroOrden = `H2-${String(pedidoId).padStart(5, '0')}`;
     const SUCURSAL_ADDR = 'Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón · C.P. 01900';
@@ -965,7 +975,7 @@ app.delete("/dias-bloqueados/:fecha", async (req, res) => {
     }
 });
 async function sendGiftCardEmail(gift) {
-    const transporter = makeTransporter();
+    const transporter = await makeTransporter();
     const { codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta } = gift;
     const mensajeHtml = mensaje
         ? `<p style="font-style:italic; color:#4a6b75; margin:0 0 1.5rem; line-height:1.7;">"${mensaje}"</p>`
