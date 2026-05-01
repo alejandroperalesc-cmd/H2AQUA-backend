@@ -4,6 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
+const dns_1 = __importDefault(require("dns"));
+// Force IPv4-first DNS — Node 17+ prefers IPv6 by default, which causes
+// ENETUNREACH on Render where IPv6 outbound is unavailable.
+dns_1.default.setDefaultResultOrder('ipv4first');
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
 const cors_1 = __importDefault(require("cors"));

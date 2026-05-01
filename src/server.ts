@@ -1,3 +1,8 @@
+import dns from 'dns';
+// Force IPv4-first DNS — Node 17+ prefers IPv6 by default, which causes
+// ENETUNREACH on Render where IPv6 outbound is unavailable.
+dns.setDefaultResultOrder('ipv4first');
+
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import cors from 'cors';
