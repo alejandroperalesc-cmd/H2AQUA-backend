@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import Productos from './Productos';
@@ -218,6 +218,45 @@ const SERVICIOS_COMPLEMENTARIOS = [
   },
 ];
 
+const REVIEWS = [
+  {
+    estrellas: 5,
+    nombre: 'Mariana G.',
+    texto: 'Me hice el facial con productos coreanos + hidrógeno molecular y la diferencia fue increíble. La piel se ve más hidratada, luminosa y como más sana desde adentro. Siento que el hidrógeno hace que todo lo demás funcione mejor.',
+    producto: 'Facial K-Beauty + Terapia H2',
+  },
+  {
+    estrellas: 5,
+    nombre: 'Sofía R.',
+    texto: 'Llevo 3 semanas usando el tónico de arroz y desde la primera semana noté la diferencia. La piel se ve más uniforme y luminosa. Lo combino con mis sesiones de hidrógeno y los resultados son increíbles.',
+    producto: 'Tónico de arroz iluminador',
+  },
+  {
+    estrellas: 5,
+    nombre: 'Carmen L.',
+    texto: 'Me encantó la combinación. Los productos coreanos dejan la piel hermosa, pero con el hidrógeno se siente un plus, como más salud en la piel.',
+    producto: 'Rutina K-Beauty + Terapia H2',
+  },
+  {
+    estrellas: 4.5,
+    nombre: 'Daniela M.',
+    texto: 'El tónico exfoliante AHA+BHA es lo mejor que he probado para mis poros. Lo noté más cuando lo combiné con sesiones de hidrógeno: la piel se desinflama más rápido y se ve más limpia.',
+    producto: 'Tónico exfoliante AHA+BHA',
+  },
+  {
+    estrellas: 5,
+    nombre: 'Valeria T.',
+    texto: 'El protector solar coreano es increíble, no deja residuo blanco y la piel queda con un efecto hidratado sin sensación grasosa. Ya no uso otro.',
+    producto: 'Protector Solar Coreano SPF 50+',
+  },
+  {
+    estrellas: 4.5,
+    nombre: 'Alejandra P.',
+    texto: 'El tónico coreano calmó mi piel sensible desde la primera aplicación. Ideal para piel irritada, reduce rojeces y es muy ligero. Ya es parte de mi rutina diaria.',
+    producto: 'Tónico Hidratante Coreano',
+  },
+];
+
 function BeneficioCard({ b, isMobile }: { b: typeof BENEFICIOS[0]; isMobile: boolean }) {
   const [hovered, setHovered] = useState(false);
   const active = isMobile || hovered;
@@ -308,6 +347,142 @@ function BeneficioCard({ b, isMobile }: { b: typeof BENEFICIOS[0]; isMobile: boo
           {b.desc}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReviewCarousel({ isMobile }: { isMobile: boolean }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const tick = setInterval(() => {
+      setActiveIdx(prev => {
+        const next = (prev + 1) % REVIEWS.length;
+        const container = scrollRef.current;
+        if (container) {
+          if (next === 0) {
+            container.scrollTo({ left: 0, behavior: 'auto' });
+          } else {
+            const cardW = container.scrollWidth / REVIEWS.length;
+            container.scrollTo({ left: next * cardW, behavior: 'smooth' });
+          }
+        }
+        return next;
+      });
+    }, 4000);
+    return () => clearInterval(tick);
+  }, [isMobile]);
+
+  const renderStars = (rating: number) => (
+    <>
+      {Array.from({ length: 5 }, (_, i) => {
+        if (i < Math.floor(rating)) {
+          return <span key={i} style={{ color: '#c4a35a', fontSize: '1rem', lineHeight: 1 }}>★</span>;
+        }
+        if (i === Math.floor(rating) && rating % 1 >= 0.5) {
+          return (
+            <span key={i} style={{ position: 'relative', display: 'inline-block', color: 'rgba(196,163,90,0.2)', fontSize: '1rem', lineHeight: 1 }}>
+              ★
+              <span style={{ position: 'absolute', left: 0, top: 0, width: '55%', overflow: 'hidden', color: '#c4a35a', display: 'block' }}>★</span>
+            </span>
+          );
+        }
+        return <span key={i} style={{ color: 'rgba(196,163,90,0.2)', fontSize: '1rem', lineHeight: 1 }}>★</span>;
+      })}
+    </>
+  );
+
+  const renderCard = (r: typeof REVIEWS[0], idx: number, mobile: boolean) => (
+    <div
+      key={idx}
+      style={{
+        background: 'linear-gradient(145deg, #0f1829 0%, #131e30 100%)',
+        border: '1px solid rgba(0,169,192,0.14)',
+        borderRadius: '1.1rem',
+        padding: mobile ? '1.25rem' : '1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.7rem',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.32)',
+        ...(mobile ? {
+          minWidth: 'calc(85vw - 1.25rem)',
+          maxWidth: 'calc(85vw - 1.25rem)',
+          scrollSnapAlign: 'start',
+          flexShrink: 0,
+        } : {}),
+      }}
+    >
+      <div style={{ display: 'flex', gap: '0.1rem' }}>{renderStars(r.estrellas)}</div>
+      <p style={{
+        margin: 0,
+        color: 'rgba(215,230,238,0.82)',
+        fontSize: '0.87rem',
+        lineHeight: 1.75,
+        fontStyle: 'italic',
+        flexGrow: 1,
+      }}>
+        &ldquo;{r.texto}&rdquo;
+      </p>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '0.4rem',
+        paddingTop: '0.6rem',
+        borderTop: '1px solid rgba(0,169,192,0.10)',
+      }}>
+        <span style={{ fontWeight: 700, color: '#ffffff', fontSize: '0.88rem' }}>{r.nombre}</span>
+        <span style={{
+          fontSize: '0.67rem',
+          color: '#00A9C0',
+          background: 'rgba(0,169,192,0.10)',
+          border: '1px solid rgba(0,169,192,0.18)',
+          borderRadius: '999px',
+          padding: '0.18rem 0.65rem',
+          letterSpacing: '0.02em',
+          whiteSpace: 'nowrap',
+        }}>{r.producto}</span>
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <div>
+        <div
+          ref={scrollRef}
+          style={{
+            display: 'flex',
+            gap: '0.75rem',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            scrollbarWidth: 'none',
+            paddingBottom: '0.25rem',
+          } as React.CSSProperties}
+        >
+          {REVIEWS.map((r, i) => renderCard(r, i, true))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.45rem', marginTop: '1rem' }}>
+          {REVIEWS.map((_, i) => (
+            <div key={i} style={{
+              width: i === activeIdx ? '16px' : '5px',
+              height: '5px',
+              borderRadius: '999px',
+              background: i === activeIdx ? '#c4a35a' : 'rgba(196,163,90,0.28)',
+              transition: 'all 0.3s ease',
+            }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+      {REVIEWS.map((r, i) => renderCard(r, i, false))}
     </div>
   );
 }
@@ -677,6 +852,26 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
             <BeneficioCard key={s.label} b={s} isMobile={isMobile} />
           ))}
         </div>
+      </section>
+
+      {/* ── TESTIMONIOS ──────────────────────────────────────────────────────── */}
+      <section style={{
+        marginBottom: isMobile ? '2rem' : '3rem',
+        background: 'linear-gradient(150deg, #0d1528 0%, #0f1b2e 50%, #111d35 100%)',
+        borderRadius: '1.75rem',
+        padding: isMobile ? '2rem 1.25rem' : '3rem 2.75rem',
+        border: '1px solid rgba(0,169,192,0.10)',
+        boxShadow: '0 8px 48px rgba(0,0,0,0.32)',
+      }}>
+        <div style={{ marginBottom: '1.75rem', textAlign: isMobile ? 'center' : 'left' }}>
+          <p style={{ margin: '0 0 0.4rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c4a35a', fontWeight: 600 }}>
+            Testimonios
+          </p>
+          <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.75rem', color: '#ffffff', fontWeight: 300 }}>
+            Lo que dicen <strong style={{ fontWeight: 700 }}>nuestros clientes</strong>
+          </h2>
+        </div>
+        <ReviewCarousel isMobile={isMobile} />
       </section>
 
       {/* ── CTA FINAL ────────────────────────────────────────────────────────── */}
