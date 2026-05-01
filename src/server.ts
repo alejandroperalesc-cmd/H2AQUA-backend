@@ -428,10 +428,14 @@ async function sendCitaNuevaEmails(data: {
 </div>
 </body></html>`;
 
+  console.log(`[cita email] admin→${ADMIN_EMAIL} | cliente→${correo ?? 'sin correo'}`);
   await resend.emails.send({ from: FROM, to: [ADMIN_EMAIL], subject: `📅 Nueva cita — ${nombre} · ${fechaFmt} ${horaFmt}`, html: adminHtml });
 
   if (correo) {
     await resend.emails.send({ from: FROM, to: [correo], subject: `📅 Tu cita H2AQUA está registrada — ${fechaFmt} ${horaFmt}`, html: clienteHtml });
+    console.log(`[cita email] confirmation sent to ${correo}`);
+  } else {
+    console.warn('[cita email] no customer email provided — skipping customer confirmation');
   }
 }
 

@@ -1086,7 +1086,7 @@ function Citas() {
   const [diasBloqueados, setDiasBloqueados] = useState<Set<string>>(new Set());
 
   const telefonoValido = /^\+?[\d\s\-().]{10,15}$/.test(telefono.replace(/\s/g, '')) && telefono.replace(/\D/g, '').length >= 10;
-  const correoValido   = correo === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+  const correoValido   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 
   async function cargarCitas() {
     try {
@@ -1130,6 +1130,7 @@ function Citas() {
     if (!nombre.trim()) { setErrorForm('El nombre es obligatorio.'); return; }
     if (!telefono.trim()) { setErrorForm('El teléfono es obligatorio.'); return; }
     if (!telefonoValido) { setErrorForm('Ingresa un número de teléfono válido (mínimo 10 dígitos).'); return; }
+    if (!correo.trim()) { setErrorForm('El correo electrónico es obligatorio para recibir la confirmación.'); return; }
     if (!correoValido) { setErrorForm('El formato del correo electrónico no es válido.'); return; }
     if (horariosOcupados.has(horaSeleccionada)) { setErrorForm('Ese horario ya está ocupado, elige otro.'); return; }
 
@@ -1334,13 +1335,14 @@ function Citas() {
                     </div>
                     <div>
                       <input
-                        type="email" placeholder="Correo electrónico (para recibir confirmación)" value={correo}
+                        type="email" placeholder="Correo electrónico *" value={correo}
                         onChange={(e) => { setCorreo(e.target.value); setErrorForm(null); }}
                         style={{ ...inputStyle, borderColor: correo && !correoValido ? '#e05569' : undefined }}
                       />
                       {correo && !correoValido && (
                         <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', color: '#e05569' }}>Formato de correo no válido</p>
                       )}
+                      <p style={{ margin: '0.25rem 0 0', fontSize: '0.72rem', color: TEXT_MUTED }}>Recibirás la confirmación en este correo</p>
                     </div>
                     {errorForm && (
                       <div style={{ backgroundColor: 'rgba(224,85,106,0.08)', borderRadius: '0.6rem', padding: '0.65rem 0.9rem', border: '1px solid rgba(224,85,106,0.25)' }}>
