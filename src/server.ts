@@ -6,12 +6,15 @@ import path from 'path';
 import nodemailer from 'nodemailer';
 
 function makeTransporter() {
+  const port   = Number(process.env.SMTP_PORT || 465);
+  const secure = port === 465;
   const opts: any = {
     host:              process.env.SMTP_HOST || 'smtp.gmail.com',
-    port:              Number(process.env.SMTP_PORT || 587),
-    secure:            process.env.SMTP_PORT === '465',
+    port,
+    secure,
     family:            4,
-    requireTLS:        true,
+    // requireTLS only applies to STARTTLS (587); 465 is SSL from byte 0
+    ...(secure ? {} : { requireTLS: true }),
     connectionTimeout: 10_000,
     greetingTimeout:   10_000,
     socketTimeout:     15_000,
