@@ -2,62 +2,17 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
-const dns_1 = __importDefault(require("dns"));
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
 const cors_1 = __importDefault(require("cors"));
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
-const nodemailer_1 = __importDefault(require("nodemailer"));
-// Explicitly resolve SMTP hostname to an IPv4 address before connecting.
-// dns.setDefaultResultOrder and the nodemailer `family:4` option are both
-// ignored by Render's runtime — the only reliable fix is calling
-// dns.promises.lookup directly with {family:4} to get an A record.
-async function makeTransporter() {
-    const smtpHostname = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const port = Number(process.env.SMTP_PORT || 465);
-    const secure = port === 465;
-    let host = smtpHostname;
-    try {
-        const { address } = await dns_1.default.promises.lookup(smtpHostname, { family: 4 });
-        host = address;
-        console.log(`SMTP resolved to IPv4 ${host}`);
-    }
-    catch (e) {
-        console.warn(`SMTP IPv4 lookup failed (${e.message}), using hostname`);
-    }
-    const opts = {
-        host,
-        port,
-        secure,
-        tls: { servername: smtpHostname }, // SNI + cert validation against hostname, not IP
-        ...(secure ? {} : { requireTLS: true }),
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    };
-    return nodemailer_1.default.createTransport(opts);
-}
-async function sendMailWithRetry(transporter, opts, retries = 2) {
-    for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-            return await transporter.sendMail(opts);
-        }
-        catch (err) {
-            const retryable = err.code === 'ENETUNREACH' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT';
-            if (retryable && attempt < retries) {
-                const wait = 1500 * (attempt + 1);
-                console.warn(`SMTP ${err.code} on attempt ${attempt + 1}, retrying in ${wait}ms…`);
-                await new Promise(r => setTimeout(r, wait));
-                continue;
-            }
-            throw err;
-        }
-    }
-}
+const resend_1 = require("resend");
+const resend = new resend_1.Resend(process.env.RESEND_API_KEY);
+const ADMIN_EMAIL = (_a = process.env.ADMIN_EMAIL) !== null && _a !== void 0 ? _a : 'h2aquamexico@gmail.com';
+const FROM = 'H2AQUA <onboarding@resend.dev>';
 const supabase_js_1 = require("@supabase/supabase-js");
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
@@ -88,7 +43,7 @@ app.use(express_1.default.json());
 // Servir carpeta de uploads de forma estática (fallback local)
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '..', 'uploads')));
 // Supabase client
-const supabase = (0, supabase_js_1.createClient)((_a = process.env.SUPABASE_URL) !== null && _a !== void 0 ? _a : '', (_b = process.env.SUPABASE_SERVICE_KEY) !== null && _b !== void 0 ? _b : '');
+const supabase = (0, supabase_js_1.createClient)((_b = process.env.SUPABASE_URL) !== null && _b !== void 0 ? _b : '', (_c = process.env.SUPABASE_SERVICE_KEY) !== null && _c !== void 0 ? _c : '');
 const SUPABASE_BUCKET = 'Productos';
 // Multer — memory storage (file goes to Supabase, not disk)
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
@@ -357,8 +312,6 @@ app.get("/productos-destacados", async (_req, res) => {
 // ---------- CITAS ----------
 // ─── Helper: emails de cita nueva (pendiente de pago) ─────────────────────────
 async function sendCitaNuevaEmails(data) {
-    var _a;
-    const transporter = await makeTransporter();
     const { nombre, telefono, correo, terapia, fechaHora, precio } = data;
     const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
     const horaFmt = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
@@ -435,24 +388,13 @@ async function sendCitaNuevaEmails(data) {
   </div>
 </div>
 </body></html>`;
-    await sendMailWithRetry(transporter, {
-        from: `"H2AQUA" <${process.env.SMTP_USER}>`,
-        to: (_a = process.env.SMTP_USER) !== null && _a !== void 0 ? _a : 'h2aquamexico@gmail.com',
-        subject: `📅 Nueva cita — ${nombre} · ${fechaFmt} ${horaFmt}`,
-        html: adminHtml,
-    });
+    await resend.emails.send({ from: FROM, to: [ADMIN_EMAIL], subject: `📅 Nueva cita — ${nombre} · ${fechaFmt} ${horaFmt}`, html: adminHtml });
     if (correo) {
-        await sendMailWithRetry(transporter, {
-            from: `"H2AQUA" <${process.env.SMTP_USER}>`,
-            to: correo,
-            subject: `📅 Tu cita H2AQUA está registrada — ${fechaFmt} ${horaFmt}`,
-            html: clienteHtml,
-        });
+        await resend.emails.send({ from: FROM, to: [correo], subject: `📅 Tu cita H2AQUA está registrada — ${fechaFmt} ${horaFmt}`, html: clienteHtml });
     }
 }
 // ─── Helper: email de confirmación de cita ────────────────────────────────────
 async function sendCitaConfirmadaEmail(data) {
-    const transporter = await makeTransporter();
     const { correo, nombre, terapia, fechaHora, precio } = data;
     const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
     const horaFmt = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
@@ -491,12 +433,7 @@ async function sendCitaConfirmadaEmail(data) {
   </div>
 </div>
 </body></html>`;
-    await sendMailWithRetry(transporter, {
-        from: `"H2AQUA" <${process.env.SMTP_USER}>`,
-        to: correo,
-        subject: `✅ ¡Cita confirmada! ${terapia} — ${fechaFmt} ${horaFmt}`,
-        html,
-    });
+    await resend.emails.send({ from: FROM, to: [correo], subject: `✅ ¡Cita confirmada! ${terapia} — ${fechaFmt} ${horaFmt}`, html });
 }
 // Crear una nueva cita
 app.post("/citas", async (req, res) => {
@@ -692,10 +629,8 @@ app.get("/pedidos", async (req, res) => {
     }
 });
 async function sendOrderEmails(data) {
-    var _a;
     const numeroOrdenLog = `H2-${String(data.pedidoId).padStart(5, '0')}`;
     console.log('sendOrderEmails called for order:', numeroOrdenLog, '→', data.email);
-    const transporter = await makeTransporter();
     const { pedidoId, nombre, email, telefono, direccion, recogerEnSucursal, costoEnvio, items, total } = data;
     const numeroOrden = `H2-${String(pedidoId).padStart(5, '0')}`;
     const SUCURSAL_ADDR = 'Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón · C.P. 01900';
@@ -786,18 +721,8 @@ async function sendOrderEmails(data) {
 </body>
 </html>`;
     };
-    await sendMailWithRetry(transporter, {
-        from: `"H2AQUA Tienda" <${process.env.SMTP_USER}>`,
-        to: (_a = process.env.SMTP_USER) !== null && _a !== void 0 ? _a : 'h2aquamexico@gmail.com',
-        subject: `🛒 Nuevo pedido ${numeroOrden} — ${nombre}`,
-        html: buildHtml(true),
-    });
-    await sendMailWithRetry(transporter, {
-        from: `"H2AQUA" <${process.env.SMTP_USER}>`,
-        to: email,
-        subject: `✅ Confirmación de pedido ${numeroOrden} — H2AQUA`,
-        html: buildHtml(false),
-    });
+    await resend.emails.send({ from: FROM, to: [ADMIN_EMAIL], subject: `🛒 Nuevo pedido ${numeroOrden} — ${nombre}`, html: buildHtml(true) });
+    await resend.emails.send({ from: FROM, to: [email], subject: `✅ Confirmación de pedido ${numeroOrden} — H2AQUA`, html: buildHtml(false) });
 }
 // ─── Checkout: registrar cliente + pedido ────────────────────────────────────
 // items: [{ productoId: number, cantidad: number }]  (gift cards excluded)
@@ -975,7 +900,6 @@ app.delete("/dias-bloqueados/:fecha", async (req, res) => {
     }
 });
 async function sendGiftCardEmail(gift) {
-    const transporter = await makeTransporter();
     const { codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta } = gift;
     const mensajeHtml = mensaje
         ? `<p style="font-style:italic; color:#4a6b75; margin:0 0 1.5rem; line-height:1.7;">"${mensaje}"</p>`
@@ -1017,12 +941,7 @@ async function sendGiftCardEmail(gift) {
   </div>
 </body>
 </html>`;
-    await sendMailWithRetry(transporter, {
-        from: `"H2AQUA" <${process.env.SMTP_USER}>`,
-        to: emailDestinatario,
-        subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`,
-        html,
-    });
+    await resend.emails.send({ from: FROM, to: [emailDestinatario], subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`, html });
 }
 // ─── Enviar tarjeta de regalo por correo ─────────────────────────────────────
 app.post("/enviar-regalo", async (req, res) => {
