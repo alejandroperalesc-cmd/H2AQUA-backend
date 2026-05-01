@@ -104,39 +104,20 @@ app.get("/clientes", async (req, res) => {
 
 // ---------- SERVICIOS ----------
 
-// Crear un nuevo servicio
-app.post("/servicios", async (req, res) => {
-  try {
-    const { nombre, descripcion, duracionMinutos, precio } = req.body;
-
-    if (!nombre || !duracionMinutos || !precio) {
-      return res.status(400).json({
-        error: "nombre, duracionMinutos y precio son obligatorios",
-      });
-    }
-
-    const servicio = await prisma.servicio.create({
-      data: {
-        nombre,
-        descripcion,
-        duracionMinutos,
-        precio,
-      },
-    });
-
-    res.status(201).json(servicio);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error al crear servicio" });
-  }
-});
-
-// Listar todos los servicios
+// Listar servicios = productos con categoria TERAPIA, formateados como servicios
 app.get("/servicios", async (req, res) => {
   try {
-    const servicios = await prisma.servicio.findMany({
-      orderBy: { nombre: "asc" },
+    const productos = await prisma.producto.findMany({
+      where: { categoria: 'TERAPIA', estado: { in: ['ACTIVO', 'AGOTADO'] } },
+      orderBy: { nombre: 'asc' },
     });
+    const servicios = productos.map(p => ({
+      id:              p.id,
+      nombre:          p.nombre,
+      descripcion:     p.descripcion,
+      duracionMinutos: 60,
+      precio:          p.precio,
+    }));
     res.json(servicios);
   } catch (error) {
     console.error(error);
@@ -529,26 +510,27 @@ async function sendCitaConfirmadaEmail(data: {
 // Crear una nueva cita
 app.post("/citas", async (req, res) => {
   try {
-    const { fechaHora, servicioId, notas, estado, nombre, telefono, correo, terapia, precio } = req.body;
+    const { fechaHora, productoId, notas, estado, nombre, telefono, correo, terapia, precio } = req.body;
 
     if (!fechaHora) {
-      return res.status(400).json({
-        error: "fechaHora es obligatoria",
-      });
+      return res.status(400).json({ error: "fechaHora es obligatoria" });
+    }
+    if (!productoId) {
+      return res.status(400).json({ error: "productoId es obligatorio" });
     }
 
-    // por ahora usamos clienteId fijo (1) y servicioId fijo (1)
+    const producto = await prisma.producto.findUnique({ where: { id: Number(productoId) } });
+    if (!producto || producto.categoria !== 'TERAPIA') {
+      return res.status(400).json({ error: "El producto no existe o no es una terapia" });
+    }
+
     const cita = await prisma.cita.create({
       data: {
         fechaHora: new Date(fechaHora),
-        cliente: {
-          connect: { id: 1 },      // Cliente genérico
-        },
-        servicio: {
-          connect: { id: 1 },      // Servicio genérico de hidrógeno
-        },
+        cliente:  { connect: { id: 1 } },
+        producto: { connect: { id: Number(productoId) } },
         notas,
-        estado, // "PENDIENTE" por default si no mandas
+        estado,
       },
     });
 
@@ -596,8 +578,8 @@ app.get("/citas", async (req, res) => {
     const citas = await prisma.cita.findMany({
       orderBy: { fechaHora: "asc" },
       include: {
-        cliente: true,
-        servicio: true,
+        cliente:  true,
+        producto: true,
       },
     });
     res.json(citas);
@@ -739,6 +721,8 @@ interface OrderEmailData {
   email: string;
   telefono?: string | null;
   direccion?: string | null;
+  recogerEnSucursal?: boolean;
+  costoEnvio?: number;
   items: Array<{ nombre: string; cantidad: number; precioUnit: number }>;
   total: number;
 }
@@ -754,8 +738,9 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   });
 
-  const { pedidoId, nombre, email, telefono, direccion, items, total } = data;
+  const { pedidoId, nombre, email, telefono, direccion, recogerEnSucursal, costoEnvio, items, total } = data;
   const numeroOrden = `H2-${String(pedidoId).padStart(5, '0')}`;
+  const SUCURSAL_ADDR = 'Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón · C.P. 01900';
 
   const itemsHtml = items.map(item => `
     <tr>
@@ -764,7 +749,42 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
       <td style="padding:10px 0;border-bottom:1px solid #e8f0f2;text-align:right;color:#1a3a40;font-size:13px;font-weight:600;">$${(item.precioUnit * item.cantidad).toLocaleString('es-MX')}</td>
     </tr>`).join('');
 
-  const buildHtml = (isAdmin: boolean) => `<!DOCTYPE html>
+  const telefonoRow = telefono
+    ? `<tr><td style="padding:4px 0;color:#8eaab4;font-size:13px;">Teléfono</td><td style="padding:4px 0;color:#1a3a40;font-size:13px;">${telefono}</td></tr>`
+    : '';
+
+  const ubicacionBlock = recogerEnSucursal
+    ? `<div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+      <p style="margin:0 0 10px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Entrega en Sucursal</p>
+      <p style="margin:0;color:#1a3a40;font-size:13px;line-height:1.8;">${SUCURSAL_ADDR}</p>
+    </div>`
+    : direccion
+      ? `<div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
+      <p style="margin:0 0 10px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Dirección de Envío</p>
+      <p style="margin:0;color:#1a3a40;font-size:13px;line-height:1.8;">${direccion}</p>
+    </div>`
+      : '';
+
+  const envioRow = !recogerEnSucursal && costoEnvio && costoEnvio > 0
+    ? `<tr>
+        <td colspan="2" style="padding-top:10px;font-size:13px;color:#4a6b75;">Costo de envío</td>
+        <td style="padding-top:10px;text-align:right;font-size:13px;color:#1a3a40;font-weight:600;">$${costoEnvio.toLocaleString('es-MX')}</td>
+      </tr>`
+    : '';
+
+  const mensajeCliente = recogerEnSucursal
+    ? `Hemos recibido tu pedido. La entrega será en sucursal:<br><strong>${SUCURSAL_ADDR}</strong>`
+    : 'Hemos recibido tu pedido. Nos pondremos en contacto contigo a la brevedad para coordinar la entrega.';
+
+  const buildHtml = (isAdmin: boolean) => {
+    const headerLabel = isAdmin ? 'Nuevo Pedido Recibido' : 'Confirmación de Pedido';
+    const mensajeBlock = isAdmin
+      ? ''
+      : `<div style="background:rgba(0,183,196,0.08);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(0,183,196,0.2);text-align:center;">
+      <p style="margin:0;font-size:13px;color:#006d77;line-height:1.7;">${mensajeCliente}</p>
+    </div>`;
+
+    return `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background:#f2f8f9;font-family:Arial,sans-serif;">
@@ -774,7 +794,7 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
       <h1 style="margin:6px 0 0;font-size:28px;font-weight:200;letter-spacing:0.04em;color:#1a3a40;">H2AQUA</h1>
     </div>
     <div style="border-radius:16px;background:linear-gradient(135deg,#0b4a55,#006d77 50%,#00B7C4);padding:28px;text-align:center;margin-bottom:20px;">
-      <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.65);">${isAdmin ? 'Nuevo Pedido Recibido' : 'Confirmación de Pedido'}</p>
+      <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.65);">${headerLabel}</p>
       <p style="margin:0;font-size:36px;font-weight:200;color:#fff;letter-spacing:0.08em;font-family:'Courier New',monospace;">${numeroOrden}</p>
     </div>
     <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
@@ -782,13 +802,10 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
       <table style="width:100%;border-collapse:collapse;">
         <tr><td style="padding:4px 0;color:#8eaab4;font-size:13px;width:110px;">Nombre</td><td style="padding:4px 0;color:#1a3a40;font-size:13px;font-weight:600;">${nombre}</td></tr>
         <tr><td style="padding:4px 0;color:#8eaab4;font-size:13px;">Correo</td><td style="padding:4px 0;color:#1a3a40;font-size:13px;">${email}</td></tr>
-        ${telefono ? `<tr><td style="padding:4px 0;color:#8eaab4;font-size:13px;">Teléfono</td><td style="padding:4px 0;color:#1a3a40;font-size:13px;">${telefono}</td></tr>` : ''}
+        ${telefonoRow}
       </table>
     </div>
-    ${direccion ? `<div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
-      <p style="margin:0 0 10px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Dirección de Envío</p>
-      <p style="margin:0;color:#1a3a40;font-size:13px;line-height:1.8;">${direccion}</p>
-    </div>` : ''}
+    ${ubicacionBlock}
     <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;">
       <p style="margin:0 0 12px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#00B7C4;font-weight:bold;">Productos</p>
       <table style="width:100%;border-collapse:collapse;">
@@ -801,6 +818,7 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
         </thead>
         <tbody>${itemsHtml}</tbody>
         <tfoot>
+          ${envioRow}
           <tr>
             <td colspan="2" style="padding-top:14px;font-size:14px;color:#4a6b75;font-weight:600;">Total</td>
             <td style="padding-top:14px;text-align:right;font-size:20px;color:#006d77;font-weight:700;">$${total.toLocaleString('es-MX')} <span style="font-size:12px;font-weight:400;color:#8eaab4;">MXN</span></td>
@@ -808,9 +826,7 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
         </tfoot>
       </table>
     </div>
-    ${!isAdmin ? `<div style="background:rgba(0,183,196,0.08);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(0,183,196,0.2);text-align:center;">
-      <p style="margin:0;font-size:13px;color:#006d77;line-height:1.7;">Hemos recibido tu pedido. Nos pondremos en contacto contigo a la brevedad para coordinar la entrega.</p>
-    </div>` : ''}
+    ${mensajeBlock}
     <div style="text-align:center;padding-top:8px;">
       <p style="margin:0 0 4px;font-size:11px;color:#8eaab4;">info@h2aqua.com.mx · WhatsApp: 55 2560 1138</p>
       <p style="margin:0;font-size:10px;color:#aac5cc;">Avenida de las Fuentes 665</p>
@@ -818,6 +834,7 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
   </div>
 </body>
 </html>`;
+  };
 
   await transporter.sendMail({
     from: `"H2AQUA Tienda" <${process.env.SMTP_USER}>`,
@@ -839,7 +856,7 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
 app.post("/checkout", async (req, res) => {
   console.log('Checkout called with data:', JSON.stringify(req.body));
   try {
-    const { nombre, email, telefono, direccion, items, estado: estadoEnvio } = req.body;
+    const { nombre, email, telefono, direccion, items, estado: estadoEnvio, recogerEnSucursal } = req.body;
 
     if (!nombre || !email) {
       return res.status(400).json({ error: "nombre y email son obligatorios" });
@@ -861,6 +878,7 @@ app.post("/checkout", async (req, res) => {
 
     // Create pedido only if there are real product items
     let pedido = null;
+    let costoEnvio = 0;
     const productItems: { productoId: number; cantidad: number }[] =
       Array.isArray(items) ? items.filter((i: any) => i.productoId > 0) : [];
 
@@ -868,9 +886,8 @@ app.post("/checkout", async (req, res) => {
       const productosIds = productItems.map((it) => it.productoId);
       const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } });
 
-      // Lookup shipping cost for the selected state
-      let costoEnvio = 0;
-      if (estadoEnvio) {
+      // Lookup shipping cost (zero for pickup orders)
+      if (!recogerEnSucursal && estadoEnvio) {
         const ceRow = await (prisma as any).costoEnvio.findUnique({ where: { estado: estadoEnvio } });
         if (ceRow) costoEnvio = ceRow.costo;
       }
@@ -884,10 +901,15 @@ app.post("/checkout", async (req, res) => {
       });
       total += costoEnvio;
 
+      const SUCURSAL = 'Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón · C.P. 01900';
       const notasParts: string[] = [];
-      if (direccion) notasParts.push(`Dirección de entrega: ${direccion}`);
-      if (estadoEnvio) notasParts.push(`Estado: ${estadoEnvio}`);
-      if (costoEnvio > 0) notasParts.push(`Costo de envío: $${costoEnvio}`);
+      if (recogerEnSucursal) {
+        notasParts.push(`Recoger en sucursal: ${SUCURSAL}`);
+      } else {
+        if (direccion) notasParts.push(`Dirección de entrega: ${direccion}`);
+        if (estadoEnvio) notasParts.push(`Estado: ${estadoEnvio}`);
+        if (costoEnvio > 0) notasParts.push(`Costo de envío: $${costoEnvio}`);
+      }
 
       pedido = await prisma.pedido.create({
         data: {
@@ -906,12 +928,14 @@ app.post("/checkout", async (req, res) => {
       console.log('Calling sendOrderEmails...');
       try {
         await sendOrderEmails({
-          pedidoId:  pedido.id,
-          nombre:    cliente.nombre,
-          email:     cliente.email,
-          telefono:  cliente.telefono,
-          direccion: direccion || null,
-          items:     (pedido.items as any[]).map(i => ({
+          pedidoId:          pedido.id,
+          nombre:            cliente.nombre,
+          email:             cliente.email,
+          telefono:          cliente.telefono,
+          direccion:         direccion || null,
+          recogerEnSucursal: !!recogerEnSucursal,
+          costoEnvio,
+          items:             (pedido.items as any[]).map(i => ({
             nombre:    i.producto?.nombre ?? `Producto #${i.productoId}`,
             cantidad:  i.cantidad,
             precioUnit: i.precioUnit,

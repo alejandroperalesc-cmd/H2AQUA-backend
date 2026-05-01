@@ -17,7 +17,7 @@ type CitaApi = {
   estado: string;
   notas?: string | null;
   cliente: { nombre: string };
-  servicio: { nombre: string };
+  producto: { nombre: string };
 };
 
 function toKey(date: Date) { return date.toISOString().slice(0, 10); }
@@ -263,7 +263,7 @@ function CitasCalendarioAdmin() {
                         <div>
                           <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: GOLD }}>{hora}</p>
                           <p style={{ margin: '0.15rem 0 0', fontSize: '0.88rem', color: TEXT_SECONDARY }}>
-                            {cita.servicio.nombre}
+                            {cita.producto.nombre}
                           </p>
                         </div>
 

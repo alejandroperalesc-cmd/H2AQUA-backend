@@ -78,7 +78,8 @@ export default function Carrito({
   const [estadoEnvio, setEstadoEnvio] = useState('');
   const [referencia, setReferencia] = useState('');
 
-  const [procesando, setProcesando]   = useState(false);
+  const [recogerEnSucursal, setRecogerEnSucursal] = useState(false);
+  const [procesando, setProcesando] = useState(false);
   const [cargandoClip, setCargandoClip] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
@@ -92,15 +93,16 @@ export default function Carrito({
       .catch(() => {});
   }, []);
 
-  const costoEnvio = costosEnvio.find((c) => c.estado === estadoEnvio)?.costo ?? 0;
+  const costoEnvio = recogerEnSucursal ? 0 : (costosEnvio.find((c) => c.estado === estadoEnvio)?.costo ?? 0);
   const total = subtotal + costoEnvio;
 
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const puedeConfirmar =
-    nombre.trim().length > 0 && emailValido &&
-    calle.trim().length > 0 && numExt.trim().length > 0 &&
-    codigoPostal.trim().length > 0 && colonia.trim().length > 0 &&
-    ciudad.trim().length > 0 && estadoEnvio.length > 0;
+  const puedeConfirmar = recogerEnSucursal
+    ? nombre.trim().length > 0 && emailValido
+    : nombre.trim().length > 0 && emailValido &&
+      calle.trim().length > 0 && numExt.trim().length > 0 &&
+      codigoPostal.trim().length > 0 && colonia.trim().length > 0 &&
+      ciudad.trim().length > 0 && estadoEnvio.length > 0;
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.75rem 1rem', borderRadius: '0.65rem',
@@ -146,7 +148,9 @@ export default function Carrito({
         <p style={{ color: TEXT_SECONDARY, fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2rem' }}>
           Tu pedido ha sido registrado correctamente. Recibirás una confirmación en <strong>{email}</strong>.
           {regalos.length > 0 && ' Los códigos de las tarjetas de regalo ya fueron enviados a los correos indicados.'}
-          {' '}Nos pondremos en contacto a la brevedad para coordinar la entrega.
+          {recogerEnSucursal
+            ? ' Puedes recoger tu pedido en Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón, C.P. 01900.'
+            : ' Nos pondremos en contacto a la brevedad para coordinar la entrega.'}
         </p>
         <button
           onClick={onSeguirComprando}
@@ -298,11 +302,28 @@ export default function Carrito({
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+                {/* Opción: recoger en sucursal */}
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer', padding: '0.9rem 1rem', borderRadius: '0.75rem', border: `1.5px solid ${recogerEnSucursal ? TEAL : BORDER}`, backgroundColor: recogerEnSucursal ? `${TEAL}12` : BG_CARD_ALT, transition: 'border-color 0.2s, background-color 0.2s' }}>
+                  <input
+                    type="checkbox"
+                    checked={recogerEnSucursal}
+                    onChange={(e) => setRecogerEnSucursal(e.target.checked)}
+                    style={{ marginTop: '2px', width: '1rem', height: '1rem', accentColor: TEAL, cursor: 'pointer', flexShrink: 0 }}
+                  />
+                  <div>
+                    <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 600, color: TEXT_PRIMARY }}>Recoger en sucursal</p>
+                    <p style={{ margin: '0.15rem 0 0', fontSize: '0.78rem', color: TEXT_SECONDARY, lineHeight: 1.5 }}>
+                      Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón · C.P. 01900
+                    </p>
+                  </div>
+                </label>
+
                 <Campo label="Nombre completo" required>
                   <input type="text" placeholder="Tu nombre y apellido" value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />
                 </Campo>
 
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile || recogerEnSucursal ? '1fr' : '1fr 1fr', gap: '1rem' }}>
                   <Campo label="Correo electrónico" required>
                     <input
                       type="email" placeholder="correo@ejemplo.com"
@@ -311,63 +332,69 @@ export default function Carrito({
                     />
                     {email && !emailValido && <p style={{ margin: '0.3rem 0 0', fontSize: '0.73rem', color: ERROR }}>Ingresa un correo válido</p>}
                   </Campo>
-                  <Campo label="Teléfono / WhatsApp">
-                    <input type="tel" placeholder="+52 55 0000 0000" value={telefono} onChange={(e) => setTelefono(e.target.value)} style={inputStyle} />
-                  </Campo>
+                  {!recogerEnSucursal && (
+                    <Campo label="Teléfono / WhatsApp">
+                      <input type="tel" placeholder="+52 55 0000 0000" value={telefono} onChange={(e) => setTelefono(e.target.value)} style={inputStyle} />
+                    </Campo>
+                  )}
                 </div>
 
-                <Campo label="Calle" required>
-                  <input type="text" placeholder="Nombre de la calle" value={calle} onChange={(e) => setCalle(e.target.value)} style={inputStyle} />
-                </Campo>
+                {!recogerEnSucursal && (
+                  <>
+                    <Campo label="Calle" required>
+                      <input type="text" placeholder="Nombre de la calle" value={calle} onChange={(e) => setCalle(e.target.value)} style={inputStyle} />
+                    </Campo>
 
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
-                  <Campo label="Número exterior" required>
-                    <input type="text" placeholder="Ej. 42" value={numExt} onChange={(e) => setNumExt(e.target.value)} style={inputStyle} />
-                  </Campo>
-                  <Campo label="Número interior">
-                    <input type="text" placeholder="Depto, piso… (opcional)" value={numInt} onChange={(e) => setNumInt(e.target.value)} style={inputStyle} />
-                  </Campo>
-                </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                      <Campo label="Número exterior" required>
+                        <input type="text" placeholder="Ej. 42" value={numExt} onChange={(e) => setNumExt(e.target.value)} style={inputStyle} />
+                      </Campo>
+                      <Campo label="Número interior">
+                        <input type="text" placeholder="Depto, piso… (opcional)" value={numInt} onChange={(e) => setNumInt(e.target.value)} style={inputStyle} />
+                      </Campo>
+                    </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
-                  <Campo label="Código postal" required>
-                    <input type="text" placeholder="00000" value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)} style={inputStyle} />
-                  </Campo>
-                  <Campo label="Colonia" required>
-                    <input type="text" placeholder="Nombre de la colonia" value={colonia} onChange={(e) => setColonia(e.target.value)} style={inputStyle} />
-                  </Campo>
-                </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                      <Campo label="Código postal" required>
+                        <input type="text" placeholder="00000" value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)} style={inputStyle} />
+                      </Campo>
+                      <Campo label="Colonia" required>
+                        <input type="text" placeholder="Nombre de la colonia" value={colonia} onChange={(e) => setColonia(e.target.value)} style={inputStyle} />
+                      </Campo>
+                    </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
-                  <Campo label="Ciudad / Alcaldía" required>
-                    <input type="text" placeholder="Ciudad o Alcaldía" value={ciudad} onChange={(e) => setCiudad(e.target.value)} style={inputStyle} />
-                  </Campo>
-                  <Campo label="Estado" required>
-                    <select
-                      value={estadoEnvio}
-                      onChange={(e) => setEstadoEnvio(e.target.value)}
-                      style={{
-                        ...inputStyle,
-                        cursor: 'pointer',
-                        appearance: 'none',
-                        WebkitAppearance: 'none',
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300A9C0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 0.75rem center',
-                        paddingRight: '2.5rem',
-                      }}
-                    >
-                      <option value="">Selecciona un estado…</option>
-                      {costosEnvio.map((c) => (
-                        <option key={c.estado} value={c.estado}>{c.estado}</option>
-                      ))}
-                    </select>
-                  </Campo>
-                </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                      <Campo label="Ciudad / Alcaldía" required>
+                        <input type="text" placeholder="Ciudad o Alcaldía" value={ciudad} onChange={(e) => setCiudad(e.target.value)} style={inputStyle} />
+                      </Campo>
+                      <Campo label="Estado" required>
+                        <select
+                          value={estadoEnvio}
+                          onChange={(e) => setEstadoEnvio(e.target.value)}
+                          style={{
+                            ...inputStyle,
+                            cursor: 'pointer',
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300A9C0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.75rem center',
+                            paddingRight: '2.5rem',
+                          }}
+                        >
+                          <option value="">Selecciona un estado…</option>
+                          {costosEnvio.map((c) => (
+                            <option key={c.estado} value={c.estado}>{c.estado}</option>
+                          ))}
+                        </select>
+                      </Campo>
+                    </div>
 
-                <Campo label="Referencia">
-                  <input type="text" placeholder="Entre calles, señas, color de fachada… (opcional)" value={referencia} onChange={(e) => setReferencia(e.target.value)} style={inputStyle} />
-                </Campo>
+                    <Campo label="Referencia">
+                      <input type="text" placeholder="Entre calles, señas, color de fachada… (opcional)" value={referencia} onChange={(e) => setReferencia(e.target.value)} style={inputStyle} />
+                    </Campo>
+                  </>
+                )}
               </div>
 
               {errorMsg && (
@@ -420,12 +447,13 @@ export default function Carrito({
                   method:  'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body:    JSON.stringify({
-                    nombre:    nombre.trim(),
-                    email:     email.trim(),
-                    telefono:  telefono.trim(),
-                    direccion: direccionFmt,
-                    estado:    estadoEnvio,
-                    items:     productItems,
+                    nombre:            nombre.trim(),
+                    email:             email.trim(),
+                    telefono:          telefono.trim(),
+                    direccion:         direccionFmt,
+                    estado:            estadoEnvio,
+                    items:             productItems,
+                    recogerEnSucursal,
                   }),
                 });
                 if (!checkoutRes.ok) {
@@ -433,23 +461,16 @@ export default function Carrito({
                   throw new Error(body.error ?? 'Error al registrar el pedido');
                 }
                 const { pedido } = await checkoutRes.json() as { pedido?: { id: number } };
-                if (pedido?.id) {
-                  setNumeroPedido(`H2-${String(pedido.id).padStart(5, '0')}`);
-                }
-
+                if (pedido?.id) setNumeroPedido(`H2-${String(pedido.id).padStart(5, '0')}`);
                 for (const regalo of regalosPayload) {
                   if (!regalo.codigo || !regalo.emailDestinatario) continue;
                   try {
                     await fetch(`${API_URL}/enviar-regalo`, {
-                      method:  'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body:    JSON.stringify(regalo),
+                      method: 'POST', headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(regalo),
                     });
-                  } catch (emailErr) {
-                    console.warn('Gift card email failed (non-fatal):', emailErr);
-                  }
+                  } catch (emailErr) { console.warn('Gift card email failed (non-fatal):', emailErr); }
                 }
-
                 onVaciar();
                 setPaso('exito');
               } catch (err: unknown) {
@@ -467,14 +488,15 @@ export default function Carrito({
                   method:  'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body:    JSON.stringify({
-                    nombre:    nombre.trim(),
-                    email:     email.trim(),
-                    telefono:  telefono.trim(),
-                    direccion: direccionFmt,
-                    estado:    estadoEnvio,
-                    items:     productItems,
-                    regalos:   regalosPayload,
+                    nombre:            nombre.trim(),
+                    email:             email.trim(),
+                    telefono:          telefono.trim(),
+                    direccion:         direccionFmt,
+                    estado:            estadoEnvio,
+                    items:             productItems,
+                    regalos:           regalosPayload,
                     total,
+                    recogerEnSucursal,
                   }),
                 });
                 if (!res.ok) {
@@ -494,10 +516,12 @@ export default function Carrito({
 
                 {/* Resumen de datos */}
                 <div style={{ marginBottom: '1.5rem', padding: '0.85rem 1rem', borderRadius: '0.75rem', backgroundColor: BG_CARD_ALT, border: `1px solid ${BORDER}` }}>
-                  <p style={{ margin: '0 0 0.2rem', fontSize: '0.72rem', color: TEXT_MUTED, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Datos de entrega</p>
+                  <p style={{ margin: '0 0 0.2rem', fontSize: '0.72rem', color: TEXT_MUTED, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{recogerEnSucursal ? 'Recoger en sucursal' : 'Datos de entrega'}</p>
                   <p style={{ margin: 0, fontWeight: 600, color: TEXT_PRIMARY, fontSize: '0.9rem' }}>{nombre}</p>
                   <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>{email}{telefono ? ` · ${telefono}` : ''}</p>
-                  {direccionFmt && <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>{direccionFmt}</p>}
+                  {recogerEnSucursal
+                    ? <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón · C.P. 01900</p>
+                    : direccionFmt && <p style={{ margin: '0.1rem 0 0', color: TEXT_SECONDARY, fontSize: '0.82rem' }}>{direccionFmt}</p>}
                 </div>
 
                 {errorMsg && (
@@ -533,38 +557,39 @@ export default function Carrito({
                   </p>
                 </div>
 
-                {/* Divider */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.25rem 0' }}>
-                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
-                  <span style={{ fontSize: '0.75rem', color: TEXT_MUTED, letterSpacing: '0.1em' }}>o también</span>
-                  <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
-                </div>
-
-                {/* ── Simular venta ── */}
-                <div>
-                  <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED }}>
-                    Registrar pedido sin pago
-                  </p>
-                  <button
-                    disabled={procesando || cargandoClip}
-                    onClick={simularVenta}
-                    style={{
-                      width: '100%', padding: '0.95rem', borderRadius: '0.75rem',
-                      border: `1px solid ${BORDER}`,
-                      background: (procesando || cargandoClip) ? 'transparent' : BG_CARD_ALT,
-                      color: (procesando || cargandoClip) ? TEXT_MUTED : TEXT_SECONDARY,
-                      fontWeight: 600, fontSize: '0.95rem',
-                      cursor: (procesando || cargandoClip) ? 'default' : 'pointer',
-                      letterSpacing: '0.02em', transition: 'all 0.2s',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                    }}
-                  >
-                    {procesando ? 'Registrando…' : '📋 Simular venta'}
-                  </button>
-                  <p style={{ margin: '0.5rem 0 0', textAlign: 'center', fontSize: '0.72rem', color: TEXT_MUTED }}>
-                    Registra el pedido y envía confirmación por correo
-                  </p>
-                </div>
+                {import.meta.env.DEV && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.25rem 0' }}>
+                      <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
+                      <span style={{ fontSize: '0.75rem', color: TEXT_MUTED, letterSpacing: '0.1em' }}>o también</span>
+                      <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
+                    </div>
+                    <div>
+                      <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT_MUTED }}>
+                        Registrar pedido sin pago
+                      </p>
+                      <button
+                        disabled={procesando || cargandoClip}
+                        onClick={simularVenta}
+                        style={{
+                          width: '100%', padding: '0.95rem', borderRadius: '0.75rem',
+                          border: `1px solid ${BORDER}`,
+                          background: (procesando || cargandoClip) ? 'transparent' : BG_CARD_ALT,
+                          color: (procesando || cargandoClip) ? TEXT_MUTED : TEXT_SECONDARY,
+                          fontWeight: 600, fontSize: '0.95rem',
+                          cursor: (procesando || cargandoClip) ? 'default' : 'pointer',
+                          letterSpacing: '0.02em', transition: 'all 0.2s',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                        }}
+                      >
+                        {procesando ? 'Registrando…' : '📋 Simular venta'}
+                      </button>
+                      <p style={{ margin: '0.5rem 0 0', textAlign: 'center', fontSize: '0.72rem', color: TEXT_MUTED }}>
+                        Registra el pedido y envía confirmación por correo
+                      </p>
+                    </div>
+                  </>
+                )}
 
               </div>
             );

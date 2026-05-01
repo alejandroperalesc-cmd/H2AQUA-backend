@@ -949,8 +949,8 @@ function Citas() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fechaHora,
-          clienteId: 1,
-          servicioId: 1,
+          clienteId:  1,
+          productoId: terapiaSeleccionadaId,
           notas: `Nombre: ${nombre.trim()}, Tel: ${telefono.trim()}, Correo: ${correo.trim() || 'N/A'}, Terapia: ${terapia?.nombre ?? ''}`,
           estado: 'PENDIENTE',
           nombre:   nombre.trim(),

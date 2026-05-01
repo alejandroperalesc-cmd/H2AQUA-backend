@@ -22,14 +22,6 @@ model Cliente {
   pedidos       Pedido[]
 }
 
-model Servicio {
-  id              Int       @id @default(autoincrement())
-  nombre          String
-  descripcion     String?
-  duracionMinutos Int
-  precio          Int
-  citas           Cita[]
-}
 
 model Producto {
   id          Int      @id @default(autoincrement())
@@ -45,6 +37,7 @@ model Producto {
   protocolo_limpieza   Boolean  @default(false)
   protocolo_kbeauty    Boolean  @default(false)
   pedidos              PedidoProducto[]
+  citas                Cita[]
 }
 
 model Cita {
@@ -54,8 +47,8 @@ model Cita {
   notas      String?
   cliente    Cliente  @relation(fields: [clienteId], references: [id])
   clienteId  Int
-  servicio   Servicio @relation(fields: [servicioId], references: [id])
-  servicioId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+  productoId Int
   creadaEn   DateTime @default(now())
 }
 
