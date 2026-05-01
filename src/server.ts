@@ -5,6 +5,27 @@ import multer from 'multer';
 import path from 'path';
 import nodemailer from 'nodemailer';
 
+async function sendMailWithRetry(
+  transporter: ReturnType<typeof makeTransporter>,
+  opts: Parameters<ReturnType<typeof makeTransporter>['sendMail']>[0],
+  retries = 2,
+) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await transporter.sendMail(opts);
+    } catch (err: any) {
+      const retryable = err.code === 'ENETUNREACH' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT';
+      if (retryable && attempt < retries) {
+        const wait = 1500 * (attempt + 1);
+        console.warn(`SMTP ${err.code} on attempt ${attempt + 1}, retrying in ${wait}ms…`);
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 function makeTransporter() {
   const port   = Number(process.env.SMTP_PORT || 465);
   const secure = port === 465;
@@ -442,7 +463,7 @@ async function sendCitaNuevaEmails(data: {
 </div>
 </body></html>`;
 
-  await transporter.sendMail({
+  await sendMailWithRetry(transporter, {
     from: `"H2AQUA" <${process.env.SMTP_USER}>`,
     to:   process.env.SMTP_USER ?? 'h2aquamexico@gmail.com',
     subject: `📅 Nueva cita — ${nombre} · ${fechaFmt} ${horaFmt}`,
@@ -450,7 +471,7 @@ async function sendCitaNuevaEmails(data: {
   });
 
   if (correo) {
-    await transporter.sendMail({
+    await sendMailWithRetry(transporter, {
       from: `"H2AQUA" <${process.env.SMTP_USER}>`,
       to:   correo,
       subject: `📅 Tu cita H2AQUA está registrada — ${fechaFmt} ${horaFmt}`,
@@ -505,7 +526,7 @@ async function sendCitaConfirmadaEmail(data: {
 </div>
 </body></html>`;
 
-  await transporter.sendMail({
+  await sendMailWithRetry(transporter, {
     from: `"H2AQUA" <${process.env.SMTP_USER}>`,
     to:   correo,
     subject: `✅ ¡Cita confirmada! ${terapia} — ${fechaFmt} ${horaFmt}`,
@@ -836,14 +857,14 @@ async function sendOrderEmails(data: OrderEmailData): Promise<void> {
 </html>`;
   };
 
-  await transporter.sendMail({
+  await sendMailWithRetry(transporter, {
     from: `"H2AQUA Tienda" <${process.env.SMTP_USER}>`,
     to:   process.env.SMTP_USER ?? 'h2aquamexico@gmail.com',
     subject: `🛒 Nuevo pedido ${numeroOrden} — ${nombre}`,
     html: buildHtml(true),
   });
 
-  await transporter.sendMail({
+  await sendMailWithRetry(transporter, {
     from: `"H2AQUA" <${process.env.SMTP_USER}>`,
     to:   email,
     subject: `✅ Confirmación de pedido ${numeroOrden} — H2AQUA`,
@@ -1084,7 +1105,7 @@ async function sendGiftCardEmail(gift: GiftCardData): Promise<void> {
 </body>
 </html>`;
 
-  await transporter.sendMail({
+  await sendMailWithRetry(transporter, {
     from: `"H2AQUA" <${process.env.SMTP_USER}>`,
     to: emailDestinatario,
     subject: `🎁 Tu Tarjeta de Regalo H2AQUA · ${codigo}`,
