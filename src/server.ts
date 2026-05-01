@@ -4,6 +4,18 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import nodemailer from 'nodemailer';
+
+function makeTransporter() {
+  const opts: any = {
+    host:       process.env.SMTP_HOST || 'smtp.gmail.com',
+    port:       Number(process.env.SMTP_PORT || 587),
+    secure:     process.env.SMTP_PORT === '465',
+    family:     4,
+    requireTLS: true,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  };
+  return nodemailer.createTransport(opts);
+}
 import { createClient } from '@supabase/supabase-js';
 
 const app = express();
@@ -343,13 +355,7 @@ async function sendCitaNuevaEmails(data: {
   nombre: string; telefono: string; correo?: string | null;
   terapia: string; fechaHora: Date; precio?: number | null;
 }): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    host:       process.env.SMTP_HOST || 'smtp.gmail.com',
-    port:       Number(process.env.SMTP_PORT || 587),
-    secure:     process.env.SMTP_PORT === '465',
-    requireTLS: true,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
+  const transporter = makeTransporter();
 
   const { nombre, telefono, correo, terapia, fechaHora, precio } = data;
   const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
@@ -451,13 +457,7 @@ async function sendCitaNuevaEmails(data: {
 async function sendCitaConfirmadaEmail(data: {
   correo: string; nombre: string; terapia: string; fechaHora: Date; precio?: number | null;
 }): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    host:       process.env.SMTP_HOST || 'smtp.gmail.com',
-    port:       Number(process.env.SMTP_PORT || 587),
-    secure:     process.env.SMTP_PORT === '465',
-    requireTLS: true,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
+  const transporter = makeTransporter();
 
   const { correo, nombre, terapia, fechaHora, precio } = data;
   const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
@@ -730,13 +730,7 @@ interface OrderEmailData {
 async function sendOrderEmails(data: OrderEmailData): Promise<void> {
   const numeroOrdenLog = `H2-${String(data.pedidoId).padStart(5, '0')}`;
   console.log('sendOrderEmails called for order:', numeroOrdenLog, '→', data.email);
-  const transporter = nodemailer.createTransport({
-    host:       process.env.SMTP_HOST || 'smtp.titan.email',
-    port:       Number(process.env.SMTP_PORT || 587),
-    secure:     process.env.SMTP_PORT === '465',
-    requireTLS: true,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
+  const transporter = makeTransporter();
 
   const { pedidoId, nombre, email, telefono, direccion, recogerEnSucursal, costoEnvio, items, total } = data;
   const numeroOrden = `H2-${String(pedidoId).padStart(5, '0')}`;
@@ -1039,16 +1033,7 @@ interface GiftCardData {
 }
 
 async function sendGiftCardEmail(gift: GiftCardData): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    host:       process.env.SMTP_HOST || 'smtp.titan.email',
-    port:       Number(process.env.SMTP_PORT || 587),
-    secure:     process.env.SMTP_PORT === '465',
-    requireTLS: true,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  const transporter = makeTransporter();
 
   const { codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta } = gift;
   const mensajeHtml = mensaje

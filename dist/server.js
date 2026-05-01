@@ -10,6 +10,17 @@ const cors_1 = __importDefault(require("cors"));
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
+function makeTransporter() {
+    const opts = {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: process.env.SMTP_PORT === '465',
+        family: 4,
+        requireTLS: true,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    };
+    return nodemailer_1.default.createTransport(opts);
+}
 const supabase_js_1 = require("@supabase/supabase-js");
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
@@ -310,13 +321,7 @@ app.get("/productos-destacados", async (_req, res) => {
 // ─── Helper: emails de cita nueva (pendiente de pago) ─────────────────────────
 async function sendCitaNuevaEmails(data) {
     var _a;
-    const transporter = nodemailer_1.default.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: process.env.SMTP_PORT === '465',
-        requireTLS: true,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
+    const transporter = makeTransporter();
     const { nombre, telefono, correo, terapia, fechaHora, precio } = data;
     const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
     const horaFmt = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
@@ -410,13 +415,7 @@ async function sendCitaNuevaEmails(data) {
 }
 // ─── Helper: email de confirmación de cita ────────────────────────────────────
 async function sendCitaConfirmadaEmail(data) {
-    const transporter = nodemailer_1.default.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: process.env.SMTP_PORT === '465',
-        requireTLS: true,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
+    const transporter = makeTransporter();
     const { correo, nombre, terapia, fechaHora, precio } = data;
     const fechaFmt = fechaHora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
     const horaFmt = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
@@ -659,14 +658,8 @@ async function sendOrderEmails(data) {
     var _a;
     const numeroOrdenLog = `H2-${String(data.pedidoId).padStart(5, '0')}`;
     console.log('sendOrderEmails called for order:', numeroOrdenLog, '→', data.email);
-    const transporter = nodemailer_1.default.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.titan.email',
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: process.env.SMTP_PORT === '465',
-        requireTLS: true,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-    const { pedidoId, nombre, email, telefono, direccion, recogerEnSucursal, items, total } = data;
+    const transporter = makeTransporter();
+    const { pedidoId, nombre, email, telefono, direccion, recogerEnSucursal, costoEnvio, items, total } = data;
     const numeroOrden = `H2-${String(pedidoId).padStart(5, '0')}`;
     const SUCURSAL_ADDR = 'Av. de las Fuentes 665, Jardines del Pedregal, Álvaro Obregón · C.P. 01900';
     const itemsHtml = items.map(item => `
@@ -689,6 +682,12 @@ async function sendOrderEmails(data) {
       <p style="margin:0;color:#1a3a40;font-size:13px;line-height:1.8;">${direccion}</p>
     </div>`
             : '';
+    const envioRow = !recogerEnSucursal && costoEnvio && costoEnvio > 0
+        ? `<tr>
+        <td colspan="2" style="padding-top:10px;font-size:13px;color:#4a6b75;">Costo de envío</td>
+        <td style="padding-top:10px;text-align:right;font-size:13px;color:#1a3a40;font-weight:600;">$${costoEnvio.toLocaleString('es-MX')}</td>
+      </tr>`
+        : '';
     const mensajeCliente = recogerEnSucursal
         ? `Hemos recibido tu pedido. La entrega será en sucursal:<br><strong>${SUCURSAL_ADDR}</strong>`
         : 'Hemos recibido tu pedido. Nos pondremos en contacto contigo a la brevedad para coordinar la entrega.';
@@ -733,6 +732,7 @@ async function sendOrderEmails(data) {
         </thead>
         <tbody>${itemsHtml}</tbody>
         <tfoot>
+          ${envioRow}
           <tr>
             <td colspan="2" style="padding-top:14px;font-size:14px;color:#4a6b75;font-weight:600;">Total</td>
             <td style="padding-top:14px;text-align:right;font-size:20px;color:#006d77;font-weight:700;">$${total.toLocaleString('es-MX')} <span style="font-size:12px;font-weight:400;color:#8eaab4;">MXN</span></td>
@@ -787,12 +787,12 @@ app.post("/checkout", async (req, res) => {
         }
         // Create pedido only if there are real product items
         let pedido = null;
+        let costoEnvio = 0;
         const productItems = Array.isArray(items) ? items.filter((i) => i.productoId > 0) : [];
         if (productItems.length > 0) {
             const productosIds = productItems.map((it) => it.productoId);
             const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } });
             // Lookup shipping cost (zero for pickup orders)
-            let costoEnvio = 0;
             if (!recogerEnSucursal && estadoEnvio) {
                 const ceRow = await prisma.costoEnvio.findUnique({ where: { estado: estadoEnvio } });
                 if (ceRow)
@@ -842,6 +842,7 @@ app.post("/checkout", async (req, res) => {
                     telefono: cliente.telefono,
                     direccion: direccion || null,
                     recogerEnSucursal: !!recogerEnSucursal,
+                    costoEnvio,
                     items: pedido.items.map(i => {
                         var _a, _b;
                         return ({
@@ -937,16 +938,7 @@ app.delete("/dias-bloqueados/:fecha", async (req, res) => {
     }
 });
 async function sendGiftCardEmail(gift) {
-    const transporter = nodemailer_1.default.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.titan.email',
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: process.env.SMTP_PORT === '465',
-        requireTLS: true,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
+    const transporter = makeTransporter();
     const { codigo, emailDestinatario, para, de, mensaje, monto, nombreTarjeta } = gift;
     const mensajeHtml = mensaje
         ? `<p style="font-style:italic; color:#4a6b75; margin:0 0 1.5rem; line-height:1.7;">"${mensaje}"</p>`
