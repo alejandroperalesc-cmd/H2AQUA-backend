@@ -7,11 +7,14 @@ import nodemailer from 'nodemailer';
 
 function makeTransporter() {
   const opts: any = {
-    host:       process.env.SMTP_HOST || 'smtp.gmail.com',
-    port:       Number(process.env.SMTP_PORT || 587),
-    secure:     process.env.SMTP_PORT === '465',
-    family:     4,
-    requireTLS: true,
+    host:              process.env.SMTP_HOST || 'smtp.gmail.com',
+    port:              Number(process.env.SMTP_PORT || 587),
+    secure:            process.env.SMTP_PORT === '465',
+    family:            4,
+    requireTLS:        true,
+    connectionTimeout: 10_000,
+    greetingTimeout:   10_000,
+    socketTimeout:     15_000,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   };
   return nodemailer.createTransport(opts);
