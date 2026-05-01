@@ -11,12 +11,18 @@ const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 function makeTransporter() {
+    const port = Number(process.env.SMTP_PORT || 465);
+    const secure = port === 465;
     const opts = {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: process.env.SMTP_PORT === '465',
+        port,
+        secure,
         family: 4,
-        requireTLS: true,
+        // requireTLS only applies to STARTTLS (587); 465 is SSL from byte 0
+        ...(secure ? {} : { requireTLS: true }),
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     };
     return nodemailer_1.default.createTransport(opts);
