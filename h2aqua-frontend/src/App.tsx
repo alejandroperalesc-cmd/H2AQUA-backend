@@ -398,14 +398,14 @@ function ReviewCarousel({ isMobile }: { isMobile: boolean }) {
     <div
       key={idx}
       style={{
-        background: 'linear-gradient(145deg, #0f1829 0%, #131e30 100%)',
-        border: '1px solid rgba(0,169,192,0.14)',
+        backgroundColor: '#ffffff',
+        border: '1px solid rgba(0,169,192,0.20)',
         borderRadius: '1.1rem',
         padding: mobile ? '1.25rem' : '1.5rem',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.7rem',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.32)',
+        boxShadow: '0 2px 16px rgba(0,183,196,0.10)',
         ...(mobile ? {
           minWidth: 'calc(85vw - 1.25rem)',
           maxWidth: 'calc(85vw - 1.25rem)',
@@ -417,7 +417,7 @@ function ReviewCarousel({ isMobile }: { isMobile: boolean }) {
       <div style={{ display: 'flex', gap: '0.1rem' }}>{renderStars(r.estrellas)}</div>
       <p style={{
         margin: 0,
-        color: 'rgba(215,230,238,0.82)',
+        color: '#4a6b75',
         fontSize: '0.87rem',
         lineHeight: 1.75,
         fontStyle: 'italic',
@@ -432,14 +432,14 @@ function ReviewCarousel({ isMobile }: { isMobile: boolean }) {
         flexWrap: 'wrap',
         gap: '0.4rem',
         paddingTop: '0.6rem',
-        borderTop: '1px solid rgba(0,169,192,0.10)',
+        borderTop: '1px solid rgba(0,169,192,0.15)',
       }}>
-        <span style={{ fontWeight: 700, color: '#ffffff', fontSize: '0.88rem' }}>{r.nombre}</span>
+        <span style={{ fontWeight: 700, color: '#1a3a40', fontSize: '0.88rem' }}>{r.nombre}</span>
         <span style={{
           fontSize: '0.67rem',
-          color: '#00A9C0',
-          background: 'rgba(0,169,192,0.10)',
-          border: '1px solid rgba(0,169,192,0.18)',
+          color: '#006d77',
+          background: 'rgba(0,183,196,0.09)',
+          border: '1px solid rgba(0,169,192,0.20)',
           borderRadius: '999px',
           padding: '0.18rem 0.65rem',
           letterSpacing: '0.02em',
@@ -471,7 +471,7 @@ function ReviewCarousel({ isMobile }: { isMobile: boolean }) {
               width: i === activeIdx ? '16px' : '5px',
               height: '5px',
               borderRadius: '999px',
-              background: i === activeIdx ? '#c4a35a' : 'rgba(196,163,90,0.28)',
+              background: i === activeIdx ? '#006d77' : 'rgba(0,109,119,0.22)',
               transition: 'all 0.3s ease',
             }} />
           ))}
@@ -857,17 +857,17 @@ function Home({ irA }: { irA: (vista: Vista) => void }) {
       {/* ── TESTIMONIOS ──────────────────────────────────────────────────────── */}
       <section style={{
         marginBottom: isMobile ? '2rem' : '3rem',
-        background: 'linear-gradient(150deg, #0d1528 0%, #0f1b2e 50%, #111d35 100%)',
+        backgroundColor: '#eaf5f7',
         borderRadius: '1.75rem',
         padding: isMobile ? '2rem 1.25rem' : '3rem 2.75rem',
-        border: '1px solid rgba(0,169,192,0.10)',
-        boxShadow: '0 8px 48px rgba(0,0,0,0.32)',
+        border: '1px solid rgba(0,169,192,0.22)',
+        boxShadow: `0 2px 20px rgba(0,183,196,0.12)`,
       }}>
         <div style={{ marginBottom: '1.75rem', textAlign: isMobile ? 'center' : 'left' }}>
-          <p style={{ margin: '0 0 0.4rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c4a35a', fontWeight: 600 }}>
+          <p style={{ margin: '0 0 0.4rem', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: TEAL, fontWeight: 600 }}>
             Testimonios
           </p>
-          <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.75rem', color: '#ffffff', fontWeight: 300 }}>
+          <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.75rem', color: TEXT_PRIMARY, fontWeight: 300 }}>
             Lo que dicen <strong style={{ fontWeight: 700 }}>nuestros clientes</strong>
           </h2>
         </div>
