@@ -76,14 +76,14 @@ const PROTO_KBEAUTY = {
 
 // ─── Ícono info ───────────────────────────────────────────────────────────────
 
-function InfoIcon({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
+function InfoIcon({ onClick, title = 'Ver protocolo de aplicación' }: { onClick: (e: React.MouseEvent) => void; title?: string }) {
   const [hover, setHover] = useState(false);
   return (
     <span
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      title="Ver protocolo de aplicación"
+      title={title}
       style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', marginLeft: '6px', opacity: hover ? 0.7 : 1, transition: 'opacity 0.15s', flexShrink: 0, verticalAlign: 'middle' }}
     >
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -185,6 +185,142 @@ function ProtocoloModal({ producto, onClose }: { producto: ProductoTienda; onClo
   );
 }
 
+// ─── Bottom sheet de detalle (mobile) ────────────────────────────────────────
+
+function ProductoBottomSheet({
+  producto,
+  onAgregarAlCarrito,
+  onClose,
+}: {
+  producto: ProductoTienda;
+  onAgregarAlCarrito: (item: Omit<ItemCarrito, 'cantidad'>) => void;
+  onClose: () => void;
+}) {
+  const [visible, setVisible] = useState(false);
+  const agotado = producto.estado === 'AGOTADO' || producto.stock <= 0;
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 10);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      clearTimeout(t);
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1100,
+        backgroundColor: `rgba(10,30,35,${visible ? 0.72 : 0})`,
+        display: 'flex', alignItems: 'flex-end',
+        transition: 'background-color 0.3s ease',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%', maxHeight: '90vh', overflowY: 'auto',
+          backgroundColor: '#0b1e22',
+          borderRadius: '1.5rem 1.5rem 0 0',
+          boxShadow: '0 -8px 48px rgba(0,0,0,0.5)',
+          transform: visible ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
+        }}
+      >
+        {/* Handle bar */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '0.75rem 0 0' }}>
+          <div style={{ width: '40px', height: '4px', borderRadius: '999px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+        </div>
+
+        {/* Top row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 1.25rem 0' }}>
+          <p style={{ margin: 0, fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: 'rgba(0,169,192,0.65)' }}>
+            Detalle del producto
+          </p>
+          <button
+            onClick={onClose}
+            style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              border: 'none', backgroundColor: 'rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.75)', fontSize: '1rem', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Product image — full width */}
+        {producto.imagenUrl ? (
+          <div style={{ width: '100%', height: '260px', overflow: 'hidden', marginTop: '1rem' }}>
+            <img
+              src={producto.imagenUrl}
+              alt={producto.nombre}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          </div>
+        ) : (
+          <div style={{
+            width: '100%', height: '140px', marginTop: '1rem',
+            backgroundColor: BG_CARD_ALT,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: TEXT_MUTED, fontSize: '0.78rem', letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+          }}>
+            Sin imagen
+          </div>
+        )}
+
+        {/* Content */}
+        <div style={{ padding: '1.5rem 1.5rem 2.5rem' }}>
+          <h2 style={{ margin: '0 0 0.6rem', fontSize: '1.2rem', fontWeight: 600, color: '#fff', lineHeight: 1.35 }}>
+            {producto.nombre}
+          </h2>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginBottom: '1.1rem' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 400, color: P_GREEN }}>$</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 700, color: P, letterSpacing: '-0.02em' }}>
+              {producto.precio.toLocaleString('es-MX')}
+            </span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 500, color: TEXT_MUTED, letterSpacing: '0.06em' }}>MXN</span>
+          </div>
+
+          {producto.descripcion && (
+            <p style={{
+              margin: '0 0 1.5rem', fontSize: '0.9rem', lineHeight: 1.75,
+              color: 'rgba(255,255,255,0.72)',
+              borderLeft: `2px solid rgba(0,169,192,0.3)`,
+              paddingLeft: '0.9rem',
+            }}>
+              {producto.descripcion}
+            </p>
+          )}
+
+          <button
+            disabled={agotado}
+            onClick={() => {
+              onAgregarAlCarrito({ id: producto.id, nombre: producto.nombre, precio: producto.precio, imagenUrl: producto.imagenUrl });
+              onClose();
+            }}
+            style={{
+              width: '100%', padding: '0.9rem 1rem', borderRadius: '999px',
+              border: agotado ? `1px solid ${BORDER_SUBTLE}` : 'none',
+              background: agotado ? 'transparent' : GRAD_MAIN,
+              color: agotado ? TEXT_MUTED : '#ffffff',
+              cursor: agotado ? 'not-allowed' : 'pointer',
+              fontSize: '0.92rem', fontWeight: 600, letterSpacing: '0.04em',
+              boxShadow: agotado ? 'none' : `0 4px 20px rgba(0,109,119,0.4)`,
+            }}
+          >
+            {agotado ? 'No disponible' : '+ Agregar al carrito'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tarjeta de producto ──────────────────────────────────────────────────────
 
 function TarjetaProducto({
@@ -199,9 +335,11 @@ function TarjetaProducto({
   const agotado = p.estado === 'AGOTADO' || p.stock <= 0;
   const tieneProtocolo = !!(p.protocolo_limpieza || p.protocolo_kbeauty);
   const [hover, setHover] = useState(false);
+  const [verDetalle, setVerDetalle] = useState(false);
   const isMobile = useIsMobile();
 
   return (
+    <>
     <article
       style={{
         borderRadius: '1.25rem',
@@ -219,94 +357,96 @@ function TarjetaProducto({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {/* Imagen */}
-      <div
-        style={{
-          width: '100%',
-          height: isMobile ? '130px' : '170px',
-          backgroundColor: BG_CARD_ALT,
-          flexShrink: 0,
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-      >
-        {p.imagenUrl ? (
-          <img
-            src={p.imagenUrl}
-            alt={p.nombre}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-              transition: 'transform 0.35s ease',
-              transform: hover ? 'scale(1.06)' : 'scale(1)',
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: TEXT_MUTED,
-              fontSize: '0.8rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-            }}
-          >
-            Sin imagen
-          </div>
-        )}
-        {/* Acento inferior */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
-          background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, ${GOLD}, transparent)`,
-          opacity: hover ? 1 : 0,
-          transition: 'opacity 0.22s ease',
-        }} />
-
-        {/* Overlay descripción — se desliza desde abajo al hacer hover */}
-        {p.descripcion && !isMobile && (
+      {/* Imagen — desktop only */}
+      {!isMobile && (
+        <div
+          style={{
+            width: '100%',
+            height: '170px',
+            backgroundColor: BG_CARD_ALT,
+            flexShrink: 0,
+            overflow: 'hidden',
+            position: 'relative',
+          }}
+        >
+          {p.imagenUrl ? (
+            <img
+              src={p.imagenUrl}
+              alt={p.nombre}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transition: 'transform 0.35s ease',
+                transform: hover ? 'scale(1.06)' : 'scale(1)',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: TEXT_MUTED,
+                fontSize: '0.8rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Sin imagen
+            </div>
+          )}
+          {/* Acento inferior */}
           <div style={{
-            position: 'absolute', inset: 0,
-            background: `linear-gradient(155deg, rgba(11,74,85,0.97) 0%, rgba(0,109,119,0.95) 50%, rgba(0,150,138,0.93) 100%)`,
-            backdropFilter: 'blur(6px)',
-            display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            padding: '1rem 1.15rem',
-            transform: hover ? 'translateY(0)' : 'translateY(100%)',
-            transition: 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)',
-            pointerEvents: hover ? 'auto' : 'none',
-          }}>
-            {/* Etiqueta */}
-            <span style={{
-              fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em',
-              textTransform: 'uppercase', color: P_LIGHT,
-              marginBottom: '0.45rem', display: 'block',
-            }}>
-              Descripción
-            </span>
-            {/* Línea decorativa */}
+            position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
+            background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, ${GOLD}, transparent)`,
+            opacity: hover ? 1 : 0,
+            transition: 'opacity 0.22s ease',
+          }} />
+
+          {/* Overlay descripción — se desliza desde abajo al hacer hover */}
+          {p.descripcion && (
             <div style={{
-              width: '24px', height: '2px', borderRadius: '999px',
-              background: `linear-gradient(90deg, ${P}, ${GOLD})`,
-              marginBottom: '0.6rem',
-            }} />
-            <p style={{
-              margin: 0, color: 'rgba(255,255,255,0.88)',
-              fontSize: '0.8rem', lineHeight: 1.65,
-              display: '-webkit-box',
-              WebkitLineClamp: 5,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
+              position: 'absolute', inset: 0,
+              background: `linear-gradient(155deg, rgba(11,74,85,0.97) 0%, rgba(0,109,119,0.95) 50%, rgba(0,150,138,0.93) 100%)`,
+              backdropFilter: 'blur(6px)',
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              padding: '1rem 1.15rem',
+              transform: hover ? 'translateY(0)' : 'translateY(100%)',
+              transition: 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)',
+              pointerEvents: hover ? 'auto' : 'none',
             }}>
-              {p.descripcion}
-            </p>
-          </div>
-        )}
-      </div>
+              {/* Etiqueta */}
+              <span style={{
+                fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em',
+                textTransform: 'uppercase', color: P_LIGHT,
+                marginBottom: '0.45rem', display: 'block',
+              }}>
+                Descripción
+              </span>
+              {/* Línea decorativa */}
+              <div style={{
+                width: '24px', height: '2px', borderRadius: '999px',
+                background: `linear-gradient(90deg, ${P}, ${GOLD})`,
+                marginBottom: '0.6rem',
+              }} />
+              <p style={{
+                margin: 0, color: 'rgba(255,255,255,0.88)',
+                fontSize: '0.8rem', lineHeight: 1.65,
+                display: '-webkit-box',
+                WebkitLineClamp: 5,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}>
+                {p.descripcion}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Contenido */}
       <div
@@ -333,7 +473,13 @@ function TarjetaProducto({
           }}
         >
           <span>{p.nombre}</span>
-          {tieneProtocolo && (
+          {isMobile && (
+            <InfoIcon
+              title="Ver detalles del producto"
+              onClick={(e) => { e.stopPropagation(); setVerDetalle(true); }}
+            />
+          )}
+          {tieneProtocolo && !isMobile && (
             <InfoIcon onClick={(e) => { e.stopPropagation(); onVerProtocolo(p); }} />
           )}
         </h3>
@@ -369,10 +515,19 @@ function TarjetaProducto({
             transition: 'opacity 0.15s ease',
           }}
         >
-          {agotado ? 'No disponible' : isMobile ? '+ Agregar' : '+ Agregar al carrito'}
+          {agotado ? 'No disponible' : (isMobile ? '+ Agregar' : '+ Agregar al carrito')}
         </button>
       </div>
     </article>
+
+    {verDetalle && (
+      <ProductoBottomSheet
+        producto={p}
+        onAgregarAlCarrito={onAgregarAlCarrito}
+        onClose={() => setVerDetalle(false)}
+      />
+    )}
+    </>
   );
 }
 
