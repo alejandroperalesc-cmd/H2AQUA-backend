@@ -23,6 +23,7 @@ interface ProductoTienda {
   stock: number;
   categoria: string | null;
   imagenUrl: string | null;
+  pdfUrl?: string | null;
   estado: 'ACTIVO' | 'AGOTADO' | 'INACTIVO';
   seccion: number;
   protocolo_limpieza?: boolean;
@@ -89,6 +90,26 @@ function InfoIcon({ onClick, title = 'Ver protocolo de aplicación' }: { onClick
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="9" cy="9" r="8.25" stroke="#00A9C0" strokeWidth="1.5" fill="none" />
         <text x="9" y="13.5" textAnchor="middle" fontSize="10" fontWeight="600" fill="#00A9C0" fontFamily="Georgia, serif" fontStyle="italic">i</text>
+      </svg>
+    </span>
+  );
+}
+
+// ─── Ícono PDF ────────────────────────────────────────────────────────────────
+
+function PdfIcon({ pdfUrl }: { pdfUrl: string }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <span
+      onClick={(e) => { e.stopPropagation(); window.open(pdfUrl, '_blank', 'noopener,noreferrer'); }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      title="Ver ficha técnica (PDF)"
+      style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', marginLeft: '6px', opacity: hover ? 0.7 : 1, transition: 'opacity 0.15s', flexShrink: 0, verticalAlign: 'middle' }}
+    >
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="9" r="8.25" stroke="#00A9C0" strokeWidth="1.5" fill="none" />
+        <text x="9" y="12.8" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="#00A9C0" fontFamily="sans-serif" letterSpacing="0.3">PDF</text>
       </svg>
     </span>
   );
@@ -321,6 +342,77 @@ function ProductoBottomSheet({
   );
 }
 
+// ─── Modal de descripción completa (desktop) ─────────────────────────────────
+
+function DescripcionModal({ nombre, descripcion, onClose }: { nombre: string; descripcion: string; onClose: () => void }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 10);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      clearTimeout(t);
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1050,
+        backgroundColor: `rgba(26,31,53,${visible ? 0.82 : 0})`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1.5rem',
+        transition: 'background-color 0.25s ease',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '1.25rem',
+          width: '100%', maxWidth: '480px', maxHeight: '80vh', overflowY: 'auto',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
+          transform: visible ? 'translateY(0) scale(1)' : 'translateY(16px) scale(0.97)',
+          opacity: visible ? 1 : 0,
+          transition: 'all 0.25s cubic-bezier(0.34,1.2,0.64,1)',
+        }}
+      >
+        <div style={{
+          background: 'linear-gradient(135deg, #0b4a55, #006d77 50%, #00A9C0)',
+          padding: '1.25rem 1.5rem',
+          borderRadius: '1.25rem 1.25rem 0 0',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem',
+        }}>
+          <div>
+            <p style={{ margin: '0 0 4px', fontSize: '0.62rem', letterSpacing: '0.24em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.55)' }}>
+              Descripción
+            </p>
+            <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 400, color: '#fff', lineHeight: 1.3 }}>{nombre}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              width: '32px', height: '32px', borderRadius: '50%', border: 'none',
+              backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff',
+              fontSize: '1rem', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        <div style={{ padding: '1.5rem' }}>
+          <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.8, color: '#2d4a50', whiteSpace: 'pre-line' as const }}>
+            {descripcion}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tarjeta de producto ──────────────────────────────────────────────────────
 
 function TarjetaProducto({
@@ -336,6 +428,7 @@ function TarjetaProducto({
   const tieneProtocolo = !!(p.protocolo_limpieza || p.protocolo_kbeauty);
   const [hover, setHover] = useState(false);
   const [verDetalle, setVerDetalle] = useState(false);
+  const [verDescripcion, setVerDescripcion] = useState(false);
   const isMobile = useIsMobile();
 
   return (
@@ -357,96 +450,55 @@ function TarjetaProducto({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {/* Imagen — desktop only */}
-      {!isMobile && (
-        <div
-          style={{
-            width: '100%',
-            height: '170px',
-            backgroundColor: BG_CARD_ALT,
-            flexShrink: 0,
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-        >
-          {p.imagenUrl ? (
-            <img
-              src={p.imagenUrl}
-              alt={p.nombre}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-                transition: 'transform 0.35s ease',
-                transform: hover ? 'scale(1.06)' : 'scale(1)',
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: TEXT_MUTED,
-                fontSize: '0.8rem',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Sin imagen
-            </div>
-          )}
-          {/* Acento inferior */}
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
-            background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, ${GOLD}, transparent)`,
-            opacity: hover ? 1 : 0,
-            transition: 'opacity 0.22s ease',
-          }} />
-
-          {/* Overlay descripción — se desliza desde abajo al hacer hover */}
-          {p.descripcion && (
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: `linear-gradient(155deg, rgba(11,74,85,0.97) 0%, rgba(0,109,119,0.95) 50%, rgba(0,150,138,0.93) 100%)`,
-              backdropFilter: 'blur(6px)',
-              display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              padding: '1rem 1.15rem',
-              transform: hover ? 'translateY(0)' : 'translateY(100%)',
-              transition: 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)',
-              pointerEvents: hover ? 'auto' : 'none',
-            }}>
-              {/* Etiqueta */}
-              <span style={{
-                fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em',
-                textTransform: 'uppercase', color: P_LIGHT,
-                marginBottom: '0.45rem', display: 'block',
-              }}>
-                Descripción
-              </span>
-              {/* Línea decorativa */}
-              <div style={{
-                width: '24px', height: '2px', borderRadius: '999px',
-                background: `linear-gradient(90deg, ${P}, ${GOLD})`,
-                marginBottom: '0.6rem',
-              }} />
-              <p style={{
-                margin: 0, color: 'rgba(255,255,255,0.88)',
-                fontSize: '0.8rem', lineHeight: 1.65,
-                display: '-webkit-box',
-                WebkitLineClamp: 5,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}>
-                {p.descripcion}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Imagen */}
+      <div
+        style={{
+          width: '100%',
+          height: isMobile ? '130px' : '170px',
+          backgroundColor: BG_CARD_ALT,
+          flexShrink: 0,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        {p.imagenUrl ? (
+          <img
+            src={p.imagenUrl}
+            alt={p.nombre}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              transition: 'transform 0.35s ease',
+              transform: hover ? 'scale(1.06)' : 'scale(1)',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: TEXT_MUTED,
+              fontSize: '0.8rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Sin imagen
+          </div>
+        )}
+        {/* Acento inferior */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
+          background: `linear-gradient(90deg, ${P_DARK}, ${P_GREEN}, ${P}, ${GOLD}, transparent)`,
+          opacity: hover ? 1 : 0,
+          transition: 'opacity 0.22s ease',
+        }} />
+      </div>
 
       {/* Contenido */}
       <div
@@ -458,6 +510,7 @@ function TarjetaProducto({
           flexGrow: 1,
         }}
       >
+        {/* Nombre + iconos */}
         <h3
           style={{
             fontSize: isMobile ? '0.9rem' : '1.08rem',
@@ -473,16 +526,43 @@ function TarjetaProducto({
           }}
         >
           <span>{p.nombre}</span>
+          {/* ℹ️ — mobile only: opens bottom sheet with full details */}
           {isMobile && (
             <InfoIcon
               title="Ver detalles del producto"
               onClick={(e) => { e.stopPropagation(); setVerDetalle(true); }}
             />
           )}
-          {tieneProtocolo && !isMobile && (
+          {/* Protocolo — ambas plataformas */}
+          {tieneProtocolo && (
             <InfoIcon onClick={(e) => { e.stopPropagation(); onVerProtocolo(p); }} />
           )}
+          {/* PDF — ambas plataformas */}
+          {p.pdfUrl && <PdfIcon pdfUrl={p.pdfUrl} />}
         </h3>
+
+        {/* Descripción truncada — desktop: clickable, abre modal con texto completo */}
+        {p.descripcion && !isMobile && (
+          <p
+            onClick={() => setVerDescripcion(true)}
+            style={{
+              margin: '0.1rem 0 0',
+              fontSize: '0.8rem',
+              lineHeight: 1.55,
+              color: TEXT_MUTED,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical' as const,
+              overflow: 'hidden',
+              cursor: 'pointer',
+              textDecoration: 'none',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLParagraphElement).style.textDecoration = 'underline'; (e.currentTarget as HTMLParagraphElement).style.textDecorationColor = 'rgba(0,169,192,0.45)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLParagraphElement).style.textDecoration = 'none'; }}
+          >
+            {p.descripcion}
+          </p>
+        )}
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.15rem' }}>
           <span style={{ fontSize: '0.82rem', fontWeight: 400, color: P_GREEN }}>$</span>
@@ -503,9 +583,7 @@ function TarjetaProducto({
             padding: isMobile ? '0.65rem 0.5rem' : '0.82rem 1rem',
             borderRadius: '999px',
             border: agotado ? `1px solid ${BORDER_SUBTLE}` : 'none',
-            background: agotado
-              ? 'transparent'
-              : GRAD_MAIN,
+            background: agotado ? 'transparent' : GRAD_MAIN,
             color: agotado ? TEXT_MUTED : '#ffffff',
             cursor: agotado ? 'not-allowed' : 'pointer',
             fontSize: isMobile ? '0.78rem' : '0.88rem',
@@ -525,6 +603,13 @@ function TarjetaProducto({
         producto={p}
         onAgregarAlCarrito={onAgregarAlCarrito}
         onClose={() => setVerDetalle(false)}
+      />
+    )}
+    {verDescripcion && p.descripcion && (
+      <DescripcionModal
+        nombre={p.nombre}
+        descripcion={p.descripcion}
+        onClose={() => setVerDescripcion(false)}
       />
     )}
     </>

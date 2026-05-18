@@ -72,6 +72,7 @@ function NuevoProducto() {
     protocolo_kbeauty: false,
   });
   const [imagen, setImagen] = useState<File | null>(null);
+  const [pdf, setPdf] = useState<File | null>(null);
   const [guardando, setGuardando] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
@@ -94,6 +95,7 @@ function NuevoProducto() {
     try {
       setGuardando(true);
       let imagenUrl: string | null = null;
+      let pdfUrl: string | null = null;
 
       if (imagen) {
         const fd = new FormData();
@@ -101,6 +103,14 @@ function NuevoProducto() {
         const respImagen = await fetch(`${API_URL}/upload-imagen`, { method: 'POST', body: fd });
         if (!respImagen.ok) throw new Error('No se pudo subir la imagen');
         imagenUrl = (await respImagen.json()).url;
+      }
+
+      if (pdf) {
+        const fd = new FormData();
+        fd.append('pdf', pdf);
+        const respPdf = await fetch(`${API_URL}/upload-pdf`, { method: 'POST', body: fd });
+        if (!respPdf.ok) throw new Error('No se pudo subir el PDF');
+        pdfUrl = (await respPdf.json()).url;
       }
 
       const resp = await fetch(`${API_URL}/productos`, {
@@ -113,6 +123,7 @@ function NuevoProducto() {
           stock: stockNumero,
           categoria: form.categoria,
           imagenUrl,
+          pdfUrl,
           seccion: Number(form.seccion),
           protocolo_limpieza: form.protocolo_limpieza,
           protocolo_kbeauty: form.protocolo_kbeauty,
@@ -124,6 +135,7 @@ function NuevoProducto() {
       alert('Producto guardado correctamente.');
       setForm({ nombre: '', descripcion: '', precio: '', stock: '', categoria: '', seccion: '1', protocolo_limpieza: false, protocolo_kbeauty: false });
       setImagen(null);
+      setPdf(null);
     } catch (error) {
       console.error(error);
       alert('No se pudo guardar el producto. Intenta más tarde.');
@@ -246,6 +258,26 @@ function NuevoProducto() {
           </div>
         </div>
 
+        {/* PDF de ficha técnica */}
+        <div>
+          <label htmlFor="pdf" style={labelStyle}>Ficha técnica (PDF opcional)</label>
+          <div
+            style={{
+              padding: '1rem',
+              borderRadius: '0.6rem',
+              border: `1px dashed ${TEAL_PROTO}`,
+              backgroundColor: `${TEAL_PROTO}0a`,
+              cursor: 'pointer',
+            }}
+            onClick={() => document.getElementById('pdf')?.click()}
+          >
+            <input id="pdf" name="pdf" type="file" accept="application/pdf" onChange={(e) => setPdf(e.target.files?.[0] ?? null)} style={{ display: 'none' }} />
+            <p style={{ margin: 0, color: pdf ? TEAL_PROTO : TEXT_MUTED, fontSize: '0.9rem', textAlign: 'center' }}>
+              {pdf ? `📄 ${pdf.name}` : 'Haz clic para seleccionar un PDF'}
+            </p>
+          </div>
+        </div>
+
         {/* Botones */}
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
           <button
@@ -273,6 +305,7 @@ function NuevoProducto() {
             onClick={() => {
               setForm({ nombre: '', descripcion: '', precio: '', stock: '', categoria: '', seccion: '1', protocolo_limpieza: false, protocolo_kbeauty: false });
               setImagen(null);
+              setPdf(null);
             }}
             style={{
               padding: '0.85rem 1.4rem',

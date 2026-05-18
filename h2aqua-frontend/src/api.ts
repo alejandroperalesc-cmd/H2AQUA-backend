@@ -13,6 +13,7 @@ export type Producto = {
   categoria?: string | null;
   protocolo_limpieza?: boolean;
   protocolo_kbeauty?: boolean;
+  pdfUrl?: string | null;
 };
 
 export async function obtenerProductos(): Promise<Producto[]> {

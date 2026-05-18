@@ -45,7 +45,7 @@ function Productos() {
   const [error, setError] = useState<string | null>(null);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [form, setForm] = useState({
-    nombre: '', descripcion: '', precio: '', stock: '0', imagenUrl: '', categoria: '', seccion: '1', destacado: false,
+    nombre: '', descripcion: '', precio: '', stock: '0', imagenUrl: '', pdfUrl: '', categoria: '', seccion: '1', destacado: false,
     protocolo_limpieza: false, protocolo_kbeauty: false,
   });
   const [busqueda, setBusqueda] = useState('');
@@ -158,6 +158,7 @@ function Productos() {
       precio: String(p.precio ?? ''),
       stock: String(p.stock ?? 0),
       imagenUrl: p.imagenUrl ?? '',
+      pdfUrl: p.pdfUrl ?? '',
       categoria: p.categoria ?? '',
       seccion: String(p.seccion ?? 1),
       destacado: p.destacado ?? false,
@@ -182,6 +183,7 @@ function Productos() {
           precio: precioNum,
           stock: stockNum,
           imagenUrl: form.imagenUrl || null,
+          pdfUrl: form.pdfUrl || null,
           categoria: form.categoria || null,
           seccion: Number(form.seccion),
           destacado: form.destacado,
@@ -624,6 +626,64 @@ function Productos() {
                         onChange={(e) => setForm((f) => ({ ...f, imagenUrl: e.target.value }))}
                         style={{ ...inputStyle, flex: 1 }}
                       />
+                    </div>
+                  </div>
+
+                  {/* PDF de ficha técnica */}
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.78rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Ficha técnica (PDF)
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {form.pdfUrl && (
+                        <a
+                          href={form.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ fontSize: '0.82rem', color: TEAL_PROTO, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.85rem', borderRadius: '0.45rem', border: `1px solid ${TEAL_PROTO}44`, backgroundColor: `${TEAL_PROTO}0a`, flexShrink: 0 }}
+                        >
+                          📄 Ver PDF actual
+                        </a>
+                      )}
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        style={{ display: 'none' }}
+                        id={`pdf-edit-${p.id}`}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const fd = new FormData();
+                          fd.append('pdf', file);
+                          const resp = await fetch(`${API_URL}/upload-pdf`, { method: 'POST', body: fd });
+                          if (resp.ok) {
+                            const data = await resp.json();
+                            setForm((f) => ({ ...f, pdfUrl: data.url }));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`pdf-edit-${p.id}`}
+                        style={{
+                          padding: '0.45rem 0.85rem', borderRadius: '0.45rem', border: BORDER,
+                          color: TEXT_SECONDARY, fontSize: '0.82rem', cursor: 'pointer',
+                          backgroundColor: BG_CARD_ALT, flexShrink: 0,
+                        }}
+                      >
+                        📎 {form.pdfUrl ? 'Reemplazar PDF' : 'Subir PDF'}
+                      </label>
+                      {form.pdfUrl && (
+                        <button
+                          onClick={() => setForm((f) => ({ ...f, pdfUrl: '' }))}
+                          style={{
+                            padding: '0.45rem 0.85rem', borderRadius: '0.45rem',
+                            border: `1px solid ${ERROR}44`, backgroundColor: 'transparent',
+                            color: ERROR, fontSize: '0.82rem', cursor: 'pointer', flexShrink: 0,
+                          }}
+                        >
+                          ✕ Quitar PDF
+                        </button>
+                      )}
                     </div>
                   </div>
 

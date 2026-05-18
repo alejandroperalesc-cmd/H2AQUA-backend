@@ -36,6 +36,7 @@ model Producto {
   destacado            Boolean  @default(false)
   protocolo_limpieza   Boolean  @default(false)
   protocolo_kbeauty    Boolean  @default(false)
+  pdfUrl               String?
   pedidos              PedidoProducto[]
   citas                Cita[]
 }

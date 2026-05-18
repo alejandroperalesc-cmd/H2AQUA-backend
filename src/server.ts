@@ -50,7 +50,8 @@ const supabase = createClient(
   process.env.SUPABASE_URL    ?? '',
   process.env.SUPABASE_SERVICE_KEY ?? '',
 );
-const SUPABASE_BUCKET = 'Productos';
+const SUPABASE_BUCKET       = 'Productos';
+const SUPABASE_BUCKET_FICHAS = 'fichas';
 
 // Multer — memory storage (file goes to Supabase, not disk)
 const upload = multer({ storage: multer.memoryStorage() });
@@ -160,6 +161,36 @@ app.post('/upload-imagen', upload.single('imagen'), async (req, res) => {
   }
 });
 
+// ---------- SUBIDA DE PDFs (Supabase Storage — bucket "fichas") ----------
+
+app.post('/upload-pdf', upload.single('pdf'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No se recibió ningún archivo' });
+  }
+
+  try {
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.pdf`;
+
+    const { error } = await supabase.storage
+      .from(SUPABASE_BUCKET_FICHAS)
+      .upload(filename, req.file.buffer, {
+        contentType: 'application/pdf',
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from(SUPABASE_BUCKET_FICHAS)
+      .getPublicUrl(filename);
+
+    res.json({ url: data.publicUrl });
+  } catch (err: any) {
+    console.error('Supabase PDF upload error:', err);
+    res.status(500).json({ error: 'Error al subir el PDF' });
+  }
+});
+
 // ---------- PRODUCTOS ----------
 
 // Crear un nuevo producto
@@ -174,6 +205,7 @@ app.post("/productos", async (req, res) => {
       precio,
       stock,
       imagenUrl,
+      pdfUrl,
       categoria, // 'ITEM' | 'TERAPIA'
       seccion,   // número de sección en la tienda (1-4)
       destacado, // boolean
@@ -198,6 +230,7 @@ app.post("/productos", async (req, res) => {
         precio,
         stock: stock ?? 0,
         imagenUrl,
+        pdfUrl: pdfUrl ?? null,
         categoria,
         estado: "ACTIVO",
         seccion: seccion ?? 1,
@@ -230,7 +263,7 @@ app.get("/productos", async (req, res) => {
 app.patch("/productos/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, precio, stock, imagenUrl, categoria, seccion, destacado, protocolo_limpieza, protocolo_kbeauty } = req.body;
+    const { nombre, descripcion, precio, stock, imagenUrl, pdfUrl, categoria, seccion, destacado, protocolo_limpieza, protocolo_kbeauty } = req.body;
 
     const data: Record<string, any> = {};
     if (nombre !== undefined)              data.nombre              = nombre;
@@ -238,6 +271,7 @@ app.patch("/productos/:id", async (req, res) => {
     if (precio !== undefined)              data.precio              = Number(precio);
     if (stock !== undefined)               data.stock               = Number(stock);
     if (imagenUrl !== undefined)           data.imagenUrl           = imagenUrl;
+    if (pdfUrl !== undefined)              data.pdfUrl              = pdfUrl;
     if (categoria !== undefined)           data.categoria           = categoria;
     if (seccion !== undefined)             data.seccion             = Number(seccion);
     if (destacado !== undefined)           data.destacado           = Boolean(destacado);
